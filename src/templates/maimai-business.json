@@ -1,0 +1,26 @@
+{
+  "id": "maimai-business",
+  "name": "脉脉商务",
+  "description": "品牌蓝 + 白卡片 + 浅灰底，简洁可信的商务名片",
+  "previewColors": ["#0a6cff", "#ffffff", "#f2f4f7"],
+  "style": {
+    "background": "#f2f4f7",
+    "backgroundType": "solid",
+    "cardBg": "#ffffff",
+    "textColor": "#1a2333",
+    "accentColor": "#0a6cff",
+    "fontFamily": "-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', 'Segoe UI', sans-serif",
+    "buttonStyle": {
+      "radius": "14px",
+      "shadow": "0 2px 12px rgba(16, 42, 94, 0.08)"
+    }
+  },
+  "defaultModules": [
+    { "type": "header", "visible": true, "order": 0, "data": {} },
+    { "type": "status", "visible": true, "order": 1, "data": { "mode": "open" } },
+    { "type": "contacts", "visible": true, "order": 2, "data": { "items": [] } },
+    { "type": "experience", "visible": true, "order": 3, "data": { "items": [] } },
+    { "type": "skills", "visible": true, "order": 4, "data": { "items": [] } },
+    { "type": "works", "visible": true, "order": 5, "data": { "items": [] } }
+  ]
+}

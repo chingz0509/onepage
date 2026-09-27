@@ -1,0 +1,26 @@
+{
+  "id": "midnight",
+  "name": "午夜极客",
+  "description": "近黑底 + 青绿荧光 accent，创作者与工程师的暗夜主场",
+  "previewColors": ["#0d1117", "#3ee6c4", "#161b22"],
+  "style": {
+    "background": "#0d1117",
+    "backgroundType": "solid",
+    "cardBg": "#161b22",
+    "textColor": "#e6edf3",
+    "accentColor": "#3ee6c4",
+    "fontFamily": "'SF Mono', 'JetBrains Mono', 'PingFang SC', -apple-system, monospace",
+    "buttonStyle": {
+      "radius": "10px",
+      "shadow": "0 0 0 1px rgba(62, 230, 196, 0.15), 0 4px 20px rgba(0, 0, 0, 0.45)"
+    }
+  },
+  "defaultModules": [
+    { "type": "header", "visible": true, "order": 0, "data": {} },
+    { "type": "status", "visible": true, "order": 1, "data": { "mode": "looking" } },
+    { "type": "contacts", "visible": true, "order": 2, "data": { "items": [] } },
+    { "type": "skills", "visible": true, "order": 3, "data": { "items": [] } },
+    { "type": "works", "visible": true, "order": 4, "data": { "items": [] } },
+    { "type": "experience", "visible": true, "order": 5, "data": { "items": [] } }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "id": "aurora",
+  "name": "极光花园",
+  "description": "紫粉橙渐变 + 毛玻璃卡片，个性张扬的设计师之选",
+  "previewColors": ["#7b61ff", "#ff6ec7", "#ffb35c"],
+  "style": {
+    "background": "linear-gradient(160deg, #7b61ff 0%, #b65cff 32%, #ff6ec7 62%, #ffb35c 100%)",
+    "backgroundType": "gradient",
+    "cardBg": "rgba(255, 255, 255, 0.2)",
+    "textColor": "#ffffff",
+    "accentColor": "#ffffff",
+    "fontFamily": "'Avenir Next', 'PingFang SC', -apple-system, 'Helvetica Neue', sans-serif",
+    "buttonStyle": {
+      "radius": "22px",
+      "shadow": "0 8px 32px rgba(31, 38, 135, 0.25)"
+    }
+  },
+  "defaultModules": [
+    { "type": "header", "visible": true, "order": 0, "data": {} },
+    { "type": "status", "visible": true, "order": 1, "data": { "mode": "open" } },
+    { "type": "works", "visible": true, "order": 2, "data": { "items": [] } },
+    { "type": "contacts", "visible": true, "order": 3, "data": { "items": [] } },
+    { "type": "experience", "visible": true, "order": 4, "data": { "items": [] } },
+    { "type": "skills", "visible": true, "order": 5, "data": { "items": [] } }
+  ]
+}
