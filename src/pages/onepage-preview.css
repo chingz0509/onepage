@@ -1,0 +1,727 @@
+/* One Page 预览页：手机形态（390px 居中），Linktree 风格紧凑条目 */
+
+.op-page {
+  min-height: 100vh;
+  background: #e7eaf1;
+  padding: 24px 16px 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* —— 预览页专属：职业切换 —— */
+
+.op-switcher {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.op-switcher-hint {
+  font-size: 12px;
+  color: #8a93a8;
+}
+
+.op-switcher-pills {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  background: #ffffff;
+  border: 1px solid #dfe3ec;
+  border-radius: 999px;
+  box-shadow: 0 1px 4px rgba(23, 32, 58, 0.05);
+}
+
+.op-switcher-pill {
+  border: none;
+  background: transparent;
+  padding: 5px 18px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #7d8699;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.op-switcher-pill.is-active {
+  background: #0a6cff;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(10, 108, 255, 0.35);
+}
+
+/* —— 手机容器 —— */
+
+.op-phone {
+  width: 100%;
+  max-width: 390px;
+  background: #ffffff;
+  border: 1px solid #dde1ea;
+  border-radius: 28px;
+  box-shadow: 0 2px 6px rgba(23, 32, 58, 0.05), 0 24px 64px rgba(23, 32, 58, 0.12);
+  padding: 22px 16px 18px;
+}
+
+/* —— 脉脉风格个人信息区 —— */
+
+.op-m-profile {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.op-m-avatar {
+  width: 52px;
+  height: 52px;
+  flex: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 21px;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(135deg, #4d8dff 0%, #0a6cff 60%, #0047c2 100%);
+  box-shadow: 0 4px 12px rgba(10, 108, 255, 0.28);
+}
+
+.op-m-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.op-m-name {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #17203a;
+}
+
+.op-m-cert {
+  font-size: 10px;
+  color: #0a6cff;
+  background: rgba(10, 108, 255, 0.08);
+  border: 1px solid rgba(10, 108, 255, 0.22);
+  border-radius: 999px;
+  padding: 1px 7px;
+  white-space: nowrap;
+}
+
+.op-m-title {
+  margin: 3px 0 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #3c465e;
+}
+
+.op-m-bio {
+  margin: 3px 0 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: #8a93a8;
+}
+
+.op-m-divider {
+  height: 1px;
+  background: #eef0f4;
+  margin: 16px 0 14px;
+}
+
+/* —— One Page 模块头 —— */
+
+.op-module-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.op-module-title-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.op-module-mark {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  color: #ffffff;
+  background: linear-gradient(135deg, #3d7bff 0%, #0a6cff 100%);
+  letter-spacing: 0.5px;
+}
+
+.op-module-title {
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 800;
+  color: #17203a;
+}
+
+.op-module-sub {
+  margin: 2px 0 0;
+  font-size: 10.5px;
+  color: #9aa2b5;
+}
+
+.op-share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: none;
+  margin-top: 1px;
+  padding: 6px 11px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #0a6cff;
+  background: rgba(10, 108, 255, 0.07);
+  border: 1px solid rgba(10, 108, 255, 0.2);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.op-share-btn:hover {
+  background: rgba(10, 108, 255, 0.13);
+}
+
+/* —— 紧凑条目（Linktree 风格） —— */
+
+.op-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.op-row {
+  border-radius: 16px;
+  border: 1px solid #eceef3;
+  background: #ffffff;
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.op-row:hover {
+  border-color: #dfe4ee;
+  box-shadow: 0 6px 18px rgba(23, 32, 58, 0.06);
+}
+
+.op-row.is-expanded {
+  border-color: #dfe4ee;
+  box-shadow: 0 8px 22px rgba(23, 32, 58, 0.08);
+}
+
+.op-row-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 62px;
+  padding: 10px 14px;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.op-row-main:hover {
+  background: #f8f9fc;
+}
+
+.op-row-badge {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.op-row-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.op-row-platform {
+  font-size: 13px;
+  font-weight: 700;
+  color: #2a3349;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.op-row-insight {
+  font-size: 11px;
+  color: #9aa2b5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.op-row-spark {
+  font-size: 9px;
+  flex: none;
+}
+
+.op-row-nums {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
+
+.op-row-value {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.op-row-unit {
+  font-size: 12px;
+  font-weight: 700;
+  margin-left: 2px;
+  letter-spacing: 0;
+}
+
+.op-row-metric {
+  font-size: 10.5px;
+  color: #9aa2b5;
+}
+
+.op-row-pill {
+  font-size: 11px;
+  font-weight: 600;
+  color: #00a678;
+  background: rgba(0, 166, 120, 0.1);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+.op-row-chevron {
+  flex: none;
+  font-size: 16px;
+  color: #c3c9d6;
+  transform: rotate(90deg);
+  transition: transform 0.2s ease, color 0.15s ease;
+  line-height: 1;
+  cursor: pointer;
+  padding: 6px 2px 6px 6px;
+}
+
+.op-row-chevron:hover {
+  color: #7d8699;
+}
+
+.op-row-chevron.is-open {
+  transform: rotate(-90deg);
+}
+
+/* 展开详情（作品缩略图 + 数据来源） */
+
+.op-row-detail {
+  padding: 2px 14px 13px;
+  animation: op-detail-in 0.25s ease;
+}
+
+@keyframes op-detail-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.op-row-thumbs {
+  display: flex;
+  gap: 7px;
+}
+
+.op-row-thumb {
+  flex: 1;
+  aspect-ratio: 4 / 3;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.op-row-detail-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 9px;
+}
+
+.op-row-source {
+  margin: 0;
+  font-size: 10.5px;
+  color: #b3b9c8;
+}
+
+.op-row-visit {
+  flex: none;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #0a6cff;
+  text-decoration: none;
+}
+
+.op-row-visit:hover {
+  text-decoration: underline;
+}
+
+/* 新条目入场动画 */
+
+.op-row.is-entering {
+  animation: op-row-enter 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes op-row-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 已存在条目的刷新高亮 */
+
+.op-row.is-flashing {
+  animation: op-row-flash 1.5s ease;
+}
+
+@keyframes op-row-flash {
+  0%,
+  40% {
+    border-color: #0a6cff;
+    box-shadow: 0 0 0 3px rgba(10, 108, 255, 0.18);
+  }
+  100% {
+    border-color: #eceef3;
+    box-shadow: none;
+  }
+}
+
+/* —— 添加链接条目 —— */
+
+.op-add-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  min-height: 56px;
+  border: 1.5px dashed #ccd2df;
+  border-radius: 16px;
+  background: #fafbfc;
+  font-size: 13px;
+  font-weight: 600;
+  color: #8a93a8;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.op-add-row:hover {
+  border-color: #0a6cff;
+  color: #0a6cff;
+  background: rgba(10, 108, 255, 0.04);
+}
+
+.op-add-plus {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.op-module-foot {
+  margin: 14px 0 0;
+  text-align: center;
+  font-size: 10.5px;
+  color: #b3b9c8;
+}
+
+/* —— 底部弹层（添加链接） —— */
+
+.op-sheet-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(23, 32, 58, 0.45);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: op-fade-in 0.2s ease;
+}
+
+@keyframes op-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.op-sheet {
+  width: 100%;
+  max-width: 390px;
+  background: #ffffff;
+  border-radius: 20px 20px 0 0;
+  padding: 10px 22px 30px;
+  animation: op-sheet-up 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes op-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.op-sheet-grabber {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: #dfe3ec;
+  margin: 0 auto 16px;
+}
+
+.op-sheet-title {
+  margin: 0 0 14px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #17203a;
+}
+
+.op-sheet-input {
+  width: 100%;
+  padding: 13px 14px;
+  font-size: 14px;
+  color: #17203a;
+  border: 1.5px solid #dfe3ec;
+  border-radius: 12px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.op-sheet-input:focus {
+  border-color: #0a6cff;
+  box-shadow: 0 0 0 3px rgba(10, 108, 255, 0.12);
+}
+
+.op-sheet-input::placeholder {
+  color: #b3b9c8;
+}
+
+.op-sheet-hint {
+  margin: 10px 0 18px;
+  font-size: 12px;
+  color: #9aa2b5;
+}
+
+.op-sheet-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.op-sheet-cancel {
+  flex: 1;
+  padding: 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #7d8699;
+  background: #f5f6f9;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.op-sheet-go {
+  flex: 2;
+  padding: 12px 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  background: #0a6cff;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.op-sheet-go:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* 读取进度 */
+
+.op-sheet-loading {
+  padding-bottom: 6px;
+}
+
+.op-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.op-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+  color: #3c465e;
+  animation: op-detail-in 0.25s ease;
+}
+
+.op-step.is-done {
+  color: #9aa2b5;
+}
+
+.op-step.is-final {
+  color: #00a678;
+  font-weight: 700;
+}
+
+.op-step-check {
+  width: 18px;
+  text-align: center;
+  color: #00a678;
+  font-weight: 700;
+}
+
+.op-spinner {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  border: 2px solid rgba(10, 108, 255, 0.2);
+  border-top-color: #0a6cff;
+  border-radius: 50%;
+  animation: op-spin 0.7s linear infinite;
+}
+
+@keyframes op-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* —— 二维码分享弹层 —— */
+
+.op-modal-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(23, 32, 58, 0.45);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: op-fade-in 0.2s ease;
+}
+
+.op-modal {
+  position: relative;
+  width: 320px;
+  max-width: 100%;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 28px 24px 22px;
+  text-align: center;
+  box-shadow: 0 24px 64px rgba(23, 32, 58, 0.25);
+  animation: op-detail-in 0.25s ease;
+}
+
+.op-modal h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: #17203a;
+}
+
+.op-modal-sub {
+  margin: 6px 0 18px;
+  font-size: 12.5px;
+  color: #8a93a8;
+}
+
+.op-modal-qr {
+  width: 180px;
+  height: 180px;
+  border-radius: 12px;
+  border: 1px solid #eef0f4;
+  padding: 8px;
+  background: #ffffff;
+}
+
+.op-modal-qr-loading {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #9aa2b5;
+  font-size: 12px;
+}
+
+.op-modal-url {
+  margin: 14px 0 0;
+  font-size: 11.5px;
+  color: #aab1c2;
+  word-break: break-all;
+}
+
+.op-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: #f5f6f9;
+  color: #7d8699;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.op-modal-close:hover {
+  background: #eceef3;
+}

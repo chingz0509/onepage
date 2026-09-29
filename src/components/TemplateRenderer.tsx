@@ -198,7 +198,7 @@ export function TemplateRenderer({ config }: { config: PageConfig }) {
               return null
           }
         })}
-        <footer className="yy-footer">由「一页」生成 · 职场人的一页名片</footer>
+        <footer className="yy-footer">由「OnePage」生成 · 职场人的一页名片</footer>
       </div>
     </div>
   )

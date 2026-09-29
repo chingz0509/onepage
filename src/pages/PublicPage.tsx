@@ -28,7 +28,7 @@ export function PublicPage({ slug, encoded }: { slug: string; encoded: string | 
     return (
       <div className="notfound">
         <h1>404 · 页面不存在</h1>
-        <p>这个「一页」链接不存在或已被删除。</p>
+        <p>这个「OnePage」链接不存在或已被删除。</p>
         <button className="btn btn-primary" onClick={() => navigate('/')}>
           回到首页
         </button>

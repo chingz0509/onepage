@@ -139,7 +139,7 @@ export function Create() {
       <div className="app-shell">
         <nav className="app-nav">
           <span className="app-logo">
-            <span className="app-logo-mark">页</span>一页
+            <span className="app-logo-mark">页</span>OnePage
           </span>
         </nav>
         <div className="publish-result">
@@ -166,7 +166,7 @@ export function Create() {
               复制链接
             </button>
             <button className="btn btn-ghost" onClick={() => window.location.reload()}>
-              再建一页
+              再建一个
             </button>
           </div>
         </div>
@@ -178,7 +178,7 @@ export function Create() {
     <div className="app-shell">
       <nav className="app-nav">
         <span className="app-logo" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
-          <span className="app-logo-mark">页</span>一页
+          <span className="app-logo-mark">页</span>OnePage
         </span>
       </nav>
 
@@ -375,7 +375,7 @@ export function Create() {
               上一步
             </button>
             <button className="btn btn-primary" onClick={publish}>
-              发布我的一页
+              发布我的 OnePage
             </button>
           </div>
         </section>
