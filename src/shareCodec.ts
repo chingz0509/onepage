@@ -45,19 +45,28 @@ function fromBase64Url(str: string): Uint8Array {
   return new Uint8Array(bytes)
 }
 
+/** 任意 JSON 值 → URL 安全字符串 */
+export function encodeJson<T>(value: T): string {
+  return toBase64Url(pako.deflate(JSON.stringify(value)))
+}
+
+/** 反向解码；任何一步失败（篡改/截断/乱码）都返回 null，由调用方走回退 */
+export function decodeJson<T>(str: string): T | null {
+  try {
+    if (!/^[A-Za-z0-9\-_]+$/.test(str)) return null
+    const json = pako.inflate(fromBase64Url(str), { to: 'string' })
+    return JSON.parse(json) as T
+  } catch {
+    return null
+  }
+}
+
 /** PageConfig → URL 安全字符串 */
 export function encodeConfig(config: PageConfig): string {
-  const json = JSON.stringify(config)
-  return toBase64Url(pako.deflate(json))
+  return encodeJson(config)
 }
 
 /** 反向解码；任何一步失败（篡改/截断/乱码）都返回 null，由调用方走回退 */
 export function decodeConfig(str: string): PageConfig | null {
-  try {
-    if (!/^[A-Za-z0-9\-_]+$/.test(str)) return null
-    const json = pako.inflate(fromBase64Url(str), { to: 'string' })
-    return JSON.parse(json) as PageConfig
-  } catch {
-    return null
-  }
+  return decodeJson<PageConfig>(str)
 }

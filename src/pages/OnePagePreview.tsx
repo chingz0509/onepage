@@ -1,36 +1,31 @@
 import { useEffect, useRef, useState } from 'react'
 import QRCode from 'qrcode'
+import { encodeJson } from '../shareCodec'
+import { pageUrl } from '../router'
+import {
+  BUTTON_COLORS,
+  BUTTON_STYLES,
+  WALLPAPERS,
+  resolveButtonColors,
+  wallpaperById,
+  type ButtonColorId,
+  type ButtonStyleId,
+  type OnePageLink,
+  type OnePageShare,
+} from '../onepage'
 import './onepage-preview.css'
 
-type PlatformCard = {
-  id: string
-  platform: string
-  badge: string
-  accent: string
-  metric: string
-  value: string
-  url: string
-  unit?: string
-  insight: string
-  generic?: boolean
-  thumbnails?: string[]
-}
+type PersonaId = 'designer' | 'developer'
 
 type Persona = {
-  id: 'designer' | 'developer'
+  id: PersonaId
   label: string
   avatar: string
   name: string
   job: string
   bio: string
-  cards: PlatformCard[]
+  placeholders: string[]
 }
-
-const DESIGNER_THUMBS = [
-  'linear-gradient(135deg, #fde0ee 0%, #f8a5cd 55%, #ea4c89 100%)',
-  'linear-gradient(135deg, #e8ecff 0%, #9fb4ff 55%, #3d5afe 100%)',
-  'linear-gradient(135deg, #fff3e0 0%, #ffcc80 55%, #fb8c00 100%)',
-]
 
 const PERSONAS: Persona[] = [
   {
@@ -40,50 +35,7 @@ const PERSONAS: Persona[] = [
     name: '林小满',
     job: '资深 UI 设计师 · 星海科技',
     bio: '8 年体验设计经验，相信好设计自己会说话。',
-    cards: [
-      {
-        id: 'dribbble',
-        platform: 'Dribbble',
-        badge: 'Dr',
-        accent: '#ea4c89',
-        metric: '总获赞',
-        value: '12.8k',
-        url: 'https://dribbble.com/424096784emm',
-        insight: '互动量超过 92% 的 UI 设计师',
-        thumbnails: DESIGNER_THUMBS,
-      },
-      {
-        id: 'behance',
-        platform: 'Behance',
-        badge: 'Be',
-        accent: '#0057ff',
-        metric: '作品总浏览',
-        value: '3.4k',
-        url: 'https://www.behance.net/linxiaoman',
-        insight: '近 90 天浏览量稳步上升，增幅 46%',
-      },
-      {
-        id: 'zcool',
-        platform: '站酷',
-        badge: '站',
-        accent: '#ff552e',
-        metric: '人气值',
-        value: '856',
-        url: 'https://www.zcool.com.cn/u/linxiaoman',
-        insight: '3 件作品被编辑推荐至首页',
-      },
-      {
-        id: 'site',
-        platform: '个人作品集',
-        badge: '集',
-        accent: '#6c5ce7',
-        metric: '精选项目',
-        value: '32',
-        unit: '个',
-        url: 'https://linxiaoman.design',
-        insight: '涵盖金融、电商、工具类 B/C 端设计',
-      },
-    ],
+    placeholders: ['dribbble.com/xxx', 'behance.net/xxx', '你的作品集网址'],
   },
   {
     id: 'developer',
@@ -92,54 +44,12 @@ const PERSONAS: Persona[] = [
     name: '陈默',
     job: '前端工程师 · 星河互联',
     bio: '7 年前端，专注工程效能与数据可视化。',
-    cards: [
-      {
-        id: 'github',
-        platform: 'GitHub',
-        badge: 'GH',
-        accent: '#24292f',
-        metric: '总 Star',
-        value: '2.1k',
-        url: 'https://github.com/chenmo',
-        insight: '前端影响力超过 95% 的同行',
-      },
-      {
-        id: 'juejin',
-        platform: '掘金',
-        badge: '掘',
-        accent: '#1e80ff',
-        metric: '文章阅读量',
-        value: '48w',
-        url: 'https://juejin.cn/user/chenmo',
-        insight: '3 篇专栏进入前端分类热榜',
-      },
-      {
-        id: 'stackoverflow',
-        platform: 'Stack Overflow',
-        badge: 'SO',
-        accent: '#f48024',
-        metric: '声望值',
-        value: '3.2k',
-        url: 'https://stackoverflow.com/users/chenmo',
-        insight: '回答采纳率 68%，高于社区均值',
-      },
-      {
-        id: 'blog',
-        platform: '技术博客',
-        badge: '博',
-        accent: '#00a678',
-        metric: '周更写作',
-        value: '126',
-        unit: '篇',
-        url: 'https://blog.chenmo.dev',
-        insight: '持续更新 2 年 4 个月，从未断更',
-      },
-    ],
+    placeholders: ['github.com/xxx', 'juejin.cn/user/xxx', '你的博客网址'],
   },
 ]
 
 /** 已知平台的模拟读取结果（黑客松演示数据），url 取用户粘贴的链接 */
-const KNOWN_PLATFORMS: Record<string, Omit<PlatformCard, 'id' | 'url'>> = {
+const KNOWN_PLATFORMS: Record<string, Omit<OnePageLink, 'url'>> = {
   'dribbble.com': {
     platform: 'Dribbble',
     badge: 'Dr',
@@ -147,7 +57,6 @@ const KNOWN_PLATFORMS: Record<string, Omit<PlatformCard, 'id' | 'url'>> = {
     metric: '总获赞',
     value: '12.8k',
     insight: '互动量超过 92% 的 UI 设计师',
-    thumbnails: DESIGNER_THUMBS,
   },
   'behance.net': {
     platform: 'Behance',
@@ -192,7 +101,7 @@ const KNOWN_PLATFORMS: Record<string, Omit<PlatformCard, 'id' | 'url'>> = {
 }
 
 type Detected =
-  | { kind: 'known'; card: Omit<PlatformCard, 'id' | 'url'> }
+  | { kind: 'known'; card: Omit<OnePageLink, 'url'> }
   | { kind: 'generic'; domain: string }
 
 function normalizeUrl(raw: string): string {
@@ -212,129 +121,115 @@ function detectUrl(raw: string): Detected | null {
   return { kind: 'generic', domain }
 }
 
-type SheetState =
-  | { phase: 'input' }
-  | { phase: 'loading'; steps: string[]; step: number; detected: Detected }
-  | null
-
-function ShareModal({ url, onClose }: { url: string; onClose: () => void }) {
-  const [qr, setQr] = useState('')
-  const dialogRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    QRCode.toDataURL(url, { width: 320, margin: 1, color: { dark: '#17203a' } })
-      .then(setQr)
-      .catch(() => setQr(''))
-  }, [url])
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
-
-  return (
-    <div
-      className="op-modal-mask"
-      onClick={(e) => {
-        if (!dialogRef.current?.contains(e.target as Node)) onClose()
-      }}
-    >
-      <div className="op-modal" ref={dialogRef}>
-        <button className="op-modal-close" onClick={onClose} aria-label="关闭">
-          ✕
-        </button>
-        <h3>分享这一页</h3>
-        <p className="op-modal-sub">扫一扫，在手机上查看这一页</p>
-        {qr ? (
-          <img className="op-modal-qr" src={qr} alt="页面二维码" />
-        ) : (
-          <div className="op-modal-qr op-modal-qr-loading">生成中…</div>
-        )}
-        <p className="op-modal-url">{url}</p>
-      </div>
-    </div>
-  )
+function randomSlug(): string {
+  return Math.random().toString(36).slice(2, 8)
 }
 
 function Spinner() {
   return <span className="op-spinner" aria-hidden />
 }
 
-export function OnePagePreview() {
-  const [personaId, setPersonaId] = useState<Persona['id']>('designer')
-  const [sharing, setSharing] = useState(false)
-  const [added, setAdded] = useState<Record<Persona['id'], PlatformCard[]>>({
-    designer: [],
-    developer: [],
-  })
-  const [justAddedId, setJustAddedId] = useState<string | null>(null)
-  const [flashId, setFlashId] = useState<string | null>(null)
-  const [expandedId, setExpandedId] = useState<string | null>(null)
+/** 紧凑条目（预览 / 嵌入模块通用展示） */
+function LinkRow({ link, flashing }: { link: OnePageLink; flashing?: boolean }) {
+  return (
+    <a
+      className={`op-row-main op-row-standalone${flashing ? ' is-flashing' : ''}`}
+      href={link.url}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <span className="op-row-badge" style={{ background: link.accent }}>
+        {link.badge}
+      </span>
+      <span className="op-row-text">
+        <span className="op-row-platform">{link.platform}</span>
+        <span className="op-row-insight">
+          <span className="op-row-spark" style={{ color: link.accent }}>
+            ✦
+          </span>
+          {link.insight}
+        </span>
+      </span>
+      <span className="op-row-nums">
+        {link.generic ? (
+          <span className="op-row-pill">已收录</span>
+        ) : (
+          <>
+            <span className="op-row-value" style={{ color: link.accent }}>
+              {link.value}
+              {link.unit && <span className="op-row-unit">{link.unit}</span>}
+            </span>
+            <span className="op-row-metric">{link.metric}</span>
+          </>
+        )}
+      </span>
+    </a>
+  )
+}
 
-  const [sheet, setSheet] = useState<SheetState>(null)
-  const [inputUrl, setInputUrl] = useState('')
+type LinkSlot = { id: number; value: string; card: OnePageLink | null }
+
+export function OnePagePreview() {
+  const [step, setStep] = useState<0 | 1 | 2 | 3 | 4>(0)
+  const [personaId, setPersonaId] = useState<PersonaId>('designer')
+  const persona = PERSONAS.find((p) => p.id === personaId) ?? PERSONAS[0]
+
+  // 第 1 步：资料
+  const [name, setName] = useState(persona.name)
+  const [job, setJob] = useState(persona.job)
+  const [bio, setBio] = useState(persona.bio)
+
+  // 第 2 步：链接
+  const [slots, setSlots] = useState<LinkSlot[]>([])
+  const slotSeq = useRef(0)
+  const [flashPlatform, setFlashPlatform] = useState<string | null>(null)
+  const [sheet, setSheet] = useState<{ steps: string[]; step: number } | null>(null)
   const timers = useRef<number[]>([])
 
-  const persona = PERSONAS.find((p) => p.id === personaId) ?? PERSONAS[0]
-  const cards = [...persona.cards, ...added[personaId]]
-  const pageUrl = window.location.href
+  // 第 3 步：风格
+  const [wallpaperId, setWallpaperId] = useState('cream')
+  const [buttonStyle, setButtonStyle] = useState<ButtonStyleId>('pill')
+  const [buttonColor, setButtonColor] = useState<ButtonColorId>('black')
+  const [styleTab, setStyleTab] = useState<'wallpaper' | 'button'>('wallpaper')
+
+  // 第 4 步：分享
+  const [shareUrl, setShareUrl] = useState('')
+  const [qr, setQr] = useState('')
+  const [copied, setCopied] = useState(false)
+
+  const links = slots.filter((s) => s.card).map((s) => s.card as OnePageLink)
+  const wallpaper = wallpaperById(wallpaperId)
+
+  const switchPersona = (id: PersonaId) => {
+    const p = PERSONAS.find((x) => x.id === id) ?? PERSONAS[0]
+    setPersonaId(id)
+    setName(p.name)
+    setJob(p.job)
+    setBio(p.bio)
+    setSlots([])
+  }
 
   const clearTimers = () => {
     timers.current.forEach((t) => window.clearTimeout(t))
     timers.current = []
   }
-
   useEffect(() => clearTimers, [])
 
-  const closeSheet = () => {
-    clearTimers()
-    setSheet(null)
-    setInputUrl('')
+  const newSlot = (): LinkSlot => ({ id: ++slotSeq.current, value: '', card: null })
+
+  const enterStep2 = () => {
+    if (slots.length === 0) setSlots([newSlot(), newSlot(), newSlot()])
+    setStep(2)
   }
 
-  const finishAdd = (detected: Detected, url: string) => {
-    closeSheet()
-    if (detected.kind === 'known') {
-      const existing = cards.find((c) => c.platform === detected.card.platform)
-      if (existing) {
-        // 已添加过：刷新高亮现有条目
-        setFlashId(existing.id)
-        timers.current.push(window.setTimeout(() => setFlashId(null), 1600))
-        return
-      }
-      const id = `added-${detected.card.platform.toLowerCase()}-${personaId}`
-      setAdded((prev) => ({
-        ...prev,
-        [personaId]: [...prev[personaId], { id, ...detected.card, url }],
-      }))
-      setJustAddedId(id)
-    } else {
-      const id = `added-${detected.domain}-${personaId}`
-      const generic: PlatformCard = {
-        id,
-        platform: detected.domain,
-        badge: detected.domain[0].toUpperCase(),
-        accent: '#5b6478',
-        metric: '主页链接',
-        value: '✓',
-        url,
-        insight: `已收录「${detected.domain} 的个人主页」`,
-        generic: true,
-      }
-      setAdded((prev) => ({ ...prev, [personaId]: [...prev[personaId], generic] }))
-      setJustAddedId(id)
-    }
-  }
-
-  const startRead = () => {
-    const detected = detectUrl(inputUrl)
+  const startRead = (slotId: number) => {
+    const slot = slots.find((s) => s.id === slotId)
+    if (!slot) return
+    const detected = detectUrl(slot.value)
     if (!detected) return
-    const url = normalizeUrl(inputUrl)
+    const url = normalizeUrl(slot.value)
     const isKnown = detected.kind === 'known'
-    const isDup = isKnown && cards.some((c) => c.platform === detected.card.platform)
+    const isDup = isKnown && links.some((l) => l.platform === detected.card.platform)
     const steps = isKnown
       ? [
           `AI 正在打开你的 ${detected.card.platform} 主页…`,
@@ -343,19 +238,104 @@ export function OnePagePreview() {
         ]
       : ['AI 正在识别这个平台…', '正在读取页面内容…', '✓ 读取完成']
 
-    setSheet({ phase: 'loading', steps, step: 0, detected })
+    setSheet({ steps, step: 0 })
+    timers.current.push(window.setTimeout(() => setSheet({ steps, step: 1 }), 1000))
+    timers.current.push(window.setTimeout(() => setSheet({ steps, step: 2 }), 2100))
     timers.current.push(
-      window.setTimeout(() => setSheet({ phase: 'loading', steps, step: 1, detected }), 1000),
-    )
-    timers.current.push(
-      window.setTimeout(() => setSheet({ phase: 'loading', steps, step: 2, detected }), 2100),
-    )
-    timers.current.push(
-      window.setTimeout(() => finishAdd(detected, url), 2900),
+      window.setTimeout(() => {
+        setSheet(null)
+        if (isKnown && isDup) {
+          // 已添加过：刷新高亮现有条目，清空这个输入框
+          setFlashPlatform(detected.card.platform)
+          timers.current.push(window.setTimeout(() => setFlashPlatform(null), 1600))
+          setSlots((prev) => prev.map((s) => (s.id === slotId ? { ...s, value: '' } : s)))
+          return
+        }
+        const card: OnePageLink =
+          detected.kind === 'known'
+            ? { ...detected.card, url }
+            : {
+                platform: detected.domain,
+                badge: detected.domain[0].toUpperCase(),
+                accent: '#5b6478',
+                metric: '主页链接',
+                value: '✓',
+                url,
+                insight: `已收录「${detected.domain} 的个人主页」`,
+                generic: true,
+              }
+        setSlots((prev) => prev.map((s) => (s.id === slotId ? { ...s, card } : s)))
+      }, 2900),
     )
   }
 
-  const inputValid = detectUrl(inputUrl) !== null
+  const publish = () => {
+    const payload: OnePageShare = {
+      kind: 'onepage',
+      slug: randomSlug(),
+      name,
+      title: job,
+      bio,
+      avatar: name.trim()[0] ?? persona.avatar,
+      wallpaper: wallpaperId,
+      buttonStyle,
+      buttonColor,
+      links,
+    }
+    const url = pageUrl(payload.slug, encodeJson(payload))
+    setShareUrl(url)
+    setStep(4)
+  }
+
+  useEffect(() => {
+    if (step !== 4 || !shareUrl) return
+    QRCode.toDataURL(shareUrl, { width: 320, margin: 1, color: { dark: '#17203a' } })
+      .then(setQr)
+      .catch(() => setQr(''))
+  }, [step, shareUrl])
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+    } catch {
+      const ta = document.createElement('textarea')
+      ta.value = shareUrl
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand('copy')
+      document.body.removeChild(ta)
+    }
+    setCopied(true)
+    window.setTimeout(() => setCopied(false), 1600)
+  }
+
+  const avatarChar = name.trim()[0] ?? persona.avatar
+
+  const profileHeader = (
+    <div className="op-m-profile">
+      <div className="op-m-avatar">{avatarChar}</div>
+      <div className="op-m-info">
+        <div className="op-m-name-row">
+          <h1 className="op-m-name">{name}</h1>
+          <span className="op-m-cert">实名认证</span>
+        </div>
+        <p className="op-m-title">{job}</p>
+        <p className="op-m-bio">{bio}</p>
+      </div>
+    </div>
+  )
+
+  const moduleHeader = (
+    <div className="op-module-head">
+      <div className="op-module-title-row">
+        <span className="op-module-mark">1P</span>
+        <div>
+          <h2 className="op-module-title">One Page · 职业价值一览</h2>
+          <p className="op-module-sub">聚合全网平台数据 · 每日更新</p>
+        </div>
+      </div>
+    </div>
+  )
 
   return (
     <div className="op-page">
@@ -369,7 +349,7 @@ export function OnePagePreview() {
               role="tab"
               aria-selected={p.id === personaId}
               className={`op-switcher-pill${p.id === personaId ? ' is-active' : ''}`}
-              onClick={() => setPersonaId(p.id)}
+              onClick={() => switchPersona(p.id)}
             >
               {p.label}
             </button>
@@ -377,201 +357,326 @@ export function OnePagePreview() {
         </div>
       </div>
 
-      {/* 手机形态的脉脉个人主页 */}
-      <div className="op-phone">
-        <div className="op-m-profile">
-          <div className="op-m-avatar">{persona.avatar}</div>
-          <div className="op-m-info">
-            <div className="op-m-name-row">
-              <h1 className="op-m-name">{persona.name}</h1>
-              <span className="op-m-cert">实名认证</span>
-            </div>
-            <p className="op-m-title">{persona.job}</p>
-            <p className="op-m-bio">{persona.bio}</p>
-          </div>
-        </div>
-
-        <div className="op-m-divider" />
-
-        <section className="op-module">
-          <div className="op-module-head">
-            <div className="op-module-title-row">
-              <span className="op-module-mark">1P</span>
-              <div>
-                <h2 className="op-module-title">One Page · 职业价值一览</h2>
-                <p className="op-module-sub">聚合全网平台数据 · 每日更新</p>
-              </div>
-            </div>
-            <button className="op-share-btn" onClick={() => setSharing(true)}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <path
-                  d="M12 3v13m0-13L7 8m5-5l5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              分享
-            </button>
-          </div>
-
-          <div className="op-rows">
-            {cards.map((card) => {
-              const expandable = !!card.thumbnails
-              const expanded = expandedId === card.id
-              const cls = [
-                'op-row',
-                expanded ? 'is-expanded' : '',
-                card.id === justAddedId ? 'is-entering' : '',
-                card.id === flashId ? 'is-flashing' : '',
-              ]
-                .filter(Boolean)
-                .join(' ')
-              return (
-                <div className={cls} key={card.id}>
-                  <a
-                    className="op-row-main"
-                    href={card.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <span className="op-row-badge" style={{ background: card.accent }}>
-                      {card.badge}
-                    </span>
-                    <span className="op-row-text">
-                      <span className="op-row-platform">{card.platform}</span>
-                      <span className="op-row-insight">
-                        <span className="op-row-spark" style={{ color: card.accent }}>
-                          ✦
-                        </span>
-                        {card.insight}
-                      </span>
-                    </span>
-                    <span className="op-row-nums">
-                      {card.generic ? (
-                        <span className="op-row-pill">已收录</span>
-                      ) : (
-                        <>
-                          <span className="op-row-value" style={{ color: card.accent }}>
-                            {card.value}
-                            {card.unit && <span className="op-row-unit">{card.unit}</span>}
-                          </span>
-                          <span className="op-row-metric">{card.metric}</span>
-                        </>
-                      )}
-                    </span>
-                    {expandable && (
-                      <span
-                        className={`op-row-chevron${expanded ? ' is-open' : ''}`}
-                        role="button"
-                        aria-label={expanded ? '收起' : '展开'}
-                        onClick={(e) => {
-                          e.preventDefault()
-                          e.stopPropagation()
-                          setExpandedId(expanded ? null : card.id)
-                        }}
-                      >
-                        ›
-                      </span>
-                    )}
-                  </a>
-
-                  {expanded && card.thumbnails && (
-                    <div className="op-row-detail">
-                      <div className="op-row-thumbs">
-                        {card.thumbnails.map((bg, i) => (
-                          <div key={i} className="op-row-thumb" style={{ background: bg }} />
-                        ))}
-                      </div>
-                      <div className="op-row-detail-foot">
-                        <p className="op-row-source">数据来自 {card.platform} · 刚刚更新</p>
-                        <a
-                          className="op-row-visit"
-                          href={card.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          访问 {card.platform} 主页 →
-                        </a>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-
-            {/* 添加链接 */}
-            <button className="op-add-row" onClick={() => setSheet({ phase: 'input' })}>
-              <span className="op-add-plus">+</span>
-              添加链接
-            </button>
-          </div>
-
-          <p className="op-module-foot">数据均来自平台直采 · 刚刚更新</p>
-        </section>
-      </div>
-
-      {/* 添加链接：底部弹层 */}
-      {sheet && (
-        <div className="op-sheet-mask" onClick={closeSheet}>
-          <div className="op-sheet" onClick={(e) => e.stopPropagation()}>
-            <div className="op-sheet-grabber" />
-            {sheet.phase === 'input' && (
-              <>
-                <h3 className="op-sheet-title">添加链接</h3>
-                <input
-                  className="op-sheet-input"
-                  autoFocus
-                  value={inputUrl}
-                  onChange={(e) => setInputUrl(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && inputValid) startRead()
-                  }}
-                  placeholder="粘贴你的主页链接，如 dribbble.com/xxx"
-                />
-                <p className="op-sheet-hint">✦ AI 将自动读取你的平台数据</p>
-                <div className="op-sheet-actions">
-                  <button className="op-sheet-cancel" onClick={closeSheet}>
-                    取消
-                  </button>
-                  <button
-                    className="op-sheet-go"
-                    disabled={!inputValid}
-                    onClick={startRead}
-                  >
-                    读取
-                  </button>
-                </div>
-              </>
-            )}
-            {sheet.phase === 'loading' && (
-              <div className="op-sheet-loading">
-                <h3 className="op-sheet-title">读取中</h3>
-                <ul className="op-steps">
-                  {sheet.steps.slice(0, sheet.step + 1).map((text, i) => (
-                    <li
-                      key={i}
-                      className={`op-step${i < sheet.step ? ' is-done' : ''}${
-                        i === sheet.step && i === sheet.steps.length - 1 ? ' is-final' : ''
-                      }`}
-                    >
-                      {i < sheet.step || i === sheet.steps.length - 1 ? (
-                        <span className="op-step-check">✓</span>
-                      ) : (
-                        <Spinner />
-                      )}
-                      {text.replace(/^✓ /, '')}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
+      {/* ———— 第 0 屏：脉脉个人页 mock（入口） ———— */}
+      {step === 0 && (
+        <div className="op-phone">
+          {profileHeader}
+          <div className="op-m-divider" />
+          <button className="op-entry-card" onClick={() => setStep(1)}>
+            <span className="op-entry-plus">+</span>
+            <span className="op-entry-text">
+              <strong>One Page · 展示你的职业价值</strong>
+              <small>把站外平台的数据聚合到脉脉主页，1 分钟完成</small>
+            </span>
+            <span className="op-entry-arrow">›</span>
+          </button>
+          <p className="op-module-foot">One Page 模块尚未开启</p>
         </div>
       )}
 
-      {sharing && <ShareModal url={pageUrl} onClose={() => setSharing(false)} />}
+      {/* ———— 第 1-3 步：上手向导 ———— */}
+      {(step === 1 || step === 2 || step === 3) && (
+        <div className="op-phone">
+          <div className="op-wiz-top">
+            <button
+              className="op-wiz-back"
+              aria-label="返回"
+              onClick={() => setStep((step - 1) as 0 | 1 | 2)}
+            >
+              ←
+            </button>
+            <div className="op-wiz-progress">
+              <div className="op-wiz-progress-fill" style={{ width: `${(step / 3) * 100}%` }} />
+            </div>
+            <span className="op-wiz-count">{step} / 3</span>
+          </div>
+
+          {step === 1 && (
+            <>
+              <h2 className="op-wiz-title">
+                确认一下，<em>这是你</em>
+              </h2>
+              <p className="op-wiz-sub">信息来自你的脉脉资料，随时可改</p>
+              <div className="op-form">
+                <label className="op-field">
+                  <span className="op-field-label">姓名</span>
+                  <input className="op-field-input" value={name} onChange={(e) => setName(e.target.value)} />
+                </label>
+                <label className="op-field">
+                  <span className="op-field-label">职位</span>
+                  <input className="op-field-input" value={job} onChange={(e) => setJob(e.target.value)} />
+                </label>
+                <label className="op-field">
+                  <span className="op-field-label">一句话简介</span>
+                  <textarea
+                    className="op-field-input op-field-textarea"
+                    rows={2}
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                  />
+                </label>
+              </div>
+              <div className="op-wiz-actions">
+                <button className="op-btn-continue" onClick={enterStep2}>
+                  继续
+                </button>
+              </div>
+            </>
+          )}
+
+          {step === 2 && (
+            <>
+              <h2 className="op-wiz-title">
+                添加你的<em>价值链接</em>
+              </h2>
+              <p className="op-wiz-sub">贴上主页链接，AI 自动读取平台数据生成卡片</p>
+              <div className="op-slots">
+                {slots.map((slot, i) =>
+                  slot.card ? (
+                    <div className="op-slot-done" key={slot.id}>
+                      <LinkRow
+                        link={slot.card}
+                        flashing={flashPlatform === slot.card.platform}
+                      />
+                    </div>
+                  ) : (
+                    <div className="op-slot" key={slot.id}>
+                      <input
+                        className="op-slot-input"
+                        value={slot.value}
+                        placeholder={persona.placeholders[i] ?? '粘贴你的主页链接'}
+                        onChange={(e) =>
+                          setSlots((prev) =>
+                            prev.map((s) => (s.id === slot.id ? { ...s, value: e.target.value } : s)),
+                          )
+                        }
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && detectUrl(slot.value)) startRead(slot.id)
+                        }}
+                      />
+                      <button
+                        className="op-slot-go"
+                        disabled={!detectUrl(slot.value)}
+                        onClick={() => startRead(slot.id)}
+                      >
+                        读取
+                      </button>
+                    </div>
+                  ),
+                )}
+                <button
+                  className="op-add-row"
+                  onClick={() => setSlots((prev) => [...prev, newSlot()])}
+                >
+                  <span className="op-add-plus">+</span>
+                  添加链接
+                </button>
+              </div>
+              <div className="op-wiz-actions">
+                <button className="op-btn-continue" onClick={() => setStep(3)}>
+                  继续{links.length > 0 && `（已添加 ${links.length} 条）`}
+                </button>
+                <button className="op-btn-skip" onClick={() => setStep(3)}>
+                  跳过
+                </button>
+              </div>
+            </>
+          )}
+
+          {step === 3 && (
+            <>
+              <h2 className="op-wiz-title">
+                定制你的<em>风格</em>
+              </h2>
+              <p className="op-wiz-sub">这是访客打开你的分享链接时看到的页面</p>
+
+              {/* 实时预览 */}
+              <div className="op-style-preview" style={{ background: wallpaper.bg }}>
+                <div
+                  className="op-style-avatar"
+                  style={{ color: wallpaper.text, borderColor: wallpaper.text }}
+                >
+                  {avatarChar}
+                </div>
+                <p className="op-style-name" style={{ color: wallpaper.text }}>
+                  {name}
+                </p>
+                <p className="op-style-bio" style={{ color: wallpaper.text }}>
+                  {bio}
+                </p>
+                <div className="op-style-links">
+                  {links.length === 0 && (
+                    <p className="op-style-empty" style={{ color: wallpaper.text }}>
+                      还没有链接，可返回上一步添加
+                    </p>
+                  )}
+                  {links.map((link) => {
+                    const c = resolveButtonColors(wallpaper, buttonColor)
+                    const radius = BUTTON_STYLES.find((b) => b.id === buttonStyle)?.radius
+                    return (
+                      <span
+                        key={link.platform}
+                        className="op-style-link"
+                        style={{ background: c.bg, color: c.text, borderRadius: radius, borderColor: c.border }}
+                      >
+                        <strong>{link.platform}</strong>
+                        <span>
+                          {link.value}
+                          {link.unit ?? ''} · {link.metric}
+                        </span>
+                      </span>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* 定制 tab */}
+              <div className="op-tabs">
+                <button
+                  className={`op-tab${styleTab === 'wallpaper' ? ' is-active' : ''}`}
+                  onClick={() => setStyleTab('wallpaper')}
+                >
+                  壁纸
+                </button>
+                <button
+                  className={`op-tab${styleTab === 'button' ? ' is-active' : ''}`}
+                  onClick={() => setStyleTab('button')}
+                >
+                  按钮
+                </button>
+              </div>
+
+              {styleTab === 'wallpaper' && (
+                <div className="op-swatches">
+                  {WALLPAPERS.map((w) => (
+                    <button
+                      key={w.id}
+                      className={`op-swatch${w.id === wallpaperId ? ' is-active' : ''}`}
+                      style={{ background: w.bg }}
+                      title={w.name}
+                      onClick={() => setWallpaperId(w.id)}
+                    >
+                      {w.id === wallpaperId && (
+                        <span style={{ color: w.text }}>✓</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {styleTab === 'button' && (
+                <>
+                  <div className="op-btnstyles">
+                    {BUTTON_STYLES.map((b) => (
+                      <button
+                        key={b.id}
+                        className={`op-btnstyle${b.id === buttonStyle ? ' is-active' : ''}`}
+                        onClick={() => setButtonStyle(b.id)}
+                      >
+                        <span className="op-btnstyle-demo" style={{ borderRadius: b.radius }} />
+                        {b.name}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="op-btncolors">
+                    {BUTTON_COLORS.map((c) => (
+                      <button
+                        key={c.id}
+                        className={`op-btncolor${c.id === buttonColor ? ' is-active' : ''}`}
+                        onClick={() => setButtonColor(c.id)}
+                      >
+                        {c.name}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              <div className="op-wiz-actions">
+                <button className="op-btn-continue" onClick={publish}>
+                  发布我的 One Page
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* ———— 第 4 步：完成 ———— */}
+      {step === 4 && (
+        <>
+          <h2 className="op-done-title">🎉 你的 One Page 已上线</h2>
+          <p className="op-done-sub">模块已嵌入你的脉脉主页，也可以把独立页分享给任何人</p>
+
+          <div className="op-phone">
+            {profileHeader}
+            <div className="op-m-divider" />
+            <section className="op-module op-module-landing">
+              {moduleHeader}
+              <div className="op-rows">
+                {links.map((link) => (
+                  <div className="op-row" key={link.platform}>
+                    <LinkRow link={link} />
+                  </div>
+                ))}
+                {links.length === 0 && (
+                  <p className="op-module-empty">还没有链接，回到上一步添加吧</p>
+                )}
+              </div>
+              <p className="op-module-foot">数据均来自平台直采 · 刚刚更新</p>
+            </section>
+          </div>
+
+          <div className="op-share-card">
+            {qr ? (
+              <img className="op-share-qr" src={qr} alt="分享二维码" />
+            ) : (
+              <div className="op-share-qr op-share-qr-loading">生成中…</div>
+            )}
+            <p className="op-share-url">{shareUrl}</p>
+            <div className="op-share-actions">
+              <button className="op-btn-continue op-btn-copy" onClick={copyLink}>
+                {copied ? '✓ 已复制' : '复制链接'}
+              </button>
+              <a className="op-btn-open" href={shareUrl} target="_blank" rel="noopener noreferrer">
+                打开看看 →
+              </a>
+            </div>
+            <button className="op-btn-skip" onClick={() => setStep(0)}>
+              返回脉脉主页
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* AI 读取进度：底部弹层 */}
+      {sheet && (
+        <div className="op-sheet-mask">
+          <div className="op-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="op-sheet-grabber" />
+            <div className="op-sheet-loading">
+              <h3 className="op-sheet-title">读取中</h3>
+              <ul className="op-steps">
+                {sheet.steps.slice(0, sheet.step + 1).map((text, i) => (
+                  <li
+                    key={i}
+                    className={`op-step${i < sheet.step ? ' is-done' : ''}${
+                      i === sheet.step && i === sheet.steps.length - 1 ? ' is-final' : ''
+                    }`}
+                  >
+                    {i < sheet.step || i === sheet.steps.length - 1 ? (
+                      <span className="op-step-check">✓</span>
+                    ) : (
+                      <Spinner />
+                    )}
+                    {text.replace(/^✓ /, '')}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
