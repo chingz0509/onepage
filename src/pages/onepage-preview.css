@@ -9,48 +9,6 @@
   align-items: center;
 }
 
-/* —— 预览页专属：职业切换 —— */
-
-.op-switcher {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 14px;
-}
-
-.op-switcher-hint {
-  font-size: 12px;
-  color: #8a93a8;
-}
-
-.op-switcher-pills {
-  display: flex;
-  gap: 4px;
-  padding: 3px;
-  background: #ffffff;
-  border: 1px solid #dfe3ec;
-  border-radius: 999px;
-  box-shadow: 0 1px 4px rgba(23, 32, 58, 0.05);
-}
-
-.op-switcher-pill {
-  border: none;
-  background: transparent;
-  padding: 5px 18px;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: #7d8699;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.op-switcher-pill.is-active {
-  background: #0a6cff;
-  color: #ffffff;
-  box-shadow: 0 2px 8px rgba(10, 108, 255, 0.35);
-}
-
 /* —— 手机容器 —— */
 
 .op-phone {

@@ -171,8 +171,8 @@ type LinkSlot = { id: number; value: string; card: OnePageLink | null }
 
 export function OnePagePreview() {
   const [step, setStep] = useState<0 | 1 | 2 | 3 | 4>(0)
-  const [personaId, setPersonaId] = useState<PersonaId>('designer')
-  const persona = PERSONAS.find((p) => p.id === personaId) ?? PERSONAS[0]
+  // 预览固定使用设计师人设；研发人设数据保留在 PERSONAS 里备用
+  const persona = PERSONAS[0]
 
   // 第 1 步：资料
   const [name, setName] = useState(persona.name)
@@ -199,15 +199,6 @@ export function OnePagePreview() {
 
   const links = slots.filter((s) => s.card).map((s) => s.card as OnePageLink)
   const wallpaper = wallpaperById(wallpaperId)
-
-  const switchPersona = (id: PersonaId) => {
-    const p = PERSONAS.find((x) => x.id === id) ?? PERSONAS[0]
-    setPersonaId(id)
-    setName(p.name)
-    setJob(p.job)
-    setBio(p.bio)
-    setSlots([])
-  }
 
   const clearTimers = () => {
     timers.current.forEach((t) => window.clearTimeout(t))
@@ -339,24 +330,6 @@ export function OnePagePreview() {
 
   return (
     <div className="op-page">
-      {/* 预览页专属：职业切换（不属于嵌入模块本身） */}
-      <div className="op-switcher">
-        <span className="op-switcher-hint">预览人设</span>
-        <div className="op-switcher-pills" role="tablist">
-          {PERSONAS.map((p) => (
-            <button
-              key={p.id}
-              role="tab"
-              aria-selected={p.id === personaId}
-              className={`op-switcher-pill${p.id === personaId ? ' is-active' : ''}`}
-              onClick={() => switchPersona(p.id)}
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* ———— 第 0 屏：脉脉个人页 mock（入口） ———— */}
       {step === 0 && (
         <div className="op-phone">
