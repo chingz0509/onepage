@@ -12,8 +12,10 @@ import {
   type ButtonStyleId,
   type OnePageLink,
   type OnePageShare,
+  type Wallpaper,
 } from '../onepage'
 import './onepage-preview.css'
+import './onepage-shared.css'
 
 type PersonaId = 'designer' | 'developer'
 
@@ -163,44 +165,6 @@ function Spinner() {
   return <span className="op-spinner" aria-hidden />
 }
 
-/** 紧凑条目（展示态，可点击跳转） */
-function LinkRow({ link, flashing }: { link: OnePageLink; flashing?: boolean }) {
-  return (
-    <a
-      className={`op-row-main op-row-standalone${flashing ? ' is-flashing' : ''}`}
-      href={link.url}
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      <span className="op-row-badge" style={{ background: link.accent }}>
-        {link.badge}
-      </span>
-      <span className="op-row-text">
-        <span className="op-row-platform">{link.platform}</span>
-        <span className="op-row-insight">
-          <span className="op-row-spark" style={{ color: link.accent }}>
-            ✦
-          </span>
-          {link.insight}
-        </span>
-      </span>
-      <span className="op-row-nums">
-        {link.generic ? (
-          <span className="op-row-pill">已收录</span>
-        ) : (
-          <>
-            <span className="op-row-value" style={{ color: link.accent }}>
-              {link.value}
-              {link.unit && <span className="op-row-unit">{link.unit}</span>}
-            </span>
-            <span className="op-row-metric">{link.metric}</span>
-          </>
-        )}
-      </span>
-    </a>
-  )
-}
-
 type LinkSlot = { id: number; value: string; card: OnePageLink | null }
 
 type PublishedState = {
@@ -233,11 +197,36 @@ type Sheet =
   | { kind: 'style' }
   | null
 
+/** 主页条目按钮的内容（左侧图标 / 中间平台名 / 右侧数字），<a> 或 <span> 均可套用 */
+function LinkButtonContent({ link }: { link: OnePageLink }) {
+  return (
+    <>
+      <span className="ops-link-badge" style={{ background: link.accent }}>
+        {link.badge}
+      </span>
+      <span className="ops-link-name">{link.platform}</span>
+      <span className="ops-link-nums">
+        {link.generic ? (
+          <span className="ops-link-generic">已收录</span>
+        ) : (
+          <>
+            <strong>
+              {link.value}
+              {link.unit ?? ''}
+            </strong>
+            <small>{link.metric}</small>
+          </>
+        )}
+      </span>
+    </>
+  )
+}
+
 export function OnePagePreview() {
   const [initial] = useState(loadPublished)
   const persona = PERSONAS[0]
 
-  const [step, setStep] = useState<0 | 1 | 2 | 3 | 4>(0)
+  const [step, setStep] = useState<0 | 1 | 2 | 3>(0)
   const [published, setPublished] = useState(initial !== null)
 
   // 资料
@@ -260,6 +249,7 @@ export function OnePagePreview() {
 
   // 分享
   const [shareUrl, setShareUrl] = useState(initial?.shareUrl ?? '')
+  const [shareOpen, setShareOpen] = useState(false)
   const [qr, setQr] = useState('')
   const [copied, setCopied] = useState(false)
 
@@ -283,6 +273,23 @@ export function OnePagePreview() {
   const wallpaper = wallpaperById(wallpaperId)
   const avatarChar = name.trim()[0] ?? persona.avatar
   const wizardLinks = slots.filter((s) => s.card).map((s) => s.card as OnePageLink)
+
+  const radius = BUTTON_STYLES.find((b) => b.id === buttonStyle)?.radius ?? '999px'
+  const btnColors = resolveButtonColors(wallpaper, buttonColor)
+  const linkBtnStyle: CSSProperties = {
+    background: btnColors.bg,
+    color: btnColors.text,
+    borderRadius: radius,
+    borderColor: btnColors.border,
+  }
+
+  const pageStyle = {
+    background: wallpaper.bg,
+    color: wallpaper.text,
+    '--wiz-text': wallpaper.text,
+    '--wiz-btn-bg': wallpaper.dark ? '#ffffff' : '#17203a',
+    '--wiz-btn-text': wallpaper.dark ? '#17203a' : '#ffffff',
+  } as CSSProperties
 
   const persist = (next?: Partial<PublishedState>) => {
     const data: PublishedState = {
@@ -312,6 +319,7 @@ export function OnePagePreview() {
     setButtonStyle('pill')
     setButtonColor('black')
     setShareUrl('')
+    setShareOpen(false)
     setEditing(false)
     setVisitor(false)
     setUndo(null)
@@ -357,7 +365,6 @@ export function OnePagePreview() {
         detected.kind === 'known' &&
         wizardLinks.some((l) => l.platform === detected.card.platform)
       if (isDup && detected.kind === 'known') {
-        // 已添加过：刷新高亮现有条目，清空这个输入框
         setFlashKey(detected.card.platform)
         timers.current.push(window.setTimeout(() => setFlashKey(null), 1600))
         setSlots((prev) => prev.map((s) => (s.id === slotId ? { ...s, value: '' } : s)))
@@ -386,15 +393,16 @@ export function OnePagePreview() {
     setLinks(wizardLinks)
     setPublished(true)
     persist({ links: wizardLinks, shareUrl: url })
-    setStep(4)
+    setStep(0)
+    setShareOpen(true)
   }
 
   useEffect(() => {
-    if (step !== 4 || !shareUrl) return
+    if (!shareOpen || !shareUrl) return
     QRCode.toDataURL(shareUrl, { width: 320, margin: 1, color: { dark: '#17203a' } })
       .then(setQr)
       .catch(() => setQr(''))
-  }, [step, shareUrl])
+  }, [shareOpen, shareUrl])
 
   const copyLink = async () => {
     try {
@@ -475,121 +483,10 @@ export function OnePagePreview() {
     })
   }
 
-  // —— 渲染片段 ——
-
-  const profileHeader = (
-    <div className="op-m-profile">
-      <div className="op-m-avatar">{avatarChar}</div>
-      <div className="op-m-info">
-        <div className="op-m-name-row">
-          <h1 className="op-m-name">{name}</h1>
-          <span className="op-m-cert">实名认证</span>
-        </div>
-        <p className="op-m-title">{job}</p>
-        <p className="op-m-bio">{bio}</p>
-      </div>
-    </div>
-  )
-
-  const moduleTitleRow = (showManage: boolean) => (
-    <div className="op-module-head">
-      <div className="op-module-title-row">
-        <span className="op-module-mark">1P</span>
-        <div>
-          <h2 className="op-module-title">One Page · 职业价值一览</h2>
-          <p className="op-module-sub">聚合全网平台数据 · 每日更新</p>
-        </div>
-      </div>
-      {showManage && !visitor && (
-        <button
-          className="op-mini-btn"
-          onClick={() => (editing ? finishEditing() : setEditing(true))}
-        >
-          {editing ? '完成' : '编辑'}
-        </button>
-      )}
-    </div>
-  )
-
-  /** 已发布模块（嵌入脉脉 mock），showManage 控制编辑入口 */
-  const publishedModule = (showManage: boolean, landing: boolean) => (
-    <section className={`op-module${landing ? ' op-module-landing' : ''}`}>
-      {moduleTitleRow(showManage)}
-
-      {editing && !visitor && (
-        <div className="op-module-editbar">
-          <button className="op-mini-btn" onClick={refreshData}>
-            ⟳ 刷新数据
-          </button>
-          <button className="op-mini-btn" onClick={() => setSheet({ kind: 'style' })}>
-            🎨 风格
-          </button>
-        </div>
-      )}
-
-      <div className="op-rows">
-        {links.map((link, i) =>
-          editing && !visitor ? (
-            <div className="op-edit-row" key={link.platform}>
-              <button
-                className="op-row-del"
-                aria-label={`删除 ${link.platform}`}
-                onClick={() => deleteLink(i)}
-              >
-                −
-              </button>
-              <div className="op-edit-row-body">
-                <LinkRow link={link} flashing={flashAll || flashKey === link.platform} />
-              </div>
-              <div className="op-row-move">
-                <button
-                  aria-label="上移"
-                  disabled={i === 0}
-                  onClick={() => moveLink(i, -1)}
-                >
-                  ↑
-                </button>
-                <button
-                  aria-label="下移"
-                  disabled={i === links.length - 1}
-                  onClick={() => moveLink(i, 1)}
-                >
-                  ↓
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div
-              className={`op-row${justAdded === link.platform ? ' is-entering' : ''}`}
-              key={link.platform}
-            >
-              <LinkRow link={link} flashing={flashAll || flashKey === link.platform} />
-            </div>
-          ),
-        )}
-        {links.length === 0 && !editing && (
-          <p className="op-module-empty">还没有链接，点「编辑」添加吧</p>
-        )}
-        {editing && !visitor && (
-          <button
-            className="op-add-row"
-            onClick={() => {
-              setSheetInput('')
-              setSheet({ kind: 'add', phase: 'input' })
-            }}
-          >
-            <span className="op-add-plus">+</span>
-            添加链接
-          </button>
-        )}
-      </div>
-
-      <p className="op-module-foot">数据均来自平台直采 · 刚刚更新</p>
-    </section>
-  )
+  // —— 渲染 ——
 
   return (
-    <div className="op-page">
+    <div className="op-page" style={pageStyle}>
       {visitor && (
         <button className="op-visitor-bar" onClick={() => setVisitor(false)}>
           <span className="op-visitor-dot" />
@@ -597,58 +494,137 @@ export function OnePagePreview() {
         </button>
       )}
 
-      {/* ———— 第 0 屏：脉脉个人页 mock ———— */}
-      {step === 0 && (
-        <div className="op-phone">
-          {published && !visitor && (
-            <div className="op-phone-tools">
-              <button className="op-icon-btn" aria-label="访客视角" onClick={enterVisitor}>
-                👁 访客视角
+      {/* 发布态的悬浮管理按钮 */}
+      {step === 0 && published && !visitor && (
+        <>
+          <button className="op-fab op-fab-left" aria-label="访客视角" onClick={enterVisitor}>
+            👁 访客视角
+          </button>
+          <div className="op-fab-right">
+            {shareUrl && (
+              <button className="op-fab" onClick={() => setShareOpen(true)}>
+                分享
+              </button>
+            )}
+            <button
+              className="op-fab"
+              onClick={() => (editing ? finishEditing() : setEditing(true))}
+            >
+              {editing ? '完成' : '编辑'}
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* ———— 欢迎屏（未发布） ———— */}
+      {step === 0 && !published && (
+        <div className="op-welcome">
+          <div className="op-welcome-avatar">{avatarChar}</div>
+          <h1 className="op-welcome-title">创建你的 One Page</h1>
+          <p className="op-welcome-sub">
+            贴上你的平台链接，AI 自动聚合数据，
+            <br />
+            生成一页拿得出手的个人主页。
+          </p>
+          <button className="op-btn-continue op-welcome-btn" onClick={() => setStep(1)}>
+            开始
+          </button>
+        </div>
+      )}
+
+      {/* ———— 发布态：主页本身 ———— */}
+      {step === 0 && published && (
+        <div className="ops-column op-home-col">
+          <div className="ops-avatar">{avatarChar}</div>
+          <h1 className="ops-name">{name}</h1>
+          <p className="ops-title">{job}</p>
+          {bio && <p className="ops-bio">{bio}</p>}
+
+          {editing && !visitor && (
+            <div className="op-module-editbar">
+              <button className="op-mini-btn" onClick={refreshData}>
+                ⟳ 刷新数据
+              </button>
+              <button className="op-mini-btn" onClick={() => setSheet({ kind: 'style' })}>
+                🎨 风格
               </button>
             </div>
           )}
-          {visitor && <div className="op-phone-tools" />}
 
-          {profileHeader}
-          <div className="op-m-divider" />
-
-          {published ? (
-            publishedModule(true, false)
-          ) : (
-            <>
-              <button className="op-entry-card" onClick={() => setStep(1)}>
-                <span className="op-entry-plus">+</span>
-                <span className="op-entry-text">
-                  <strong>One Page · 展示你的职业价值</strong>
-                  <small>把站外平台的数据聚合到脉脉主页，1 分钟完成</small>
-                </span>
-                <span className="op-entry-arrow">›</span>
+          <div className="ops-links">
+            {links.map((link, i) =>
+              editing && !visitor ? (
+                <div className="op-edit-row" key={link.platform}>
+                  <button
+                    className="op-row-del"
+                    aria-label={`删除 ${link.platform}`}
+                    onClick={() => deleteLink(i)}
+                  >
+                    −
+                  </button>
+                  <span
+                    className={`ops-link op-edit-link${flashAll || flashKey === link.platform ? ' is-flashing' : ''}`}
+                    style={linkBtnStyle}
+                  >
+                    <LinkButtonContent link={link} />
+                  </span>
+                  <div className="op-row-move">
+                    <button aria-label="上移" disabled={i === 0} onClick={() => moveLink(i, -1)}>
+                      ↑
+                    </button>
+                    <button
+                      aria-label="下移"
+                      disabled={i === links.length - 1}
+                      onClick={() => moveLink(i, 1)}
+                    >
+                      ↓
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <a
+                  key={link.platform}
+                  className={`ops-link${justAdded === link.platform ? ' is-entering' : ''}${
+                    flashAll || flashKey === link.platform ? ' is-flashing' : ''
+                  }`}
+                  style={linkBtnStyle}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <LinkButtonContent link={link} />
+                </a>
+              ),
+            )}
+            {links.length === 0 && !editing && (
+              <p className="ops-empty">还没有链接，点右上角「编辑」添加吧</p>
+            )}
+            {editing && !visitor && (
+              <button
+                className="op-add-row"
+                onClick={() => {
+                  setSheetInput('')
+                  setSheet({ kind: 'add', phase: 'input' })
+                }}
+              >
+                <span className="op-add-plus">+</span>
+                添加链接
               </button>
-              <p className="op-module-foot">One Page 模块尚未开启</p>
-            </>
+            )}
+          </div>
+
+          <p className="ops-foot">数据均来自平台直采 · 刚刚更新</p>
+          {!visitor && (
+            <button className="op-reset-link" onClick={resetDemo}>
+              重置演示
+            </button>
           )}
         </div>
       )}
 
-      {step === 0 && published && (
-        <button className="op-reset-link" onClick={resetDemo}>
-          重置演示
-        </button>
-      )}
-
-      {/* ———— 第 1-3 步：上手向导（壁纸全屏打底，文字/按钮色随壁纸明暗适配） ———— */}
+      {/* ———— 向导第 1-3 步（壁纸全屏打底） ———— */}
       {(step === 1 || step === 2 || step === 3) && (
-        <div
-          className="op-phone op-phone-wizard"
-          style={
-            {
-              background: wallpaper.bg,
-              '--wiz-text': wallpaper.text,
-              '--wiz-btn-bg': wallpaper.dark ? '#ffffff' : '#17203a',
-              '--wiz-btn-text': wallpaper.dark ? '#17203a' : '#ffffff',
-            } as CSSProperties
-          }
-        >
+        <div className="op-col">
           <div className="op-wiz-top">
             <button
               className="op-wiz-back"
@@ -666,9 +642,9 @@ export function OnePagePreview() {
           {step === 1 && (
             <>
               <h2 className="op-wiz-title">
-                确认一下，<em>这是你</em>
+                介绍一下<em>你自己</em>
               </h2>
-              <p className="op-wiz-sub">信息来自你的脉脉资料，随时可改</p>
+              <p className="op-wiz-sub">这些信息会展示在你的主页顶部</p>
               <div className="op-form">
                 <label className="op-field">
                   <span className="op-field-label">姓名</span>
@@ -701,12 +677,19 @@ export function OnePagePreview() {
               <h2 className="op-wiz-title">
                 添加你的<em>价值链接</em>
               </h2>
-              <p className="op-wiz-sub">贴上主页链接，AI 自动读取平台数据生成卡片</p>
+              <p className="op-wiz-sub">贴上主页链接，AI 自动读取平台数据生成条目</p>
               <div className="op-slots">
                 {slots.map((slot, i) =>
                   slot.card ? (
                     <div className="op-slot-done" key={slot.id}>
-                      <LinkRow link={slot.card} flashing={flashKey === slot.card.platform} />
+                      <span
+                        className={`ops-link op-slot-link${
+                          flashKey === slot.card.platform ? ' is-flashing' : ''
+                        }`}
+                        style={linkBtnStyle}
+                      >
+                        <LinkButtonContent link={slot.card} />
+                      </span>
                     </div>
                   ) : (
                     <div className="op-slot" key={slot.id}>
@@ -757,17 +740,7 @@ export function OnePagePreview() {
               <h2 className="op-wiz-title">
                 定制你的<em>风格</em>
               </h2>
-              <p className="op-wiz-sub">这是访客打开你的分享链接时看到的页面</p>
-
-              <StylePreview
-                wallpaper={wallpaper}
-                buttonStyle={buttonStyle}
-                buttonColor={buttonColor}
-                avatarChar={avatarChar}
-                name={name}
-                bio={bio}
-                links={wizardLinks}
-              />
+              <p className="op-wiz-sub">页面背景就是你的预览，所见即所得</p>
 
               <StylePicker
                 wallpaperId={wallpaperId}
@@ -790,25 +763,28 @@ export function OnePagePreview() {
         </div>
       )}
 
-      {/* ———— 第 4 步：完成 ———— */}
-      {step === 4 && (
-        <>
-          <h2 className="op-done-title">🎉 你的 One Page 已上线</h2>
-          <p className="op-done-sub">模块已嵌入你的脉脉主页，也可以把独立页分享给任何人</p>
+      {/* 撤销删除提示 */}
+      {undo && (
+        <div className="op-undo-toast">
+          已删除 {undo.link.platform}
+          <button onClick={undoDelete}>撤销</button>
+        </div>
+      )}
 
-          <div className="op-phone">
-            {profileHeader}
-            <div className="op-m-divider" />
-            {publishedModule(false, true)}
-          </div>
-
-          <div className="op-share-card">
+      {/* 分享弹层 */}
+      {shareOpen && (
+        <div className="op-modal-mask" onClick={() => setShareOpen(false)}>
+          <div className="op-share-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="op-modal-close" aria-label="关闭" onClick={() => setShareOpen(false)}>
+              ✕
+            </button>
+            <h3 className="op-share-modal-title">🎉 你的 One Page 已上线</h3>
             {qr ? (
               <img className="op-share-qr" src={qr} alt="分享二维码" />
             ) : (
               <div className="op-share-qr op-share-qr-loading">生成中…</div>
             )}
-            <p className="op-snapshot-note">链接内容为此刻的快照，脉脉内的模块始终最新</p>
+            <p className="op-snapshot-note">链接内容为此刻的快照，主页数据可实时更新</p>
             <p className="op-share-url">{shareUrl}</p>
             <div className="op-share-actions">
               <button className="op-btn-continue op-btn-copy" onClick={copyLink}>
@@ -818,18 +794,7 @@ export function OnePagePreview() {
                 打开看看 →
               </a>
             </div>
-            <button className="op-btn-skip" onClick={() => setStep(0)}>
-              返回脉脉主页
-            </button>
           </div>
-        </>
-      )}
-
-      {/* 撤销删除提示 */}
-      {undo && (
-        <div className="op-undo-toast">
-          已删除 {undo.link.platform}
-          <button onClick={undoDelete}>撤销</button>
         </div>
       )}
 
@@ -897,15 +862,12 @@ export function OnePagePreview() {
             {sheet.kind === 'style' && (
               <>
                 <h3 className="op-sheet-title">风格</h3>
-                <StylePreview
+                <StylePreviewCompact
                   wallpaper={wallpaper}
-                  buttonStyle={buttonStyle}
-                  buttonColor={buttonColor}
+                  linkBtnStyle={linkBtnStyle}
                   avatarChar={avatarChar}
                   name={name}
-                  bio={bio}
                   links={links}
-                  compact
                 />
                 <StylePicker
                   wallpaperId={wallpaperId}
@@ -918,7 +880,7 @@ export function OnePagePreview() {
                   setStyleTab={setStyleTab}
                 />
                 <div className="op-wiz-actions">
-                  <button className="op-btn-continue" onClick={() => setSheet(null)}>
+                  <button className="op-btn-continue op-sheet-confirm" onClick={() => setSheet(null)}>
                     完成
                   </button>
                 </div>
@@ -931,46 +893,28 @@ export function OnePagePreview() {
   )
 }
 
-/** 风格实时预览（独立页效果缩略） */
-function StylePreview(props: {
-  wallpaper: ReturnType<typeof wallpaperById>
-  buttonStyle: ButtonStyleId
-  buttonColor: ButtonColorId
+/** 风格弹层里的紧凑预览（白底弹层上需要一块壁纸色示意） */
+function StylePreviewCompact(props: {
+  wallpaper: Wallpaper
+  linkBtnStyle: CSSProperties
   avatarChar: string
   name: string
-  bio: string
   links: OnePageLink[]
-  compact?: boolean
 }) {
-  const { wallpaper, buttonStyle, buttonColor } = props
-  const c = resolveButtonColors(wallpaper, buttonColor)
-  const radius = BUTTON_STYLES.find((b) => b.id === buttonStyle)?.radius
   return (
-    <div
-      className={`op-style-preview${props.compact ? ' is-compact' : ''}`}
-      style={{ background: wallpaper.bg }}
-    >
-      <div className="op-style-avatar" style={{ color: wallpaper.text, borderColor: wallpaper.text }}>
+    <div className="op-style-preview is-compact" style={{ background: props.wallpaper.bg }}>
+      <div
+        className="op-style-avatar"
+        style={{ color: props.wallpaper.text, borderColor: props.wallpaper.text }}
+      >
         {props.avatarChar}
       </div>
-      <p className="op-style-name" style={{ color: wallpaper.text }}>
+      <p className="op-style-name" style={{ color: props.wallpaper.text }}>
         {props.name}
       </p>
-      <p className="op-style-bio" style={{ color: wallpaper.text }}>
-        {props.bio}
-      </p>
       <div className="op-style-links">
-        {props.links.length === 0 && (
-          <p className="op-style-empty" style={{ color: wallpaper.text }}>
-            还没有链接
-          </p>
-        )}
-        {props.links.map((link) => (
-          <span
-            key={link.platform}
-            className="op-style-link"
-            style={{ background: c.bg, color: c.text, borderRadius: radius, borderColor: c.border }}
-          >
+        {props.links.slice(0, 2).map((link) => (
+          <span key={link.platform} className="op-style-link" style={props.linkBtnStyle}>
             <strong>{link.platform}</strong>
             <span>
               {link.value}
@@ -978,12 +922,17 @@ function StylePreview(props: {
             </span>
           </span>
         ))}
+        {props.links.length === 0 && (
+          <p className="op-style-empty" style={{ color: props.wallpaper.text }}>
+            还没有链接
+          </p>
+        )}
       </div>
     </div>
   )
 }
 
-/** 壁纸 + 按钮样式选择器（向导第 3 步与编辑模式弹层共用） */
+/** 壁纸 + 按钮样式选择器（向导第 3 步与风格弹层共用） */
 function StylePicker(props: {
   wallpaperId: string
   setWallpaperId: (id: string) => void

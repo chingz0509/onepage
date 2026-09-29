@@ -1,6 +1,6 @@
 /**
- * One Page（脉脉嵌入模块）共享模型与主题表。
- * OnePagePreview（上手向导）与 OnePageShared（独立分享页）共用。
+ * One Page（AI 版 Linktree）共享模型与主题表。
+ * OnePagePreview（创建向导 + 主页管理）与 OnePageShared（独立分享页）共用。
  */
 
 export type OnePageLink = {
