@@ -8,7 +8,7 @@ import './onepage-shared.css'
 
 /**
  * One Page 独立分享页（#/p/<slug>?d=<encoded>）。
- * Linktree 风格：壁纸色整页背景 + 头像姓名 + 按钮式链接条目，数据全部来自 URL。
+ * Linktree 风格：壁纸全屏铺开 + 居中头像姓名 + 通栏按钮条目，数据全部来自 URL。
  */
 export function OnePageShared({ data }: { data: OnePageShare }) {
   const wallpaper = wallpaperById(data.wallpaper)
@@ -18,9 +18,7 @@ export function OnePageShared({ data }: { data: OnePageShare }) {
   return (
     <div className="ops-page" style={{ background: wallpaper.bg, color: wallpaper.text }}>
       <div className="ops-column">
-        <div className="ops-avatar" style={{ borderColor: wallpaper.text }}>
-          {data.avatar}
-        </div>
+        <div className="ops-avatar">{data.avatar}</div>
         <h1 className="ops-name">{data.name}</h1>
         <p className="ops-title">{data.title}</p>
         {data.bio && <p className="ops-bio">{data.bio}</p>}
@@ -38,23 +36,26 @@ export function OnePageShared({ data }: { data: OnePageShare }) {
               <span className="ops-link-badge" style={{ background: link.accent }}>
                 {link.badge}
               </span>
-              <span className="ops-link-text">
-                <strong>{link.platform}</strong>
-                <small>
-                  {link.generic
-                    ? link.insight
-                    : `${link.value}${link.unit ?? ''} ${link.metric} · ${link.insight}`}
-                </small>
+              <span className="ops-link-name">{link.platform}</span>
+              <span className="ops-link-nums">
+                {link.generic ? (
+                  <span className="ops-link-generic">已收录</span>
+                ) : (
+                  <>
+                    <strong>
+                      {link.value}
+                      {link.unit ?? ''}
+                    </strong>
+                    <small>{link.metric}</small>
+                  </>
+                )}
               </span>
-              <span className="ops-link-arrow">›</span>
             </a>
           ))}
           {data.links.length === 0 && <p className="ops-empty">这个页面还没有添加链接</p>}
         </div>
 
-        <p className="ops-foot">
-          由 <strong>One Page</strong> 生成 · 嵌入脉脉个人主页
-        </p>
+        <p className="ops-foot">数据来自平台直采 · 由 One Page 生成</p>
       </div>
     </div>
   )

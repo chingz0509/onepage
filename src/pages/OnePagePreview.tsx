@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import QRCode from 'qrcode'
 import { encodeJson } from '../shareCodec'
 import { pageUrl } from '../router'
@@ -636,9 +636,19 @@ export function OnePagePreview() {
         </button>
       )}
 
-      {/* ———— 第 1-3 步：上手向导 ———— */}
+      {/* ———— 第 1-3 步：上手向导（壁纸全屏打底，文字/按钮色随壁纸明暗适配） ———— */}
       {(step === 1 || step === 2 || step === 3) && (
-        <div className="op-phone">
+        <div
+          className="op-phone op-phone-wizard"
+          style={
+            {
+              background: wallpaper.bg,
+              '--wiz-text': wallpaper.text,
+              '--wiz-btn-bg': wallpaper.dark ? '#ffffff' : '#17203a',
+              '--wiz-btn-text': wallpaper.dark ? '#17203a' : '#ffffff',
+            } as CSSProperties
+          }
+        >
           <div className="op-wiz-top">
             <button
               className="op-wiz-back"

@@ -2,8 +2,8 @@
 
 .op-page {
   min-height: 100vh;
-  background: #e7eaf1;
-  padding: 24px 16px 72px;
+  background: #f1ede6;
+  padding: 32px 16px 72px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -15,10 +15,98 @@
   width: 100%;
   max-width: 390px;
   background: #ffffff;
-  border: 1px solid #dde1ea;
-  border-radius: 28px;
-  box-shadow: 0 2px 6px rgba(23, 32, 58, 0.05), 0 24px 64px rgba(23, 32, 58, 0.12);
+  border: 1px solid rgba(60, 50, 30, 0.06);
+  border-radius: 38px;
+  box-shadow: 0 2px 6px rgba(60, 50, 30, 0.04), 0 32px 72px rgba(60, 50, 30, 0.13);
   padding: 22px 16px 18px;
+}
+
+/* 向导态：壁纸全屏铺满容器，文字/控件色随壁纸明暗适配（--wiz-* 变量内联注入） */
+
+.op-phone-wizard {
+  transition: background 0.3s ease;
+}
+
+.op-phone-wizard .op-wiz-title {
+  color: var(--wiz-text);
+}
+
+.op-phone-wizard .op-wiz-title em {
+  color: #3d8bff;
+}
+
+.op-phone-wizard .op-wiz-sub,
+.op-phone-wizard .op-wiz-count {
+  color: var(--wiz-text);
+  opacity: 0.6;
+}
+
+.op-phone-wizard .op-wiz-back {
+  background: color-mix(in srgb, var(--wiz-text) 12%, transparent);
+  color: var(--wiz-text);
+}
+
+.op-phone-wizard .op-wiz-back:hover {
+  background: color-mix(in srgb, var(--wiz-text) 20%, transparent);
+}
+
+.op-phone-wizard .op-wiz-progress {
+  background: color-mix(in srgb, var(--wiz-text) 16%, transparent);
+}
+
+.op-phone-wizard .op-field-label {
+  color: var(--wiz-text);
+  opacity: 0.72;
+}
+
+.op-phone-wizard .op-field-input,
+.op-phone-wizard .op-slot-input {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: transparent;
+  color: #17203a;
+}
+
+.op-phone-wizard .op-field-input:focus,
+.op-phone-wizard .op-slot-input:focus {
+  border-color: #0a6cff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.35);
+}
+
+.op-phone-wizard .op-slot-go,
+.op-phone-wizard .op-btn-continue {
+  background: var(--wiz-btn-bg);
+  color: var(--wiz-btn-text);
+}
+
+.op-phone-wizard .op-btn-skip {
+  color: var(--wiz-text);
+  opacity: 0.65;
+}
+
+.op-phone-wizard .op-add-row {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: color-mix(in srgb, var(--wiz-text) 38%, transparent);
+  color: var(--wiz-text);
+}
+
+.op-phone-wizard .op-add-row:hover {
+  border-color: var(--wiz-text);
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.op-phone-wizard .op-tabs {
+  background: color-mix(in srgb, var(--wiz-text) 12%, transparent);
+}
+
+.op-phone-wizard .op-tab {
+  color: var(--wiz-text);
+  opacity: 0.75;
+}
+
+.op-phone-wizard .op-tab.is-active {
+  background: #ffffff;
+  color: #17203a;
+  opacity: 1;
 }
 
 /* —— 脉脉风格个人信息区 —— */
@@ -357,7 +445,7 @@
 .op-rows {
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 10px;
 }
 
 .op-row {
@@ -451,7 +539,7 @@
 }
 
 .op-row-value {
-  font-size: 20px;
+  font-size: 19px;
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.5px;
@@ -595,6 +683,7 @@
   text-align: center;
   font-size: 10.5px;
   color: #b3b9c8;
+  letter-spacing: 0.3px;
 }
 
 .op-module-empty {
@@ -630,7 +719,6 @@
 
 .op-style-preview {
   border-radius: 18px;
-  border: 1px solid rgba(23, 32, 58, 0.08);
   padding: 22px 16px 18px;
   display: flex;
   flex-direction: column;
@@ -836,10 +924,10 @@
   max-width: 390px;
   margin-top: 14px;
   background: #ffffff;
-  border: 1px solid #dde1ea;
-  border-radius: 20px;
-  box-shadow: 0 2px 6px rgba(23, 32, 58, 0.05);
-  padding: 20px;
+  border: 1px solid rgba(60, 50, 30, 0.06);
+  border-radius: 24px;
+  box-shadow: 0 2px 6px rgba(60, 50, 30, 0.04), 0 20px 48px rgba(60, 50, 30, 0.09);
+  padding: 22px 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1055,15 +1143,16 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  padding: 8px 16px;
-  border: none;
+  padding: 9px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 999px;
-  background: #17203a;
+  background: rgba(23, 32, 58, 0.82);
+  backdrop-filter: blur(10px);
   color: #ffffff;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(23, 32, 58, 0.3);
+  box-shadow: 0 10px 28px rgba(23, 32, 58, 0.35);
   animation: op-step-in 0.25s ease;
 }
 
@@ -1169,12 +1258,14 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 16px;
+  padding: 11px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 999px;
-  background: #17203a;
+  background: rgba(23, 32, 58, 0.85);
+  backdrop-filter: blur(10px);
   color: #ffffff;
   font-size: 12.5px;
-  box-shadow: 0 8px 24px rgba(23, 32, 58, 0.3);
+  box-shadow: 0 10px 28px rgba(23, 32, 58, 0.35);
   animation: op-step-in 0.25s ease;
 }
 

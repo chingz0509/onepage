@@ -1,15 +1,15 @@
-/* One Page 独立分享页：Linktree 风格，壁纸色整页背景 */
+/* One Page 独立分享页：Linktree 风格，壁纸全屏铺开 */
 
 .ops-page {
   min-height: 100vh;
-  padding: 56px 20px 48px;
+  padding: 72px 20px 56px;
   display: flex;
   justify-content: center;
 }
 
 .ops-column {
   width: 100%;
-  max-width: 440px;
+  max-width: 430px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -17,46 +17,47 @@
 }
 
 .ops-avatar {
-  width: 84px;
-  height: 84px;
+  width: 88px;
+  height: 88px;
   border-radius: 50%;
-  border: 2px solid;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32px;
+  font-size: 34px;
   font-weight: 700;
-  background: rgba(127, 127, 127, 0.08);
+  color: #ffffff;
+  background: linear-gradient(135deg, #4d8dff 0%, #0a6cff 60%, #0047c2 100%);
+  box-shadow: 0 10px 28px rgba(10, 60, 160, 0.35), 0 0 0 4px rgba(255, 255, 255, 0.25);
 }
 
 .ops-name {
-  margin: 16px 0 0;
-  font-size: 22px;
+  margin: 18px 0 0;
+  font-size: 23px;
   font-weight: 800;
   letter-spacing: 0.5px;
 }
 
 .ops-title {
-  margin: 6px 0 0;
-  font-size: 14px;
+  margin: 7px 0 0;
+  font-size: 13.5px;
   font-weight: 600;
-  opacity: 0.75;
+  opacity: 0.78;
 }
 
 .ops-bio {
-  margin: 8px 0 0;
-  font-size: 13px;
-  line-height: 1.7;
-  opacity: 0.6;
+  margin: 10px 0 0;
+  font-size: 13.5px;
+  line-height: 1.75;
+  opacity: 0.62;
   max-width: 320px;
 }
 
 .ops-links {
   width: 100%;
-  margin-top: 28px;
+  margin-top: 32px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 13px;
 }
 
 .ops-link {
@@ -64,17 +65,18 @@
   align-items: center;
   gap: 12px;
   width: 100%;
-  padding: 14px 18px;
+  min-height: 60px;
+  padding: 12px 18px;
   border: 1px solid transparent;
   text-decoration: none;
   color: inherit;
   text-align: left;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
 }
 
 .ops-link:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.16);
 }
 
 .ops-link-badge {
@@ -88,33 +90,44 @@
   font-size: 10.5px;
   font-weight: 800;
   color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
 }
 
-.ops-link-text {
+.ops-link-name {
   flex: 1;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.ops-link-text strong {
-  font-size: 14.5px;
-  font-weight: 700;
-}
-
-.ops-link-text small {
-  font-size: 11.5px;
-  opacity: 0.7;
+  font-size: 15.5px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.ops-link-arrow {
+.ops-link-nums {
   flex: none;
-  font-size: 18px;
-  opacity: 0.45;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
+
+.ops-link-nums strong {
+  font-size: 16px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.3px;
+}
+
+.ops-link-nums small {
+  font-size: 10.5px;
+  opacity: 0.6;
+}
+
+.ops-link-generic {
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.75;
 }
 
 .ops-empty {
@@ -123,7 +136,8 @@
 }
 
 .ops-foot {
-  margin-top: 36px;
-  font-size: 12px;
-  opacity: 0.5;
+  margin-top: 40px;
+  font-size: 11.5px;
+  opacity: 0.48;
+  letter-spacing: 0.3px;
 }

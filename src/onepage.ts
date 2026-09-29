@@ -36,6 +36,8 @@ export type OnePageShare = {
 export type Wallpaper = {
   id: string
   name: string
+  /** solid 为颜色值，gradient 为 CSS 渐变；都直接用作 background */
+  type: 'solid' | 'gradient'
   bg: string
   /** 页面文字色 */
   text: string
@@ -47,16 +49,20 @@ export type Wallpaper = {
 }
 
 export const WALLPAPERS: Wallpaper[] = [
-  { id: 'cream', name: '米白', bg: '#f6f2e9', text: '#2a2a26', followBtn: '#e3dbc8', followText: '#2a2a26', dark: false },
-  { id: 'gray', name: '浅灰', bg: '#eef0f3', text: '#23262c', followBtn: '#dcdfe6', followText: '#23262c', dark: false },
-  { id: 'blue', name: '浅蓝', bg: '#e1ecfb', text: '#1d2b45', followBtn: '#c4d7f5', followText: '#1d2b45', dark: false },
-  { id: 'pink', name: '浅粉', bg: '#fbe7ee', text: '#3d2330', followBtn: '#f4cfdc', followText: '#3d2330', dark: false },
-  { id: 'yellow', name: '鹅黄', bg: '#fdf2d3', text: '#3d3320', followBtn: '#f5e2ae', followText: '#3d3320', dark: false },
-  { id: 'mint', name: '薄荷绿', bg: '#e0f4ea', text: '#17352a', followBtn: '#c3e7d5', followText: '#17352a', dark: false },
-  { id: 'brown', name: '深棕', bg: '#3a2d27', text: '#f0e6de', followBtn: '#4d3d34', followText: '#f0e6de', dark: true },
-  { id: 'navy', name: '深蓝', bg: '#16213c', text: '#dfe7f5', followBtn: '#253359', followText: '#dfe7f5', dark: true },
-  { id: 'wine', name: '酒红', bg: '#571c2a', text: '#f5e2e6', followBtn: '#6e2839', followText: '#f5e2e6', dark: true },
-  { id: 'black', name: '纯黑', bg: '#101010', text: '#ececec', followBtn: '#262626', followText: '#ececec', dark: true },
+  { id: 'cream', name: '米白', type: 'solid', bg: '#f6f2e9', text: '#2a2a26', followBtn: '#e3dbc8', followText: '#2a2a26', dark: false },
+  { id: 'gray', name: '浅灰', type: 'solid', bg: '#eef0f3', text: '#23262c', followBtn: '#dcdfe6', followText: '#23262c', dark: false },
+  { id: 'blue', name: '浅蓝', type: 'solid', bg: '#e1ecfb', text: '#1d2b45', followBtn: '#c4d7f5', followText: '#1d2b45', dark: false },
+  { id: 'pink', name: '浅粉', type: 'solid', bg: '#fbe7ee', text: '#3d2330', followBtn: '#f4cfdc', followText: '#3d2330', dark: false },
+  { id: 'yellow', name: '鹅黄', type: 'solid', bg: '#fdf2d3', text: '#3d3320', followBtn: '#f5e2ae', followText: '#3d3320', dark: false },
+  { id: 'mint', name: '薄荷绿', type: 'solid', bg: '#e0f4ea', text: '#17352a', followBtn: '#c3e7d5', followText: '#17352a', dark: false },
+  { id: 'brown', name: '深棕', type: 'solid', bg: '#3a2d27', text: '#f0e6de', followBtn: '#4d3d34', followText: '#f0e6de', dark: true },
+  { id: 'navy', name: '深蓝', type: 'solid', bg: '#16213c', text: '#dfe7f5', followBtn: '#253359', followText: '#dfe7f5', dark: true },
+  { id: 'wine', name: '酒红', type: 'solid', bg: '#571c2a', text: '#f5e2e6', followBtn: '#6e2839', followText: '#f5e2e6', dark: true },
+  { id: 'black', name: '纯黑', type: 'solid', bg: '#101010', text: '#ececec', followBtn: '#262626', followText: '#ececec', dark: true },
+  { id: 'aurora', name: '紫蓝极光', type: 'gradient', bg: 'linear-gradient(160deg, #667eea 0%, #764ba2 100%)', text: '#f2f0ff', followBtn: 'rgba(255,255,255,0.18)', followText: '#ffffff', dark: true },
+  { id: 'sunset', name: '粉橙日落', type: 'gradient', bg: 'linear-gradient(155deg, #fda085 0%, #f76d8d 100%)', text: '#fff5f2', followBtn: 'rgba(255,255,255,0.2)', followText: '#ffffff', dark: true },
+  { id: 'lagoon', name: '青绿极光', type: 'gradient', bg: 'linear-gradient(155deg, #0ba360 0%, #3cba92 100%)', text: '#effff8', followBtn: 'rgba(255,255,255,0.18)', followText: '#ffffff', dark: true },
+  { id: 'night', name: '深蓝夜幕', type: 'gradient', bg: 'linear-gradient(160deg, #0f2027 0%, #203a43 50%, #2c5364 100%)', text: '#e4eef4', followBtn: 'rgba(255,255,255,0.12)', followText: '#ffffff', dark: true },
 ]
 
 export const BUTTON_STYLES: { id: ButtonStyleId; name: string; radius: string }[] = [
