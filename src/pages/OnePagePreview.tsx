@@ -524,9 +524,7 @@ export function OnePagePreview() {
         <div className="op-welcome">
           <p className="op-welcome-eyebrow">VOL.1 — 职场价值特辑</p>
           <h1 className="op-welcome-title">你的职业，一页为证。</h1>
-          <p className="op-welcome-sub">
-            贴上你在各平台的主页链接，AI 自动读取数据——你的价值，自己开口说话。
-          </p>
+          <p className="op-welcome-sub">贴上链接就好，剩下的交给 AI。</p>
           <button className="op-btn-continue op-welcome-btn" onClick={() => setStep(1)}>
             开始装订
           </button>
