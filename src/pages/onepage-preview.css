@@ -339,12 +339,16 @@
 
 .op-slot {
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.op-slot-field {
+  position: relative;
 }
 
 .op-slot-input {
-  flex: 1;
-  min-width: 0;
+  width: 100%;
   padding: 13px 14px;
   font-size: 13.5px;
   font-family: inherit;
@@ -360,32 +364,38 @@
   border-color: var(--ed-accent);
 }
 
+.op-slot-input:disabled {
+  color: var(--ed-sub);
+}
+
 .op-slot-input::placeholder {
   color: var(--ed-sub);
   opacity: 0.7;
 }
 
-.op-slot-go {
-  flex: none;
-  padding: 0 18px;
-  font-size: 13px;
-  font-weight: 600;
+.op-slot-reading {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
   color: var(--ed-accent);
-  background: transparent;
-  border: 1px solid var(--ed-accent);
-  border-radius: 0;
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+  pointer-events: none;
 }
 
-.op-slot-go:hover:not(:disabled) {
-  background: var(--ed-accent);
-  color: var(--ed-ground);
+.op-slot-reading .op-spinner {
+  width: 13px;
+  height: 13px;
+  border-width: 1.5px;
 }
 
-.op-slot-go:disabled {
-  opacity: 0.35;
-  cursor: default;
+.op-slot-error {
+  margin: 0;
+  font-size: 11px;
+  color: var(--ed-accent);
 }
 
 .op-slot-done {
@@ -822,6 +832,11 @@
   border: 1px solid var(--ed-hairline);
   border-radius: 0;
   cursor: pointer;
+}
+
+.op-sheet-cancel-wide {
+  width: 100%;
+  flex: none;
 }
 
 .op-sheet-go {

@@ -166,7 +166,7 @@ function Spinner() {
   return <span className="op-spinner" aria-hidden />
 }
 
-type LinkSlot = { id: number; value: string; card: OnePageLink | null }
+type LinkSlot = { id: number; value: string; card: OnePageLink | null; reading?: boolean }
 
 type PublishedState = {
   name: string
@@ -265,9 +265,18 @@ export function OnePagePreview() {
   const [justAdded, setJustAdded] = useState<string | null>(null)
 
   const timers = useRef<number[]>([])
+  const slotsRef = useRef<LinkSlot[]>([])
+  slotsRef.current = slots
+  const sheetInputRef = useRef('')
+  sheetInputRef.current = sheetInput
+  const slotDebounce = useRef<Map<number, number>>(new Map())
+  const sheetDebounce = useRef<number | null>(null)
   const clearTimers = () => {
     timers.current.forEach((t) => window.clearTimeout(t))
     timers.current = []
+    slotDebounce.current.forEach((t) => window.clearTimeout(t))
+    slotDebounce.current.clear()
+    if (sheetDebounce.current) window.clearTimeout(sheetDebounce.current)
   }
   useEffect(() => clearTimers, [])
 
@@ -361,21 +370,38 @@ export function OnePagePreview() {
   }
 
   const startSlotRead = (slotId: number) => {
-    const slot = slots.find((s) => s.id === slotId)
-    if (!slot) return
+    const slot = slotsRef.current.find((s) => s.id === slotId)
+    if (!slot || slot.card || slot.reading || !detectUrl(slot.value)) return
+    setSlots((prev) => prev.map((s) => (s.id === slotId ? { ...s, reading: true } : s)))
     runReadFlow(slot.value, (detected, url) => {
+      const current = slotsRef.current
       const isDup =
         detected.kind === 'known' &&
-        wizardLinks.some((l) => l.platform === detected.card.platform)
+        current.some((s) => s.card && s.id !== slotId && s.card.platform === detected.card.platform)
       if (isDup && detected.kind === 'known') {
         setFlashKey(detected.card.platform)
         timers.current.push(window.setTimeout(() => setFlashKey(null), 1600))
-        setSlots((prev) => prev.map((s) => (s.id === slotId ? { ...s, value: '' } : s)))
+        setSlots((prev) =>
+          prev.map((s) => (s.id === slotId ? { ...s, value: '', reading: false } : s)),
+        )
         return
       }
       const card = cardFromDetected(detected, url)
-      setSlots((prev) => prev.map((s) => (s.id === slotId ? { ...s, card } : s)))
+      setSlots((prev) =>
+        prev.map((s) => (s.id === slotId ? { ...s, card, reading: false } : s)),
+      )
     })
+  }
+
+  /** 贴上即读：输入去抖 600ms 后自动触发抓取 */
+  const onSlotInput = (slotId: number, value: string) => {
+    setSlots((prev) => prev.map((s) => (s.id === slotId ? { ...s, value } : s)))
+    const prev = slotDebounce.current.get(slotId)
+    if (prev) window.clearTimeout(prev)
+    slotDebounce.current.set(
+      slotId,
+      window.setTimeout(() => startSlotRead(slotId), 600),
+    )
   }
 
   const publish = () => {
@@ -470,7 +496,9 @@ export function OnePagePreview() {
   }
 
   const startSheetAdd = () => {
-    runReadFlow(sheetInput, (detected, url) => {
+    const value = sheetInputRef.current
+    if (!detectUrl(value)) return
+    runReadFlow(value, (detected, url) => {
       const isDup =
         detected.kind === 'known' && links.some((l) => l.platform === detected.card.platform)
       setSheetInput('')
@@ -484,6 +512,13 @@ export function OnePagePreview() {
       setJustAdded(card.platform)
       timers.current.push(window.setTimeout(() => setJustAdded(null), 800))
     })
+  }
+
+  /** 弹层输入框：贴上即读，去抖 600ms */
+  const onSheetInput = (value: string) => {
+    setSheetInput(value)
+    if (sheetDebounce.current) window.clearTimeout(sheetDebounce.current)
+    sheetDebounce.current = window.setTimeout(() => startSheetAdd(), 600)
   }
 
   // —— 渲染 ——
@@ -725,26 +760,24 @@ export function OnePagePreview() {
                     </div>
                   ) : (
                     <div className="op-slot" key={slot.id}>
-                      <input
-                        className="op-slot-input"
-                        value={slot.value}
-                        placeholder={persona.placeholders[i] ?? '粘贴你的主页链接'}
-                        onChange={(e) =>
-                          setSlots((prev) =>
-                            prev.map((s) => (s.id === slot.id ? { ...s, value: e.target.value } : s)),
-                          )
-                        }
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && detectUrl(slot.value)) startSlotRead(slot.id)
-                        }}
-                      />
-                      <button
-                        className="op-slot-go"
-                        disabled={!detectUrl(slot.value)}
-                        onClick={() => startSlotRead(slot.id)}
-                      >
-                        读取
-                      </button>
+                      <div className="op-slot-field">
+                        <input
+                          className="op-slot-input"
+                          value={slot.value}
+                          placeholder={persona.placeholders[i] ?? '粘贴你的主页链接'}
+                          disabled={slot.reading}
+                          onChange={(e) => onSlotInput(slot.id, e.target.value)}
+                        />
+                        {slot.reading && (
+                          <span className="op-slot-reading">
+                            <Spinner />
+                            正在读取…
+                          </span>
+                        )}
+                      </div>
+                      {!slot.reading && slot.value.trim() !== '' && !detectUrl(slot.value) && (
+                        <p className="op-slot-error">这看起来不是一个链接</p>
+                      )}
                     </div>
                   ),
                 )}
@@ -846,23 +879,17 @@ export function OnePagePreview() {
                   className="op-sheet-input"
                   autoFocus
                   value={sheetInput}
-                  onChange={(e) => setSheetInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && detectUrl(sheetInput)) startSheetAdd()
-                  }}
+                  onChange={(e) => onSheetInput(e.target.value)}
                   placeholder="粘贴你的主页链接，如 dribbble.com/xxx"
                 />
-                <p className="op-sheet-hint">✦ AI 将自动读取你的平台数据</p>
+                {sheetInput.trim() !== '' && !detectUrl(sheetInput) ? (
+                  <p className="op-slot-error">这看起来不是一个链接</p>
+                ) : (
+                  <p className="op-sheet-hint">✦ 贴上链接，AI 自动读取</p>
+                )}
                 <div className="op-sheet-actions">
-                  <button className="op-sheet-cancel" onClick={() => setSheet(null)}>
+                  <button className="op-sheet-cancel op-sheet-cancel-wide" onClick={() => setSheet(null)}>
                     取消
-                  </button>
-                  <button
-                    className="op-sheet-go"
-                    disabled={!detectUrl(sheetInput)}
-                    onClick={startSheetAdd}
-                  >
-                    读取
                   </button>
                 </div>
               </>
