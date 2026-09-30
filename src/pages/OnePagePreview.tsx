@@ -14,6 +14,7 @@ import {
   type OnePageShare,
   type Wallpaper,
 } from '../onepage'
+import { EditorialItemContent } from './OnePageShared'
 import './onepage-preview.css'
 import './onepage-shared.css'
 
@@ -63,7 +64,7 @@ const KNOWN_PLATFORMS: Record<string, Omit<OnePageLink, 'url'>> = {
   'behance.net': {
     platform: 'Behance',
     badge: 'Be',
-    accent: '#0057ff',
+    accent: '#1769ff',
     metric: '作品总浏览',
     value: '3.4k',
     insight: '近 90 天浏览量稳步上升，增幅 46%',
@@ -215,31 +216,6 @@ function LinkButtonContent({ link }: { link: OnePageLink }) {
               {link.unit ?? ''}
             </strong>
             <small>{link.metric}</small>
-          </>
-        )}
-      </span>
-    </>
-  )
-}
-
-/** 目录式（编辑风）条目内容：平台名宋体 + 斜体解读，右侧宋体大数字 */
-function EditorialItemContent({ link }: { link: OnePageLink }) {
-  return (
-    <>
-      <span className="opd-left">
-        <span className="opd-platform">{link.platform}</span>
-        <span className="opd-insight">{link.insight}</span>
-      </span>
-      <span className="opd-right">
-        {link.generic ? (
-          <span className="opd-generic">已收录</span>
-        ) : (
-          <>
-            <strong className="opd-num">
-              {link.value}
-              {link.unit ?? ''}
-            </strong>
-            <small className="opd-metric">{link.metric}</small>
           </>
         )}
       </span>
@@ -546,6 +522,7 @@ export function OnePagePreview() {
       {/* ———— 欢迎屏（未发布） ———— */}
       {step === 0 && !published && (
         <div className="op-welcome">
+          <p className="op-welcome-eyebrow">VOL.1 — 职场价值特辑</p>
           <h1 className="op-welcome-title">你的价值，一页看尽。</h1>
           <p className="op-welcome-sub">
             贴上你的平台链接，AI 为你抓取数据，生成一页会说话的职场名片。
@@ -950,12 +927,7 @@ function StylePreviewCompact(props: {
 }) {
   return (
     <div className="op-style-preview is-compact" style={{ background: props.wallpaper.bg }}>
-      <div
-        className="op-style-avatar"
-        style={{ color: props.wallpaper.text, borderColor: props.wallpaper.text }}
-      >
-        {props.avatarChar}
-      </div>
+      <div className="op-style-avatar">{props.avatarChar}</div>
       <p className="op-style-name" style={{ color: props.wallpaper.text }}>
         {props.name}
       </p>
