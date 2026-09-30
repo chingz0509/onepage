@@ -526,7 +526,7 @@ export function OnePagePreview() {
           <h1 className="op-welcome-title">你的职业，一页为证。</h1>
           <p className="op-welcome-sub">贴上链接就好，剩下的交给 AI。</p>
           <button className="op-btn-continue op-welcome-btn" onClick={() => setStep(1)}>
-            开始装订
+            装订我的一页
           </button>
           <div className="op-welcome-foot">
             <span>ONE PAGE · AI-POWERED LINK IN BIO</span>
