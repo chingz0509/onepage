@@ -290,7 +290,7 @@ export function OnePagePreview() {
     background: wallpaper.bg,
     color: wallpaper.text,
     '--wiz-text': wallpaper.text,
-    '--wiz-btn-bg': wallpaper.dark ? '#ffffff' : wallpaperId === 'cream' ? '#1B4B5A' : '#17203a',
+    '--wiz-btn-bg': wallpaper.dark ? '#ffffff' : '#1a1a18',
     '--wiz-btn-text': '#ffffff',
   } as CSSProperties
 
@@ -501,7 +501,7 @@ export function OnePagePreview() {
       {step === 0 && published && !visitor && (
         <>
           <button className="op-fab op-fab-left" aria-label="访客视角" onClick={enterVisitor}>
-            👁 访客视角
+            访客视角
           </button>
           <div className="op-fab-right">
             {shareUrl && (
@@ -523,12 +523,12 @@ export function OnePagePreview() {
       {step === 0 && !published && (
         <div className="op-welcome">
           <p className="op-welcome-eyebrow">VOL.1 — 职场价值特辑</p>
-          <h1 className="op-welcome-title">你的价值，一页看尽。</h1>
+          <h1 className="op-welcome-title">把全网的你，装订成一页。</h1>
           <p className="op-welcome-sub">
-            贴上你的平台链接，AI 为你抓取数据，生成一页会说话的职场名片。
+            贴上你在各平台的主页链接，AI 自动读取数据——你的价值，自己开口说话。
           </p>
           <button className="op-btn-continue op-welcome-btn" onClick={() => setStep(1)}>
-            开始创建
+            开始装订
           </button>
           <div className="op-welcome-foot">
             <span>ONE PAGE · AI-POWERED LINK IN BIO</span>
@@ -550,7 +550,7 @@ export function OnePagePreview() {
                 ⟳ 刷新数据
               </button>
               <button className="op-mini-btn" onClick={() => setSheet({ kind: 'style' })}>
-                🎨 风格
+                风格
               </button>
             </div>
           )}
@@ -706,14 +706,24 @@ export function OnePagePreview() {
                 {slots.map((slot, i) =>
                   slot.card ? (
                     <div className="op-slot-done" key={slot.id}>
-                      <span
-                        className={`ops-link op-slot-link${
-                          flashKey === slot.card.platform ? ' is-flashing' : ''
-                        }`}
-                        style={linkBtnStyle}
-                      >
-                        <LinkButtonContent link={slot.card} />
-                      </span>
+                      {editorial ? (
+                        <span
+                          className={`opd-item op-slot-link${
+                            flashKey === slot.card.platform ? ' is-flashing' : ''
+                          }`}
+                        >
+                          <EditorialItemContent link={slot.card} />
+                        </span>
+                      ) : (
+                        <span
+                          className={`ops-link op-slot-link${
+                            flashKey === slot.card.platform ? ' is-flashing' : ''
+                          }`}
+                          style={linkBtnStyle}
+                        >
+                          <LinkButtonContent link={slot.card} />
+                        </span>
+                      )}
                     </div>
                   ) : (
                     <div className="op-slot" key={slot.id}>
@@ -802,7 +812,7 @@ export function OnePagePreview() {
             <button className="op-modal-close" aria-label="关闭" onClick={() => setShareOpen(false)}>
               ✕
             </button>
-            <h3 className="op-share-modal-title">🎉 你的 One Page 已上线</h3>
+            <h3 className="op-share-modal-title">你的 One Page 已上线</h3>
             {qr ? (
               <img className="op-share-qr" src={qr} alt="分享二维码" />
             ) : (

@@ -9,7 +9,7 @@
   --ed-ink: #1a1a18;
   --ed-sub: #736d5a;
   --ed-hairline: #c8bea4;
-  --ed-accent: #1b4b5a;
+  --ed-accent: #a04a2a;
   --ed-serif: 'Songti SC', 'STSong', 'Noto Serif SC', serif;
   --ed-shadow: 0 24px 48px rgba(26, 26, 24, 0.18);
 }
@@ -32,7 +32,7 @@
 
 .op-welcome {
   margin: max(48px, calc(38vh - 160px)) auto 0;
-  max-width: 520px;
+  max-width: 620px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -77,14 +77,6 @@
 .op-welcome-btn {
   max-width: 280px;
   margin-top: 32px;
-  background: var(--ed-accent);
-  color: var(--ed-ground);
-}
-
-.op-welcome-btn:hover {
-  background: #143c48;
-  opacity: 1;
-  transform: none;
 }
 
 .op-welcome-foot {
@@ -276,7 +268,8 @@
 }
 
 .op-btn-continue:hover {
-  opacity: 0.88;
+  background: color-mix(in srgb, var(--wiz-btn-bg) 92%, #ffffff);
+  opacity: 1;
 }
 
 .op-btn-skip {
@@ -396,6 +389,10 @@
 
 .op-slot-done {
   animation: op-row-enter 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.op-slot-done .opd-item {
+  border-top: 1px solid var(--ed-hairline);
 }
 
 .op-slot-link {
@@ -706,10 +703,14 @@
   gap: 10px;
 }
 
-/* 分享弹层里的继续按钮固定深青 */
+/* 分享弹层里的继续按钮固定墨黑 */
 .op-share-modal .op-btn-continue {
-  background: var(--ed-accent);
+  background: #1a1a18;
   color: var(--ed-ground);
+}
+
+.op-share-modal .op-btn-continue:hover {
+  background: #2a2a28;
 }
 
 .op-btn-copy {
@@ -828,11 +829,15 @@
   font-size: 14px;
   font-weight: 700;
   color: var(--ed-ground);
-  background: var(--ed-accent);
+  background: #1a1a18;
   border: none;
   border-radius: 0;
   cursor: pointer;
-  transition: opacity 0.15s ease;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.op-sheet-go:hover:not(:disabled) {
+  background: #2a2a28;
 }
 
 .op-sheet-go:disabled {
