@@ -523,7 +523,7 @@ export function OnePagePreview() {
       {step === 0 && !published && (
         <div className="op-welcome">
           <p className="op-welcome-eyebrow">VOL.1 — 职场价值特辑</p>
-          <h1 className="op-welcome-title">把全网的你，装订成一页。</h1>
+          <h1 className="op-welcome-title">把你，装订成一页。</h1>
           <p className="op-welcome-sub">
             贴上你在各平台的主页链接，AI 自动读取数据——你的价值，自己开口说话。
           </p>
