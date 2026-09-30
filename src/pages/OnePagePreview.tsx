@@ -222,6 +222,31 @@ function LinkButtonContent({ link }: { link: OnePageLink }) {
   )
 }
 
+/** 目录式（编辑风）条目内容：平台名宋体 + 斜体解读，右侧宋体大数字 */
+function EditorialItemContent({ link }: { link: OnePageLink }) {
+  return (
+    <>
+      <span className="opd-left">
+        <span className="opd-platform">{link.platform}</span>
+        <span className="opd-insight">{link.insight}</span>
+      </span>
+      <span className="opd-right">
+        {link.generic ? (
+          <span className="opd-generic">已收录</span>
+        ) : (
+          <>
+            <strong className="opd-num">
+              {link.value}
+              {link.unit ?? ''}
+            </strong>
+            <small className="opd-metric">{link.metric}</small>
+          </>
+        )}
+      </span>
+    </>
+  )
+}
+
 export function OnePagePreview() {
   const [initial] = useState(loadPublished)
   const persona = PERSONAS[0]
@@ -276,6 +301,8 @@ export function OnePagePreview() {
 
   const radius = BUTTON_STYLES.find((b) => b.id === buttonStyle)?.radius ?? '999px'
   const btnColors = resolveButtonColors(wallpaper, buttonColor)
+  // 默认纸感壁纸下条目用编辑风目录样式；用户定制壁纸后套用用户选择
+  const editorial = wallpaperId === 'cream'
   const linkBtnStyle: CSSProperties = {
     background: btnColors.bg,
     color: btnColors.text,
@@ -287,8 +314,8 @@ export function OnePagePreview() {
     background: wallpaper.bg,
     color: wallpaper.text,
     '--wiz-text': wallpaper.text,
-    '--wiz-btn-bg': wallpaper.dark ? '#ffffff' : '#17203a',
-    '--wiz-btn-text': wallpaper.dark ? '#17203a' : '#ffffff',
+    '--wiz-btn-bg': wallpaper.dark ? '#ffffff' : wallpaperId === 'cream' ? '#1B4B5A' : '#17203a',
+    '--wiz-btn-text': '#ffffff',
   } as CSSProperties
 
   const persist = (next?: Partial<PublishedState>) => {
@@ -519,16 +546,16 @@ export function OnePagePreview() {
       {/* ———— 欢迎屏（未发布） ———— */}
       {step === 0 && !published && (
         <div className="op-welcome">
-          <div className="op-welcome-avatar">{avatarChar}</div>
-          <h1 className="op-welcome-title">创建你的 One Page</h1>
+          <h1 className="op-welcome-title">你的价值，一页看尽。</h1>
           <p className="op-welcome-sub">
-            贴上你的平台链接，AI 自动聚合数据，
-            <br />
-            生成一页拿得出手的个人主页。
+            贴上你的平台链接，AI 为你抓取数据，生成一页会说话的职场名片。
           </p>
           <button className="op-btn-continue op-welcome-btn" onClick={() => setStep(1)}>
-            开始
+            开始创建
           </button>
+          <div className="op-welcome-foot">
+            <span>ONE PAGE · AI-POWERED LINK IN BIO</span>
+          </div>
         </div>
       )}
 
@@ -551,7 +578,7 @@ export function OnePagePreview() {
             </div>
           )}
 
-          <div className="ops-links">
+          <div className={editorial ? 'opd-list' : 'ops-links'}>
             {links.map((link, i) =>
               editing && !visitor ? (
                 <div className="op-edit-row" key={link.platform}>
@@ -562,12 +589,20 @@ export function OnePagePreview() {
                   >
                     −
                   </button>
-                  <span
-                    className={`ops-link op-edit-link${flashAll || flashKey === link.platform ? ' is-flashing' : ''}`}
-                    style={linkBtnStyle}
-                  >
-                    <LinkButtonContent link={link} />
-                  </span>
+                  {editorial ? (
+                    <span
+                      className={`opd-item op-edit-link${flashAll || flashKey === link.platform ? ' is-flashing' : ''}`}
+                    >
+                      <EditorialItemContent link={link} />
+                    </span>
+                  ) : (
+                    <span
+                      className={`ops-link op-edit-link${flashAll || flashKey === link.platform ? ' is-flashing' : ''}`}
+                      style={linkBtnStyle}
+                    >
+                      <LinkButtonContent link={link} />
+                    </span>
+                  )}
                   <div className="op-row-move">
                     <button aria-label="上移" disabled={i === 0} onClick={() => moveLink(i, -1)}>
                       ↑
@@ -581,6 +616,18 @@ export function OnePagePreview() {
                     </button>
                   </div>
                 </div>
+              ) : editorial ? (
+                <a
+                  key={link.platform}
+                  className={`opd-item${justAdded === link.platform ? ' is-entering' : ''}${
+                    flashAll || flashKey === link.platform ? ' is-flashing' : ''
+                  }`}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <EditorialItemContent link={link} />
+                </a>
               ) : (
                 <a
                   key={link.platform}

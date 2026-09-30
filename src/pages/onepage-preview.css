@@ -1,6 +1,19 @@
 /* One Page 预览页：独立产品形态，全屏壁纸背景 + 居中内容列
    文字/控件色通过内联 CSS 变量（--wiz-text / --wiz-btn-bg / --wiz-btn-text）随壁纸明暗适配 */
 
+/* —— 编辑风设计令牌（Stripe Press 式温暖纸感） —— */
+
+:root {
+  --ed-ground: #f1ecde;
+  --ed-surface: #e6dcc4;
+  --ed-ink: #1a1a18;
+  --ed-sub: #736d5a;
+  --ed-hairline: #c8bea4;
+  --ed-accent: #1b4b5a;
+  --ed-serif: 'Songti SC', 'STSong', 'Noto Serif SC', serif;
+  --ed-shadow: 0 24px 48px rgba(26, 26, 24, 0.18);
+}
+
 .op-page {
   min-height: 100vh;
   padding: 64px 20px 72px;
@@ -19,46 +32,64 @@
 
 .op-welcome {
   margin: auto;
+  max-width: 480px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  animation: op-home-enter 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: op-fade-slow 1s ease-in-out;
 }
 
-.op-welcome-avatar {
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 38px;
-  font-weight: 700;
-  color: #ffffff;
-  background: linear-gradient(135deg, #4d8dff 0%, #0a6cff 60%, #0047c2 100%);
-  box-shadow: 0 14px 36px rgba(10, 60, 160, 0.35), 0 0 0 5px rgba(255, 255, 255, 0.3);
+@keyframes op-fade-slow {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .op-welcome-title {
-  margin: 24px 0 0;
-  font-size: 27px;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  color: var(--wiz-text);
+  margin: 0;
+  font-family: var(--ed-serif);
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  line-height: 1.4;
+  color: var(--ed-ink);
 }
 
 .op-welcome-sub {
-  margin: 12px 0 0;
-  font-size: 14px;
+  margin: 16px 0 0;
+  font-size: 14.5px;
   line-height: 1.8;
-  color: var(--wiz-text);
-  opacity: 0.62;
+  color: var(--ed-sub);
 }
 
 .op-welcome-btn {
-  max-width: 240px;
-  margin-top: 28px;
+  max-width: 280px;
+  margin-top: 32px;
+  background: var(--ed-accent);
+  color: var(--ed-ground);
+}
+
+.op-welcome-btn:hover {
+  background: #143c48;
+  opacity: 1;
+  transform: none;
+}
+
+.op-welcome-foot {
+  margin-top: 96px;
+  padding-top: 16px;
+  border-top: 1px solid var(--ed-hairline);
+  width: 100%;
+}
+
+.op-welcome-foot span {
+  font-size: 10.5px;
+  letter-spacing: 3px;
+  color: var(--ed-sub);
 }
 
 /* —— 发布态主页 —— */
@@ -79,8 +110,131 @@
   }
 }
 
+/* 发布态主页：编辑风排版（覆盖 ops- 共享样式） */
+
+.op-home-col .ops-name {
+  font-family: var(--ed-serif);
+  font-size: 23px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.op-home-col .ops-title {
+  font-size: 13px;
+  color: var(--ed-sub);
+  opacity: 1;
+}
+
+.op-home-col .ops-bio {
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--ed-sub);
+  opacity: 1;
+}
+
 .op-home-col .ops-foot {
   margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--ed-hairline);
+  font-size: 10.5px;
+  letter-spacing: 1px;
+  opacity: 1;
+  color: var(--ed-sub);
+}
+
+/* 目录式条目（默认纸感壁纸）：发丝线分隔，无卡片无底色 */
+
+.opd-list {
+  width: 100%;
+  margin-top: 32px;
+  border-top: 1px solid var(--ed-hairline);
+  display: flex;
+  flex-direction: column;
+}
+
+.opd-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 8px;
+  border-bottom: 1px solid var(--ed-hairline);
+  color: var(--ed-ink);
+  text-decoration: none;
+  text-align: left;
+  transition: background 0.2s ease;
+}
+
+.opd-item:hover {
+  background: var(--ed-surface);
+}
+
+.opd-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.opd-platform {
+  font-family: var(--ed-serif);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.opd-insight {
+  font-family: var(--ed-serif);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--ed-sub);
+}
+
+.opd-right {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.opd-num {
+  font-family: var(--ed-serif);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.opd-metric {
+  font-size: 10.5px;
+  color: var(--ed-sub);
+}
+
+.opd-generic {
+  font-family: var(--ed-serif);
+  font-size: 13px;
+  font-style: italic;
+  color: var(--ed-sub);
+}
+
+.opd-item.is-flashing {
+  animation: opd-flash 1.5s ease;
+}
+
+@keyframes opd-flash {
+  0%,
+  40% {
+    background: var(--ed-surface);
+    box-shadow: inset 3px 0 0 var(--ed-accent);
+  }
+  100% {
+    background: transparent;
+    box-shadow: none;
+  }
+}
+
+.opd-item.is-entering {
+  animation: op-fade-slow 0.8s ease-in-out;
 }
 
 /* 主页条目的刷新高亮 / 入场 */
@@ -114,25 +268,23 @@
   }
 }
 
-/* —— 悬浮管理按钮（毛玻璃胶囊） —— */
+/* —— 悬浮管理按钮（直角白底发丝线，编辑风） —— */
 
 .op-fab {
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 999px;
+  border: 1px solid var(--ed-hairline);
+  border-radius: 0;
   padding: 8px 15px;
   font-size: 12px;
   font-weight: 600;
-  color: #ffffff;
-  background: rgba(23, 32, 58, 0.55);
-  backdrop-filter: blur(10px);
+  color: var(--ed-ink);
+  background: var(--ed-ground);
   cursor: pointer;
-  box-shadow: 0 6px 18px rgba(23, 32, 58, 0.18);
-  transition: background 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 2px 8px rgba(26, 26, 24, 0.08);
+  transition: background 0.15s ease;
 }
 
 .op-fab:hover {
-  background: rgba(23, 32, 58, 0.72);
-  transform: translateY(-1px);
+  background: var(--ed-surface);
 }
 
 .op-fab-left {
@@ -236,14 +388,13 @@
   color: var(--wiz-btn-text);
   background: var(--wiz-btn-bg);
   border: none;
-  border-radius: 999px;
+  border-radius: 0;
   cursor: pointer;
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition: opacity 0.15s ease, background 0.15s ease;
 }
 
 .op-btn-continue:hover {
   opacity: 0.88;
-  transform: translateY(-1px);
 }
 
 .op-btn-skip {

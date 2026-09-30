@@ -49,7 +49,7 @@ export type Wallpaper = {
 }
 
 export const WALLPAPERS: Wallpaper[] = [
-  { id: 'cream', name: '米白', type: 'solid', bg: '#f6f2e9', text: '#2a2a26', followBtn: '#e3dbc8', followText: '#2a2a26', dark: false },
+  { id: 'cream', name: '米白', type: 'solid', bg: '#F1ECDE', text: '#1A1A18', followBtn: '#E6DCC4', followText: '#1A1A18', dark: false },
   { id: 'gray', name: '浅灰', type: 'solid', bg: '#eef0f3', text: '#23262c', followBtn: '#dcdfe6', followText: '#23262c', dark: false },
   { id: 'blue', name: '浅蓝', type: 'solid', bg: '#e1ecfb', text: '#1d2b45', followBtn: '#c4d7f5', followText: '#1d2b45', dark: false },
   { id: 'pink', name: '浅粉', type: 'solid', bg: '#fbe7ee', text: '#3d2330', followBtn: '#f4cfdc', followText: '#3d2330', dark: false },
