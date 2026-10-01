@@ -269,16 +269,19 @@ export async function fetchGenericSite(url: string, onFailure?: OnFailure): Prom
 async function fetchDribbble(url: string, onFailure?: OnFailure): Promise<FetchedMetrics | null> {
   const s = await fetchViaServer(url, onFailure)
   if (s) {
-    const m = pickMetric(s, /获赞|点赞|likes/i)
+    const m = s.metrics?.find((metric) => /获赞|点赞|likes/i.test(metric.label))
     if (m) {
       return {
-        metric: '总获赞',
+        metric: m.label,
         value: m.value,
-        insight: s.title || '数据由 AI 现场读取',
+        insight: s.metrics?.some((metric) => metric.label === '本页作品')
+          ? `${s.title || 'Dribbble'} · 当前页 ${s.metrics.find((metric) => metric.label === '本页作品')?.value} 件作品，非账号全部作品`
+          : s.title || '数据由 AI 现场读取',
         source: 'live',
       }
     }
   }
+  if (s) onFailure?.('no-metrics')
   if (await bridgeAvailable()) {
     try {
       await bridgeCmd('navigate', { url, newTab: true, group_title: 'One Page 数据抓取' })

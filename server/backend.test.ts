@@ -7,6 +7,31 @@ import { pageFailure } from './browser.js'
 import { startBrowserProxy } from './browser-proxy.js'
 import { request } from 'node:http'
 
+test('Dribbble public thumbnail JSON yields scoped likes instead of empty metrics', () => {
+  const html = '<title>Summer Ching</title><script>var newestShots = ' + JSON.stringify([
+    { id: 5091625, title: 'Admin ] " quoted', likes_count: '20', view_count: '817', ga: [] },
+    { id: 5091624, likes_count: '23', view_count: '4k' },
+    { id: 5091622, likes_count: '11', view_count: '1.9k' },
+    { id: 5091625, likes_count: '20', view_count: '817' },
+  ]) + '; Dribbble.Thumbnails.initialize();</script>'
+  const result = extractFromHtml(html, 'https://dribbble.com/424096784emm')
+  assert.ok(result.ok)
+  assert.deepEqual(result.metrics, [
+    { label: '本页获赞', value: '54' },
+    { label: '本页浏览', value: '6717' },
+    { label: '本页作品', value: '3' },
+  ])
+})
+
+test('Dribbble counters support zero and abbreviated counts without inventing missing data', () => {
+  const result = extractFromHtml('<script>var newestShots = [{"id":1,"likes_count":"1.2k"},{"id":2,"likes_count":"0"},{"id":3}];</script>', 'https://dribbble.com/designer')
+  assert.ok(result.ok)
+  assert.deepEqual(result.metrics, [{ label: '本页获赞', value: '1200' }, { label: '本页作品', value: '2' }])
+  const malformed = extractFromHtml('<script>var newestShots = [notJson];</script>', 'https://dribbble.com/designer')
+  assert.ok(malformed.ok)
+  assert.deepEqual(malformed.metrics, [])
+})
+
 test('Huaban rejection and login pages report explicit failure reasons', () => {
   assert.equal(pageFailure(405, '出错了-花瓣网', '405：异常访问', 'https://huaban.com/space'), 'site-blocked')
   assert.equal(pageFailure(200, '登录', '', 'https://example.com/login'), 'login-required')

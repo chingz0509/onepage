@@ -5,6 +5,7 @@
 
 import { fetchPublicHtml, validateTarget } from './network.js'
 import { renderPage } from './browser.js'
+import { dribbbleMetrics } from './dribbble.js'
 
 export { validateTarget } from './network.js'
 export type SiteMetric = { label: string; value: string }
@@ -102,12 +103,13 @@ export function extractFromHtml(html: string, finalUrl: string): FetchResult {
     metaContent(html, 'og:description', 'property') ??
     metaContent(html, 'description', 'name')
 
+  const platformMetrics = dribbbleMetrics(html, finalUrl)
   return {
     ok: true,
     title,
     image,
     description: description ? decodeEntities(description) : null,
-    metrics: extractMetrics(html),
+    metrics: platformMetrics.length ? platformMetrics : extractMetrics(html),
     finalUrl,
   }
 }

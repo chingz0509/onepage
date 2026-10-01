@@ -74,11 +74,16 @@ export async function renderPage(url: string): Promise<BrowserResult> {
       meta: [...document.querySelectorAll('meta[property],meta[name]')]
         .map((element) => element.outerHTML).join(''),
       text: document.body.innerText.slice(0, 100000),
+      // Thumbnail statistics are script data and are lost by innerText alone.
+      shotData: /^(www\.)?dribbble\.com$/.test(location.hostname)
+        ? [...document.scripts].filter((script) => /\bnewestShots\s*=/.test(script.textContent ?? ''))
+          .map((script) => script.textContent).join('\n').slice(0, 200000)
+        : '',
     }))
     const failure = pageFailure(response?.status() ?? 0, content.title, content.text, finalUrl)
     if (failure) return { reason: failure }
     const escape = (value: string) => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
-    const html = `<html><head><title>${escape(content.title)}</title>${content.meta}</head><body>${escape(content.text)}</body></html>`
+    const html = `<html><head><title>${escape(content.title)}</title>${content.meta}</head><body>${escape(content.text)}<script>${content.shotData}</script></body></html>`
     return { html, finalUrl }
   } catch (error) {
     // Log only the error class, never endpoint credentials or page content.
