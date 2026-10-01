@@ -97,6 +97,70 @@ async function bridgeAvailable(): Promise<boolean> {
 /** 与 dataSnapshot 抓取时一致的 Dribbble 作品统计提取脚本 */
 const DRIBBBLE_EXTRACT = `(()=>{const t=document.body.innerText; const re=/Comment\\n(\\d+)\\n([\\d.,k]+)\\n([\\d.,k]+)/g; const parse=s=>s.toLowerCase().includes("k")?parseFloat(s)*1000:parseFloat(s.replace(",","")); let m,likes=0,views=0,shots=0; while((m=re.exec(t))){shots++;likes+=parseInt(m[2]);views+=parse(m[3])} return JSON.stringify({shots,likes,views:Math.round(views)})})()`
 
+/** 花瓣主页：头部「N 粉丝」，画板列表「N采集」累加 */
+const HUABAN_EXTRACT = `(()=>{const t=document.body.innerText; const fans=t.match(/([\\d.,w万+]+)\\s*粉丝/); const pins=[...t.matchAll(/(\\d+)\\s*采集/g)].reduce((s,m)=>s+parseInt(m[1]),0); const boards=(t.match(/\\d+\\s*采集/g)||[]).length; return JSON.stringify({fans:fans?fans[1]:null,pins,boards})})()`
+
+async function fetchHuaban(url: string): Promise<FetchedMetrics> {
+  if (await bridgeAvailable()) {
+    try {
+      await bridgeCmd('navigate', { url, newTab: true, group_title: 'One Page 数据抓取' })
+      await new Promise((r) => window.setTimeout(r, 3000))
+      const j = await bridgeCmd('evaluate', { code: HUABAN_EXTRACT })
+      const d = JSON.parse(j?.data?.value ?? 'null') as {
+        fans: string | null
+        pins: number
+        boards: number
+      } | null
+      if (d && (d.fans || d.pins > 0)) {
+        return {
+          metric: d.fans ? '粉丝' : '采集',
+          value: d.fans ?? formatK(d.pins),
+          insight: d.pins > 0 ? `${d.pins} 次采集 · ${d.boards} 个画板` : '数据由 AI 现场读取',
+          source: 'live',
+        }
+      }
+    } catch {
+      // 静默走快照
+    }
+  }
+  return snapshot('花瓣网')
+}
+
+/** 未知平台通用提取：页面标题 + 粉丝/获赞/阅读等关键词附近的数字（双向匹配） */
+const GENERIC_EXTRACT = `(()=>{const og=document.querySelector('meta[property="og:title"]'); const title=(og&&og.content)||document.title||''; const t=document.body.innerText.slice(0,20000); const found=[]; const push=(label,value)=>{if(found.length<2&&!found.some(f=>f.label===label))found.push({label,value})}; let m; const re1=/([\\d.,]+(?:\\s?[kwm万])?)\\s*(粉丝|关注者|获赞|点赞|阅读|浏览|播放|star|follower)/gi; while((m=re1.exec(t)))push(m[2],m[1]); const re2=/(粉丝|关注者|获赞|点赞|阅读|浏览|播放)\\s*[:：]?\\s*([\\d.,]+(?:\\s?[kwm万])?)/gi; while((m=re2.exec(t)))push(m[1],m[2]); return JSON.stringify({title,stats:found})})()`
+
+/** 未知平台通用抓取；桥不可用或失败返回 null，由调用方维持「已收录」占位 */
+export async function fetchGenericSite(url: string): Promise<FetchedMetrics | null> {
+  if (!(await bridgeAvailable())) return null
+  try {
+    await bridgeCmd('navigate', { url, newTab: true, group_title: 'One Page 数据抓取' })
+    await new Promise((r) => window.setTimeout(r, 3000))
+    const j = await bridgeCmd('evaluate', { code: GENERIC_EXTRACT })
+    const d = JSON.parse(j?.data?.value ?? 'null') as {
+      title: string
+      stats: { label: string; value: string }[]
+    } | null
+    if (!d) return null
+    const stat = d.stats?.[0]
+    if (stat) {
+      return {
+        metric: stat.label,
+        value: stat.value,
+        insight: d.title || '数据由 AI 现场读取',
+        source: 'live',
+      }
+    }
+    return {
+      metric: '主页链接',
+      value: '✓',
+      insight: d.title || '数据由 AI 现场读取',
+      source: 'live',
+    }
+  } catch {
+    return null
+  }
+}
+
 async function fetchDribbble(url: string): Promise<FetchedMetrics> {
   if (await bridgeAvailable()) {
     try {
@@ -136,6 +200,7 @@ export async function fetchPlatformMetrics(
       return snapshot('GitHub')
     }
     if (platform === 'Dribbble') return await fetchDribbble(url)
+    if (platform === '花瓣网') return await fetchHuaban(url)
     return snapshot(platform)
   } catch {
     return snapshot(platform)

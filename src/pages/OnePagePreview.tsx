@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import QRCode from 'qrcode'
 import { encodeJson } from '../shareCodec'
 import { pageUrl } from '../router'
-import { fetchPlatformMetrics } from '../dataFetch'
+import { fetchPlatformMetrics, fetchGenericSite } from '../dataFetch'
 import {
   BUTTON_COLORS,
   BUTTON_STYLES,
@@ -102,6 +102,14 @@ const KNOWN_PLATFORMS: Record<string, Omit<OnePageLink, 'url'>> = {
     value: '3.2k',
     insight: '回答采纳率 68%，高于社区均值',
   },
+  'huaban.com': {
+    platform: '花瓣网',
+    badge: '瓣',
+    accent: '#e60023',
+    metric: '粉丝',
+    value: '1.1w',
+    insight: '544 次采集 · 12 个画板',
+  },
 }
 
 type Detected =
@@ -197,10 +205,11 @@ function LinkInputSlot(props: {
 
     // 真实数据获取与步骤动画并行；两者都就绪才进入完成步
     const minTime = new Promise((r) => stepTimers.current.push(window.setTimeout(r, 2700)))
-    const fetchP =
-      detected.kind === 'known' && !dup
+    const fetchP = dup
+      ? Promise.resolve(null)
+      : detected.kind === 'known'
         ? fetchPlatformMetrics(detected.card.platform, url)
-        : Promise.resolve(null)
+        : fetchGenericSite(url)
     void Promise.all([minTime, fetchP]).then(([, metrics]) => {
       setStepIdx(3)
       stepTimers.current.push(
@@ -218,8 +227,10 @@ function LinkInputSlot(props: {
                 metric: metrics.metric,
                 value: metrics.value,
                 unit: metrics.unit,
-                insight: metrics.insight,
+                insight: metrics.insight || base.insight,
                 source: metrics.source,
+                // 未知平台抓到数字就升格为正式条目，否则维持「已收录」占位
+                generic: metrics.value === '✓',
               }
             : { ...base, source: 'snapshot' }
           props.onResolve(card)

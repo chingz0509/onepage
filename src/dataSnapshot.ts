@@ -35,6 +35,11 @@ export const PLATFORM_SNAPSHOTS: Record<string, PlatformSnapshot> = {
     value: '856',
     insight: '3 件作品被编辑推荐至首页',
   },
+  花瓣网: {
+    metric: '粉丝',
+    value: '1.1w',
+    insight: '544 次采集 · 12 个画板',
+  },
   掘金: {
     metric: '文章阅读量',
     value: '48w',
