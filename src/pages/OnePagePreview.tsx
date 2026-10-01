@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import QRCode from 'qrcode'
 import { encodeJson } from '../shareCodec'
 import { pageUrl } from '../router'
-import { fetchPlatformMetrics, fetchGenericSite } from '../dataFetch'
+import { fetchPlatformMetrics, fetchGenericSite, type FetchedMetrics } from '../dataFetch'
 import {
   BUTTON_COLORS,
   BUTTON_STYLES,
@@ -54,68 +54,21 @@ const PERSONAS: Persona[] = [
   },
 ]
 
-/** 已知平台的模拟读取结果（黑客松演示数据），url 取用户粘贴的链接 */
-const KNOWN_PLATFORMS: Record<string, Omit<OnePageLink, 'url'>> = {
-  'dribbble.com': {
-    platform: 'Dribbble',
-    badge: 'Dr',
-    accent: '#ea4c89',
-    metric: '总获赞',
-    value: '388',
-    insight: '33 件作品 · 累计 102.9k 浏览',
-  },
-  'behance.net': {
-    platform: 'Behance',
-    badge: 'Be',
-    accent: '#1769ff',
-    metric: '作品总浏览',
-    value: '3.4k',
-    insight: '近 90 天浏览量稳步上升，增幅 46%',
-  },
-  'zcool.com.cn': {
-    platform: '站酷',
-    badge: '站',
-    accent: '#ff552e',
-    metric: '人气值',
-    value: '856',
-    insight: '3 件作品被编辑推荐至首页',
-  },
-  'github.com': {
-    platform: 'GitHub',
-    badge: 'GH',
-    accent: '#24292f',
-    metric: '总 Star',
-    value: '0',
-    insight: '5 个公开仓库 · 1 位关注者，正在积累开源影响力',
-  },
-  'juejin.cn': {
-    platform: '掘金',
-    badge: '掘',
-    accent: '#1e80ff',
-    metric: '文章阅读量',
-    value: '48w',
-    insight: '3 篇专栏进入前端分类热榜',
-  },
-  'stackoverflow.com': {
-    platform: 'Stack Overflow',
-    badge: 'SO',
-    accent: '#f48024',
-    metric: '声望值',
-    value: '3.2k',
-    insight: '回答采纳率 68%，高于社区均值',
-  },
-  'huaban.com': {
-    platform: '花瓣网',
-    badge: '瓣',
-    accent: '#e60023',
-    metric: '粉丝',
-    value: '1.1w',
-    insight: '544 次采集 · 12 个画板',
-  },
+/** 已知平台的身份信息（名称/图标/品牌色）；数据全部实时抓取，抓不到显示「已收录」 */
+const KNOWN_PLATFORMS: Record<string, { platform: string; badge: string; accent: string }> = {
+  'dribbble.com': { platform: 'Dribbble', badge: 'Dr', accent: '#ea4c89' },
+  'behance.net': { platform: 'Behance', badge: 'Be', accent: '#1769ff' },
+  'zcool.com.cn': { platform: '站酷', badge: '站', accent: '#ff552e' },
+  'github.com': { platform: 'GitHub', badge: 'GH', accent: '#24292f' },
+  'juejin.cn': { platform: '掘金', badge: '掘', accent: '#1e80ff' },
+  'stackoverflow.com': { platform: 'Stack Overflow', badge: 'SO', accent: '#f48024' },
+  'huaban.com': { platform: '花瓣网', badge: '瓣', accent: '#e60023' },
 }
 
+type PlatformIdentity = { platform: string; badge: string; accent: string }
+
 type Detected =
-  | { kind: 'known'; card: Omit<OnePageLink, 'url'> }
+  | { kind: 'known'; card: PlatformIdentity }
   | { kind: 'generic'; domain: string }
 
 function normalizeUrl(raw: string): string {
@@ -135,9 +88,17 @@ function detectUrl(raw: string): Detected | null {
   return { kind: 'generic', domain }
 }
 
+/** 抓取完成前的占位卡片：没有任何数字，只表达「已收录」 */
 function cardFromDetected(detected: Detected, url: string): OnePageLink {
   return detected.kind === 'known'
-    ? { ...detected.card, url }
+    ? {
+        ...detected.card,
+        metric: '主页链接',
+        value: '✓',
+        insight: `已收录「${detected.card.platform} 主页」`,
+        generic: true,
+        url,
+      }
     : {
         platform: detected.domain,
         badge: detected.domain[0].toUpperCase(),
@@ -154,13 +115,22 @@ function randomSlug(): string {
   return Math.random().toString(36).slice(2, 8)
 }
 
-/** 数字小幅随机上涨（保留 k/w 后缀），模拟拉取最新数据 */
-function bumpValue(v: string): string {
-  const m = v.match(/^([\d.]+)([kw]?)$/i)
-  if (!m) return v
-  const n = parseFloat(m[1]) * (1 + 0.01 + Math.random() * 0.04)
-  const decimals = m[1].includes('.') ? 1 : 0
-  return `${n.toFixed(decimals)}${m[2]}`
+/** 占位卡片 + 真实抓取结果 → 正式条目；抓到 ✓（页面可读但无数字）维持「已收录」 */
+function cardWithMetrics(
+  detected: Detected,
+  url: string,
+  metrics: FetchedMetrics,
+): OnePageLink {
+  const base = cardFromDetected(detected, url)
+  return {
+    ...base,
+    metric: metrics.metric,
+    value: metrics.value,
+    unit: metrics.unit,
+    insight: metrics.insight || base.insight,
+    source: metrics.source,
+    generic: metrics.value === '✓',
+  }
 }
 
 type LinkSlot = { id: number; card: OnePageLink | null }
@@ -178,6 +148,8 @@ function LinkInputSlot(props: {
   isDuplicate: (platform: string) => boolean
   onResolve: (card: OnePageLink) => void
   onDuplicate: (platform: string) => void
+  /** 重复平台重新读到真实数据时，更新已有条目 */
+  onRefresh?: (card: OnePageLink) => void
   /** 读取开始/结束时上报，父级据此禁用「继续」（跳过保持可点） */
   onReadingChange?: (reading: boolean) => void
 }) {
@@ -204,44 +176,33 @@ function LinkInputSlot(props: {
     if (!detected) return
     const url = normalizeUrl(v)
     const dup = detected.kind === 'known' && props.isDuplicate(detected.card.platform)
-    setFinalText(dup ? '✓ 已刷新最新数据' : READ_STEPS[3])
     setReading(true)
     props.onReadingChange?.(true)
     setStepIdx(0)
     stepTimers.current.push(window.setTimeout(() => setStepIdx(1), 900))
     stepTimers.current.push(window.setTimeout(() => setStepIdx(2), 1800))
 
-    // 真实数据获取与步骤动画并行；两者都就绪才进入完成步
+    // 真实数据获取与步骤动画并行；两者都就绪才进入完成步（重复平台也真抓，刷新旧条目）
     const minTime = new Promise((r) => stepTimers.current.push(window.setTimeout(r, 2700)))
-    const fetchP = dup
-      ? Promise.resolve(null)
-      : detected.kind === 'known'
+    const fetchP =
+      detected.kind === 'known'
         ? fetchPlatformMetrics(detected.card.platform, url)
         : fetchGenericSite(url)
     void Promise.all([minTime, fetchP]).then(([, metrics]) => {
+      setFinalText(dup ? (metrics ? '✓ 已刷新最新数据' : '✓ 已在列表中') : READ_STEPS[3])
       setStepIdx(3)
       stepTimers.current.push(
         window.setTimeout(() => {
           if (dup && detected.kind === 'known') {
+            if (metrics) props.onRefresh?.(cardWithMetrics(detected, url, metrics))
             props.onDuplicate(detected.card.platform)
             setValue('')
             setReading(false)
             props.onReadingChange?.(false)
             return
           }
-          const base = cardFromDetected(detected, url)
-          const card: OnePageLink = metrics
-            ? {
-                ...base,
-                metric: metrics.metric,
-                value: metrics.value,
-                unit: metrics.unit,
-                insight: metrics.insight || base.insight,
-                source: metrics.source,
-                // 未知平台抓到数字就升格为正式条目，否则维持「已收录」占位
-                generic: metrics.value === '✓',
-              }
-            : { ...base, source: 'snapshot' }
+          // 抓不到真实数据就保留「已收录」占位，绝不编造数字
+          const card = metrics ? cardWithMetrics(detected, url, metrics) : cardFromDetected(detected, url)
           props.onResolve(card)
         }, 700),
       )
@@ -393,6 +354,7 @@ export function OnePagePreview() {
   const [sheet, setSheet] = useState<Sheet>(null)
   const [justAdded, setJustAdded] = useState<string | null>(null)
   const [editSlots, setEditSlots] = useState<number[]>([])
+  const [refreshing, setRefreshing] = useState(false)
 
   const timers = useRef<number[]>([])
   const clearTimers = () => {
@@ -476,6 +438,15 @@ export function OnePagePreview() {
   const flashPlatform = (platform: string) => {
     setFlashKey(platform)
     timers.current.push(window.setTimeout(() => setFlashKey(null), 1600))
+  }
+
+  /** 重复粘贴某平台时，用新抓到的真实数据更新已有条目（向导槽位 + 已发布条目一起查） */
+  const refreshPlatform = (card: OnePageLink) => {
+    flashPlatform(card.platform)
+    setSlots((prev) =>
+      prev.map((s) => (s.card?.platform === card.platform ? { ...s, card } : s)),
+    )
+    setLinks((prev) => prev.map((l) => (l.platform === card.platform ? card : l)))
   }
 
   const buildShareUrl = (s: string, linkList: OnePageLink[]): string => {
@@ -581,10 +552,31 @@ export function OnePagePreview() {
     })
   }
 
-  const refreshData = () => {
-    setLinks((prev) => prev.map((l) => ({ ...l, value: bumpValue(l.value) })))
+  /** 刷新数据：每条链接重新真实抓取；抓不到的保留上一次的真实值 */
+  const refreshData = async () => {
+    if (refreshing) return
+    setRefreshing(true)
     setFlashAll(true)
-    timers.current.push(window.setTimeout(() => setFlashAll(false), 1600))
+    const next = await Promise.all(
+      links.map(async (l) => {
+        const metrics = l.generic
+          ? await fetchGenericSite(l.url)
+          : await fetchPlatformMetrics(l.platform, l.url)
+        if (!metrics || metrics.value === '✓') return l
+        return {
+          ...l,
+          metric: metrics.metric,
+          value: metrics.value,
+          unit: metrics.unit,
+          insight: metrics.insight || l.insight,
+          source: metrics.source,
+          generic: false,
+        }
+      }),
+    )
+    setLinks(next)
+    setFlashAll(false)
+    setRefreshing(false)
   }
 
   // —— 渲染 ——
@@ -645,8 +637,8 @@ export function OnePagePreview() {
 
           {editing && !visitor && (
             <div className="op-module-editbar">
-              <button className="op-mini-btn" onClick={refreshData}>
-                ⟳ 刷新数据
+              <button className="op-mini-btn" disabled={refreshing} onClick={refreshData}>
+                {refreshing ? '⟳ 读取中…' : '⟳ 刷新数据'}
               </button>
               <button className="op-mini-btn" onClick={() => setSheet({ kind: 'style' })}>
                 风格
@@ -739,6 +731,7 @@ export function OnePagePreview() {
                       flashPlatform(platform)
                       setEditSlots((prev) => prev.filter((s) => s !== id))
                     }}
+                    onRefresh={refreshPlatform}
                   />
                 ))}
                 <button
@@ -761,8 +754,8 @@ export function OnePagePreview() {
         </div>
       )}
 
-      {/* ———— 向导第 1-3 步（壁纸全屏打底） ———— */}
-      {(step === 1 || step === 2 || step === 3) && (
+      {/* ———— 向导第 1-2 步（壁纸全屏打底） ———— */}
+      {(step === 1 || step === 2) && (
         <div className="op-col">
           <div className="op-wiz-top">
             <button
@@ -851,6 +844,7 @@ export function OnePagePreview() {
                         )
                       }
                       onDuplicate={flashPlatform}
+                      onRefresh={refreshPlatform}
                       onReadingChange={(r) => setSlotReading(slot.id, r)}
                     />
                   ),
@@ -878,12 +872,39 @@ export function OnePagePreview() {
             </>
           )}
 
-          {step === 3 && (
-            <>
+        </div>
+      )}
+
+      {/* ———— 向导第 3 步：上半手机预览（壁纸打底），下半白色面板 ———— */}
+      {step === 3 && (
+        <div className="op-style-step">
+          <div className="op-style-stage">
+            <div className="op-wiz-top">
+              <button
+                className="op-wiz-back"
+                aria-label="返回"
+                onClick={() => setStep(2)}
+              >
+                ←
+              </button>
+              <div className="op-wiz-progress">
+                <div className="op-wiz-progress-fill" style={{ width: '100%' }} />
+              </div>
+              <span className="op-wiz-count">3 / 3</span>
+            </div>
+            <PhonePreview
+              wallpaper={wallpaper}
+              avatarChar={avatarChar}
+              editorial={editorial}
+              linkBtnStyle={linkBtnStyle}
+            />
+          </div>
+
+          <div className="op-style-sheet">
+            <div className="op-style-sheet-inner">
               <h2 className="op-wiz-title">
                 定制你的<em>风格</em>
               </h2>
-              <p className="op-wiz-sub">页面背景就是你的预览，所见即所得</p>
 
               <StylePicker
                 wallpaper={wallpaper}
@@ -902,8 +923,8 @@ export function OnePagePreview() {
                   发布我的 One Page
                 </button>
               </div>
-            </>
-          )}
+            </div>
+          </div>
         </div>
       )}
 
@@ -979,6 +1000,44 @@ export function OnePagePreview() {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+/**
+ * 向导第 3 步的手机框预览：只放真实头像，名字/简介/链接都用横条示意。
+ * 链接横条跟随按钮样式与颜色，换壁纸/按钮即时可见。
+ */
+function PhonePreview(props: {
+  wallpaper: Wallpaper
+  avatarChar: string
+  editorial: boolean
+  linkBtnStyle: CSSProperties
+}) {
+  const bar = (cls: string, opacity: number) => (
+    <span
+      className={`op-phone-bar ${cls}`}
+      style={{ background: props.wallpaper.text, opacity }}
+    />
+  )
+  return (
+    <div className="op-phone">
+      <div className="op-phone-screen" style={{ background: props.wallpaper.bg }}>
+        <div className="op-phone-avatar">{props.avatarChar}</div>
+        {bar('is-name', 0.4)}
+        {bar('is-sub', 0.22)}
+        <div className={props.editorial ? 'op-phone-rows' : 'op-phone-links'}>
+          {[0, 1, 2].map((i) =>
+            props.editorial ? (
+              <span key={i} className="op-phone-row">
+                {bar('is-row', 0.45)}
+              </span>
+            ) : (
+              <span key={i} className="op-phone-link" style={props.linkBtnStyle} />
+            ),
+          )}
+        </div>
+      </div>
     </div>
   )
 }

@@ -1095,6 +1095,196 @@
   opacity: 0.55;
 }
 
+/* —— 向导第 3 步：上半预览 + 下半白色面板 —— */
+
+.op-style-step {
+  width: 100%;
+  flex: 1;
+  /* 抵消 .op-page 的 padding，让白色面板出血到屏幕边缘 */
+  margin: -64px -20px -72px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.op-style-stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 64px 20px 0;
+}
+
+.op-style-stage .op-wiz-top {
+  width: 100%;
+  max-width: 430px;
+}
+
+.op-style-stage .op-phone {
+  margin-top: auto;
+  margin-bottom: 0;
+  /* 手机高度跟随上半区空间，保证下半白面板始终占约 45% */
+  height: min(46vh, 420px);
+  aspect-ratio: 208 / 350;
+  width: auto;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+/* 手机框改由屏幕本身承担，便于整体随高度等比缩放 */
+.op-style-stage .op-phone-screen {
+  width: 100%;
+  height: 100%;
+  border: 6px solid #1c1a17;
+  border-radius: 34px;
+  box-shadow:
+    0 28px 56px rgba(26, 26, 24, 0.3),
+    0 0 0 1px rgba(26, 26, 24, 0.4);
+}
+
+.op-style-sheet {
+  position: relative;
+  z-index: 1;
+  /* 上沿压住手机框底部，像 Linktree 那样把手机裁掉一截 */
+  margin-top: -64px;
+  min-height: 44vh;
+  padding: 26px 20px 44px;
+  background: #ffffff;
+  border-radius: 26px 26px 0 0;
+  box-shadow: 0 -14px 36px rgba(26, 26, 24, 0.14);
+  /* 面板上统一用固定墨色，不跟随壁纸文字色 */
+  --wiz-text: #1a1a18;
+  --wiz-btn-bg: #1a1a18;
+  --wiz-btn-text: #ffffff;
+}
+
+.op-style-sheet-inner {
+  max-width: 430px;
+  margin: 0 auto;
+}
+
+.op-style-sheet .op-wiz-title {
+  text-align: center;
+}
+
+.op-style-sheet .op-tabs {
+  background: var(--ed-surface);
+}
+
+.op-style-sheet .op-tab {
+  color: var(--ed-sub);
+  opacity: 1;
+}
+
+.op-style-sheet .op-tab.is-active {
+  color: var(--ed-accent);
+}
+
+/* —— 向导第 3 步：手机框实时预览 —— */
+
+.op-phone {
+  width: 238px;
+  margin: 2px auto 22px;
+  padding: 6px;
+  border-radius: 40px;
+  background: #1c1a17;
+  box-shadow:
+    0 28px 56px rgba(26, 26, 24, 0.3),
+    0 0 0 1px rgba(26, 26, 24, 0.4);
+}
+
+.op-phone-screen {
+  width: 226px;
+  height: 404px;
+  border-radius: 34px;
+  overflow: hidden;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 46px 18px 0;
+  transition: background 0.25s ease;
+}
+
+/* 骨架内容：只有头像是真实的，其余都是横条 */
+
+.op-phone-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--ed-serif);
+  font-size: 18px;
+  font-weight: 700;
+  color: #f1ecde;
+  background: #1a1a18;
+  box-shadow: 0 6px 16px rgba(26, 26, 24, 0.22);
+}
+
+.op-phone-bar {
+  display: block;
+  border-radius: 999px;
+}
+
+.op-phone-bar.is-name {
+  width: 92px;
+  height: 10px;
+  margin-top: 14px;
+}
+
+.op-phone-bar.is-sub {
+  width: 60px;
+  height: 8px;
+  margin-top: 8px;
+}
+
+.op-phone-bar.is-row {
+  width: 72px;
+  height: 8px;
+}
+
+/* 链接横条：按钮式（跟随按钮样式/颜色） */
+
+.op-phone-links {
+  width: 100%;
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.op-phone-link {
+  display: block;
+  width: 100%;
+  height: 34px;
+  border: 1px solid transparent;
+  transition:
+    background 0.2s ease,
+    border-radius 0.2s ease;
+}
+
+/* 链接横条：编辑风目录式（cream 默认壁纸） */
+
+.op-phone-rows {
+  width: 100%;
+  margin-top: 32px;
+  border-top: 1px solid var(--ed-hairline);
+  display: flex;
+  flex-direction: column;
+}
+
+.op-phone-row {
+  display: flex;
+  align-items: center;
+  height: 34px;
+  border-bottom: 1px solid var(--ed-hairline);
+}
+
 @keyframes op-step-in {
   from {
     opacity: 0;

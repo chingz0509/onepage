@@ -5,7 +5,6 @@ import {
   type OnePageLink,
   type OnePageShare,
 } from '../onepage'
-import { SNAPSHOT_DATE } from '../dataSnapshot'
 import './onepage-shared.css'
 
 /** 目录式（编辑风）条目内容：品牌色点 + 宋体平台名 + 斜体解读，右侧宋体大数字 */
@@ -20,7 +19,7 @@ export function EditorialItemContent({ link }: { link: OnePageLink }) {
         <span className="opd-insight">{link.insight}</span>
         {!link.generic && (
           <span className="opd-source">
-            数据来自 {link.platform} · {link.source === 'snapshot' ? `${SNAPSHOT_DATE} 快照` : '刚刚更新'}
+            数据来自 {link.platform} · {link.source === 'snapshot' ? '历史快照' : '刚刚更新'}
           </span>
         )}
       </span>

@@ -6,6 +6,9 @@
 
 import { fetchAndExtract } from './_extract.js'
 
+/** 二级回退走商业抓取服务（JS 渲染较慢），放宽函数超时 */
+export const maxDuration = 30
+
 type Req = { url?: string; query?: Record<string, string | string[]> }
 type Res = {
   statusCode: number

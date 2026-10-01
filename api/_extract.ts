@@ -36,6 +36,47 @@ export function validateTarget(raw: string | null | undefined): URL | null {
 const UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36'
 
+/**
+ * 商业抓取服务二级回退（应对 EdgeOne/空壳等 JS 挑战站点，如花瓣网、掘金）。
+ * 配了环境变量才启用：SCRAPER_PROVIDER = zenrows | scrapingbee，SCRAPER_API_KEY = <key>。
+ * 两家都自带 JS 渲染 + 住宅代理；未配置时整层静默跳过。
+ */
+function scraperEndpoint(target: string): string | null {
+  const key = process.env.SCRAPER_API_KEY
+  const provider = process.env.SCRAPER_PROVIDER
+  if (!key || !provider) return null
+  const u = encodeURIComponent(target)
+  if (provider === 'zenrows') {
+    return `https://api.zenrows.com/v1/?apikey=${key}&url=${u}&js_render=true&premium_proxy=true`
+  }
+  if (provider === 'scrapingbee') {
+    return `https://app.scrapingbee.com/api/v1?api_key=${key}&url=${u}&render_js=true&premium_proxy=true`
+  }
+  return null
+}
+
+async function fetchHtml(url: string, timeoutMs: number): Promise<string | null> {
+  const ctrl = new AbortController()
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs)
+  try {
+    const res = await fetch(url, {
+      signal: ctrl.signal,
+      redirect: 'follow',
+      headers: {
+        'User-Agent': UA,
+        Accept: 'text/html,application/xhtml+xml,*/*;q=0.8',
+        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+      },
+    })
+    if (!res.ok || !res.body) return null
+    return await readLimited(res.body)
+  } catch {
+    return null
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 const MAX_BYTES = 512 * 1024
 
 async function readLimited(body: ReadableStream<Uint8Array>): Promise<string> {
@@ -110,45 +151,51 @@ function extractMetrics(html: string): SiteMetric[] {
   return found
 }
 
+function extractFromHtml(html: string, finalUrl: string): FetchResult {
+  const ogTitle = metaContent(html, 'og:title', 'property')
+  const titleTag = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] ?? ''
+  const title = decodeEntities(ogTitle ?? titleTag)
+  const image = metaContent(html, 'og:image', 'property')
+  const description =
+    metaContent(html, 'og:description', 'property') ??
+    metaContent(html, 'description', 'name')
+
+  return {
+    ok: true,
+    title,
+    image,
+    description: description ? decodeEntities(description) : null,
+    metrics: extractMetrics(html),
+    finalUrl,
+  }
+}
+
+/** 空壳判定：挑战页/SPA 壳通常连标题都没有，也没有任何数字指标 */
+function isEmptyShell(r: FetchResult): boolean {
+  return r.ok && r.title === '' && r.metrics.length === 0
+}
+
 export async function fetchAndExtract(raw: string | null | undefined): Promise<FetchResult> {
   const target = validateTarget(raw)
   if (!target) return { ok: false, reason: 'invalid-url' }
+  const url = target.toString()
 
-  const ctrl = new AbortController()
-  const timer = setTimeout(() => ctrl.abort(), 8000)
-  try {
-    const res = await fetch(target.toString(), {
-      signal: ctrl.signal,
-      redirect: 'follow',
-      headers: {
-        'User-Agent': UA,
-        Accept: 'text/html,application/xhtml+xml,*/*;q=0.8',
-        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
-      },
-    })
-    if (!res.ok || !res.body) return { ok: false, reason: `http-${res.status}` }
-    const html = await readLimited(res.body)
-
-    const ogTitle = metaContent(html, 'og:title', 'property')
-    const titleTag = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] ?? ''
-    const title = decodeEntities(ogTitle ?? titleTag)
-    const image = metaContent(html, 'og:image', 'property')
-    const description =
-      metaContent(html, 'og:description', 'property') ??
-      metaContent(html, 'description', 'name')
-
-    return {
-      ok: true,
-      title,
-      image,
-      description: description ? decodeEntities(description) : null,
-      metrics: extractMetrics(html),
-      finalUrl: res.url,
-    }
-  } catch (e) {
-    const reason = e instanceof Error && e.name === 'AbortError' ? 'timeout' : 'fetch-failed'
-    return { ok: false, reason }
-  } finally {
-    clearTimeout(timer)
+  // 一级：直连（大多数公开站点这样就够了）
+  const html = await fetchHtml(url, 8000)
+  if (html) {
+    const direct = extractFromHtml(html, url)
+    if (!isEmptyShell(direct)) return direct
   }
+
+  // 二级：商业抓取服务（JS 渲染 + 住宅代理），专治挑战页/空壳
+  const endpoint = scraperEndpoint(url)
+  if (endpoint) {
+    const rendered = await fetchHtml(endpoint, 25000)
+    if (rendered) {
+      const viaScraper = extractFromHtml(rendered, url)
+      if (!isEmptyShell(viaScraper)) return viaScraper
+    }
+  }
+
+  return html ? extractFromHtml(html, url) : { ok: false, reason: 'fetch-failed' }
 }

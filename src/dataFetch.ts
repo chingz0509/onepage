@@ -1,22 +1,17 @@
 /**
- * 三轨制平台数据获取：
- * 1. GitHub —— 任何环境都走官方公开 API（免密钥），失败回退快照；
- * 2. Dribbble —— 检测本机 WebBridge（127.0.0.1:10086）可用时真实打开主页抓取，
- *    不可用或抓取失败静默回退快照（访客机器上 127.0.0.1 必失败，不能影响页面）；
- * 3. 其他平台 —— 直接使用 dataSnapshot 里的真实快照值。
+ * 平台数据获取（只认真实数据，抓不到返回 null，由调用方显示「已收录」占位）：
+ * 1. GitHub —— 任何环境都走官方公开 API（免密钥）；
+ * 2. 服务端抓取 —— /api/fetch（Vercel serverless / dev 中间件同构），线上主力；
+ * 3. 本机 WebBridge —— 演示机可用时真实打开主页抓取
+ *    （访客机器上 127.0.0.1 必失败，不能影响页面）。
  */
 
-import { PLATFORM_SNAPSHOTS, type PlatformSnapshot } from './dataSnapshot'
-
-export type FetchedMetrics = PlatformSnapshot & { source: 'live' | 'snapshot' }
-
-function snapshot(platform: string): FetchedMetrics {
-  const base = PLATFORM_SNAPSHOTS[platform] ?? {
-    metric: '主页链接',
-    value: '✓',
-    insight: '',
-  }
-  return { ...base, source: 'snapshot' }
+export type FetchedMetrics = {
+  metric: string
+  value: string
+  unit?: string
+  insight: string
+  source: 'live'
 }
 
 export function formatK(n: number): string {
@@ -36,7 +31,7 @@ function githubInsight(stars: number, followers: number, repos: number): string 
 
 // —— 轨 1：GitHub 官方 API ——
 
-async function fetchGitHub(username: string): Promise<FetchedMetrics> {
+async function fetchGitHub(username: string): Promise<FetchedMetrics | null> {
   try {
     const [uRes, rRes] = await Promise.all([
       fetch(`https://api.github.com/users/${username}`),
@@ -54,7 +49,36 @@ async function fetchGitHub(username: string): Promise<FetchedMetrics> {
       source: 'live',
     }
   } catch {
-    return snapshot('GitHub')
+    return null
+  }
+}
+
+// —— 轨 1b：Stack Exchange 官方 API（SO 网页本身 403，官方 API 免密钥） ——
+
+async function fetchStackOverflow(url: string): Promise<FetchedMetrics | null> {
+  const userId = url.match(/stackoverflow\.com\/users\/(\d+)/i)?.[1]
+  if (!userId) return null
+  try {
+    const res = await fetch(
+      `https://api.stackexchange.com/2.3/users/${userId}?site=stackoverflow`,
+    )
+    if (!res.ok) return null
+    const j = (await res.json()) as {
+      items?: { reputation?: number; badge_counts?: { gold: number; silver: number; bronze: number } }[]
+    }
+    const u = j.items?.[0]
+    if (!u || u.reputation === undefined) return null
+    const badges = u.badge_counts
+    return {
+      metric: '声望值',
+      value: formatK(u.reputation),
+      insight: badges
+        ? `${badges.gold} 金 · ${badges.silver} 银 · ${badges.bronze} 铜徽章`
+        : '数据来自 Stack Exchange 官方 API',
+      source: 'live',
+    }
+  } catch {
+    return null
   }
 }
 
@@ -127,13 +151,13 @@ async function bridgeAvailable(): Promise<boolean> {
   }
 }
 
-/** 与 dataSnapshot 抓取时一致的 Dribbble 作品统计提取脚本 */
+/** Dribbble 作品统计提取脚本（WebBridge 在页面内执行） */
 const DRIBBBLE_EXTRACT = `(()=>{const t=document.body.innerText; const re=/Comment\\n(\\d+)\\n([\\d.,k]+)\\n([\\d.,k]+)/g; const parse=s=>s.toLowerCase().includes("k")?parseFloat(s)*1000:parseFloat(s.replace(",","")); let m,likes=0,views=0,shots=0; while((m=re.exec(t))){shots++;likes+=parseInt(m[2]);views+=parse(m[3])} return JSON.stringify({shots,likes,views:Math.round(views)})})()`
 
 /** 花瓣主页：头部「N 粉丝」，画板列表「N采集」累加 */
 const HUABAN_EXTRACT = `(()=>{const t=document.body.innerText; const fans=t.match(/([\\d.,w万+]+)\\s*粉丝/); const pins=[...t.matchAll(/(\\d+)\\s*采集/g)].reduce((s,m)=>s+parseInt(m[1]),0); const boards=(t.match(/\\d+\\s*采集/g)||[]).length; return JSON.stringify({fans:fans?fans[1]:null,pins,boards})})()`
 
-async function fetchHuaban(url: string): Promise<FetchedMetrics> {
+async function fetchHuaban(url: string): Promise<FetchedMetrics | null> {
   const s = await fetchViaServer(url)
   if (s) {
     const m = pickMetric(s, /粉丝|followers?/i)
@@ -165,10 +189,10 @@ async function fetchHuaban(url: string): Promise<FetchedMetrics> {
         }
       }
     } catch {
-      // 静默走快照
+      // 静默返回 null
     }
   }
-  return snapshot('花瓣网')
+  return null
 }
 
 /** 未知平台通用提取：页面标题 + 粉丝/获赞/阅读等关键词附近的数字（双向匹配） */
@@ -224,7 +248,7 @@ export async function fetchGenericSite(url: string): Promise<FetchedMetrics | nu
   }
 }
 
-async function fetchDribbble(url: string): Promise<FetchedMetrics> {
+async function fetchDribbble(url: string): Promise<FetchedMetrics | null> {
   const s = await fetchViaServer(url)
   if (s) {
     const m = pickMetric(s, /获赞|点赞|likes/i)
@@ -256,28 +280,32 @@ async function fetchDribbble(url: string): Promise<FetchedMetrics> {
         }
       }
     } catch {
-      // 静默走快照
+      // 静默返回 null
     }
   }
-  return snapshot('Dribbble')
+  return null
 }
 
 // —— 入口 ——
 
+/**
+ * 已知平台抓取：GitHub/Dribbble/花瓣网有专属提取，其余走服务端+桥的通用提取。
+ * 抓不到真实数据返回 null，调用方显示「已收录」占位，绝不编造数字。
+ */
 export async function fetchPlatformMetrics(
   platform: string,
   url: string,
-): Promise<FetchedMetrics> {
+): Promise<FetchedMetrics | null> {
   try {
     if (platform === 'GitHub') {
       const username = url.match(/github\.com\/([^/?#]+)/i)?.[1]
-      if (username) return await fetchGitHub(username)
-      return snapshot('GitHub')
+      return username ? await fetchGitHub(username) : null
     }
+    if (platform === 'Stack Overflow') return await fetchStackOverflow(url)
     if (platform === 'Dribbble') return await fetchDribbble(url)
     if (platform === '花瓣网') return await fetchHuaban(url)
-    return snapshot(platform)
+    return await fetchGenericSite(url)
   } catch {
-    return snapshot(platform)
+    return null
   }
 }
