@@ -20,6 +20,7 @@ import {
 import { EditorialItemContent } from './OnePageShared'
 import './onepage-preview.css'
 import './onepage-shared.css'
+import './onepage-customize.css'
 
 type PersonaId = 'designer' | 'developer'
 
@@ -333,9 +334,9 @@ export function OnePagePreview() {
     })
 
   // 风格
-  const [wallpaperId, setWallpaperId] = useState(initial?.wallpaperId ?? 'cream')
+  const [wallpaperId, setWallpaperId] = useState(initial?.wallpaperId ?? 'custom:7c6d58')
   const [buttonStyle, setButtonStyle] = useState<ButtonStyleId>(initial?.buttonStyle ?? 'pill')
-  const [buttonColor, setButtonColor] = useState<ButtonColorId>(initial?.buttonColor ?? 'black')
+  const [buttonColor, setButtonColor] = useState<ButtonColorId>(initial?.buttonColor ?? 'wallpaper')
   const [styleTab, setStyleTab] = useState<'wallpaper' | 'button'>('wallpaper')
 
   // 分享
@@ -378,11 +379,12 @@ export function OnePagePreview() {
     borderColor: btnColors.border,
   }
 
+  const canvasWallpaper = !published && step < 3 ? wallpaperById('cream') : wallpaper
   const pageStyle = {
-    background: wallpaper.bg,
-    color: wallpaper.text,
-    '--wiz-text': wallpaper.text,
-    '--wiz-btn-bg': wallpaper.dark ? '#ffffff' : '#1a1a18',
+    background: canvasWallpaper.bg,
+    color: canvasWallpaper.text,
+    '--wiz-text': canvasWallpaper.text,
+    '--wiz-btn-bg': canvasWallpaper.dark ? '#ffffff' : '#1a1a18',
     '--wiz-btn-text': '#ffffff',
   } as CSSProperties
 
@@ -895,18 +897,19 @@ export function OnePagePreview() {
             <PhonePreview
               wallpaper={wallpaper}
               avatarChar={avatarChar}
-              editorial={editorial}
+              name={name}
+              job={job}
+              links={wizardLinks}
               linkBtnStyle={linkBtnStyle}
             />
           </div>
 
           <div className="op-style-sheet">
             <div className="op-style-sheet-inner">
-              <h2 className="op-wiz-title">
-                定制你的<em>风格</em>
-              </h2>
+              <h2 className="op-wiz-title">定制你的风格</h2>
 
               <StylePicker
+                featured
                 wallpaper={wallpaper}
                 wallpaperId={wallpaperId}
                 setWallpaperId={setWallpaperId}
@@ -1005,38 +1008,31 @@ export function OnePagePreview() {
 }
 
 /**
- * 向导第 3 步的手机框预览：只放真实头像，名字/简介/链接都用横条示意。
+ * 向导第 3 步的手机预览：实际资料与链接，未添加链接时展示形状示意。
  * 链接横条跟随按钮样式与颜色，换壁纸/按钮即时可见。
  */
 function PhonePreview(props: {
   wallpaper: Wallpaper
   avatarChar: string
-  editorial: boolean
+  name: string
+  job: string
+  links: OnePageLink[]
   linkBtnStyle: CSSProperties
 }) {
-  const bar = (cls: string, opacity: number) => (
-    <span
-      className={`op-phone-bar ${cls}`}
-      style={{ background: props.wallpaper.text, opacity }}
-    />
-  )
   return (
     <div className="op-phone">
-      <div className="op-phone-screen" style={{ background: props.wallpaper.bg }}>
+      <div className="op-phone-screen" style={{ background: props.wallpaper.bg, color: props.wallpaper.text }}>
         <div className="op-phone-avatar">{props.avatarChar}</div>
-        {bar('is-name', 0.4)}
-        {bar('is-sub', 0.22)}
-        <div className={props.editorial ? 'op-phone-rows' : 'op-phone-links'}>
-          {[0, 1, 2].map((i) =>
-            props.editorial ? (
-              <span key={i} className="op-phone-row">
-                {bar('is-row', 0.45)}
+        <p className="op-phone-name">{props.name}</p>
+        <p className="op-phone-job">{props.job}</p>
+        <div className="op-phone-links">
+          {[0, 1, 2].map((i) => (
+              <span key={i} className="op-phone-link" style={props.linkBtnStyle}>
+                <span>{props.links[i]?.platform}</span><span aria-hidden="true">⋮</span>
               </span>
-            ) : (
-              <span key={i} className="op-phone-link" style={props.linkBtnStyle} />
-            ),
-          )}
+          ))}
         </div>
+        <span className="op-phone-signature">Made with One Page</span>
       </div>
     </div>
   )
@@ -1078,6 +1074,7 @@ function StylePreviewCompact(props: {
 
 /** 壁纸 + 按钮样式选择器（向导第 3 步与风格弹层共用） */
 function StylePicker(props: {
+  featured?: boolean
   wallpaper: Wallpaper
   wallpaperId: string
   setWallpaperId: (id: string) => void
@@ -1088,31 +1085,43 @@ function StylePicker(props: {
   styleTab: 'wallpaper' | 'button'
   setStyleTab: (t: 'wallpaper' | 'button') => void
 }) {
+  const featuredWallpapers = [
+    ['custom:7c6d58', '暖砂棕'], ['custom:3c4148', '石墨灰'],
+    ['custom:927653', '焦糖'], ['custom:30121d', '深酒红'],
+    ['custom:182000', '橄榄绿'], ['custom:f5d3e9', '樱花粉'],
+    ['custom:f8d8bd', '蜜桃'], ['custom:ffffff', '纯白'], ['black', '纯黑'],
+  ].map(([id, name]) => ({ ...wallpaperById(id), name }))
+  const visibleWallpapers = props.featured ? featuredWallpapers : WALLPAPERS
   return (
     <>
       <div className="op-tabs">
         <button
           className={`op-tab${props.styleTab === 'wallpaper' ? ' is-active' : ''}`}
+          aria-pressed={props.styleTab === 'wallpaper'}
           onClick={() => props.setStyleTab('wallpaper')}
         >
           壁纸
         </button>
         <button
           className={`op-tab${props.styleTab === 'button' ? ' is-active' : ''}`}
+          aria-pressed={props.styleTab === 'button'}
           onClick={() => props.setStyleTab('button')}
         >
           按钮
         </button>
       </div>
 
-      {props.styleTab === 'wallpaper' && (
+      <div className={props.featured ? 'op-picker-panels' : undefined}>
+        <div className="op-picker-panel" hidden={props.styleTab !== 'wallpaper'}>
         <div className="op-swatches">
-          {WALLPAPERS.map((w) => (
+          {visibleWallpapers.map((w) => (
             <button
               key={w.id}
               className={`op-swatch${w.id === props.wallpaperId ? ' is-active' : ''}`}
               style={{ background: w.bg }}
               title={w.name}
+              aria-label={w.name}
+              aria-pressed={w.id === props.wallpaperId}
               onClick={() => props.setWallpaperId(w.id)}
             >
               {w.id === props.wallpaperId && <span style={{ color: w.text }}>✓</span>}
@@ -1121,17 +1130,19 @@ function StylePicker(props: {
           <CustomSwatch
             wallpaperId={props.wallpaperId}
             setWallpaperId={props.setWallpaperId}
+            presetSelected={visibleWallpapers.some((w) => w.id === props.wallpaperId)}
           />
         </div>
-      )}
+        </div>
 
-      {props.styleTab === 'button' && (
-        <>
+        <div className="op-picker-panel" hidden={props.styleTab !== 'button'}>
           <div className="op-btnstyles">
             {BUTTON_STYLES.map((b) => (
               <button
                 key={b.id}
                 className={`op-btnstyle${b.id === props.buttonStyle ? ' is-active' : ''}`}
+                aria-pressed={b.id === props.buttonStyle}
+                style={props.featured ? { background: props.wallpaper.bg } : undefined}
                 onClick={() => props.setButtonStyle(b.id)}
               >
                 <span
@@ -1139,9 +1150,11 @@ function StylePicker(props: {
                   style={{
                     borderRadius: b.radius,
                     background: resolveButtonColors(props.wallpaper, props.buttonColor).bg,
+                    color: resolveButtonColors(props.wallpaper, props.buttonColor).text,
+                    borderColor: resolveButtonColors(props.wallpaper, props.buttonColor).border,
                   }}
-                />
-                {b.name}
+                >{props.featured ? b.name : null}</span>
+                {!props.featured && b.name}
               </button>
             ))}
           </div>
@@ -1154,6 +1167,7 @@ function StylePicker(props: {
                 <button
                   key={c.id}
                   className={`op-btncolor${c.id === props.buttonColor ? ' is-active' : ''}`}
+                  aria-pressed={c.id === props.buttonColor}
                   onClick={() => props.setButtonColor(c.id)}
                 >
                   <span
@@ -1169,15 +1183,15 @@ function StylePicker(props: {
               )
             })}
           </div>
-        </>
-      )}
+        </div>
+      </div>
     </>
   )
 }
 
 /** 自定义壁纸色：彩虹圆点唤起系统取色器，选中后色值随分享链接一起编码 */
-function CustomSwatch(props: { wallpaperId: string; setWallpaperId: (id: string) => void }) {
-  const isCustom = isCustomWallpaperId(props.wallpaperId)
+function CustomSwatch(props: { wallpaperId: string; setWallpaperId: (id: string) => void; presetSelected?: boolean }) {
+  const isCustom = isCustomWallpaperId(props.wallpaperId) && !props.presetSelected
   const customHex = isCustom ? `#${props.wallpaperId.slice('custom:'.length)}` : '#bcc9d4'
   return (
     <label
@@ -1192,6 +1206,7 @@ function CustomSwatch(props: { wallpaperId: string; setWallpaperId: (id: string)
       )}
       <input
         type="color"
+        aria-label="自定义壁纸颜色"
         className="op-swatch-input"
         value={customHex}
         onChange={(e) => props.setWallpaperId(customWallpaperId(e.target.value))}

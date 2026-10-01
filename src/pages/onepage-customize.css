@@ -1,0 +1,307 @@
+/* Style setup: warm dotted canvas, live device preview, and a quiet control panel. */
+.op-style-step {
+  width: calc(100% + 40px);
+  font-family: 'Helvetica Neue', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --style-ink: #191919;
+  --style-line: #eeedeb;
+}
+
+.op-style-stage {
+  flex: none;
+  height: clamp(480px, 58vh, 650px);
+  overflow: hidden;
+  padding: 28px 24px 0;
+  background-image: radial-gradient(circle, #0000000d 1.5px, transparent 1.7px);
+  background-size: 22px 22px;
+}
+
+.op-style-stage .op-wiz-top {
+  max-width: 430px;
+  margin: 0 auto;
+  gap: 12px;
+  align-items: center;
+}
+
+
+.op-style-stage .op-phone {
+  position: relative;
+  flex: none;
+  width: clamp(240px, 24vw, 300px);
+  height: 548px;
+  aspect-ratio: auto;
+  margin: 38px auto 0;
+  padding: 5px;
+  border: 2px solid #8d8a82;
+  border-radius: 44px;
+  background: linear-gradient(120deg, #66645f, #222222 38%, #57544f);
+  box-shadow: 0 22px 48px #00000026, 0 3px 5px #00000030;
+}
+.op-style-stage .op-phone::before,
+.op-style-stage .op-phone::after {
+  content: '';
+  position: absolute;
+  width: 3px;
+  border-radius: 2px;
+  background: #484641;
+}
+.op-style-stage .op-phone::before { left: -4px; top: 114px; height: 61px; }
+.op-style-stage .op-phone::after { right: -4px; top: 138px; height: 38px; }
+.op-style-stage .op-phone-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 54px 12px 24px;
+  border: 3px solid #111;
+  border-radius: 37px;
+  box-shadow: none;
+}
+.op-style-stage .op-phone-avatar {
+  flex: none;
+  width: 58px;
+  height: 58px;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  color: inherit;
+  font-family: inherit;
+  font-size: 25px;
+  font-weight: 500;
+  line-height: 1;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 24%, transparent);
+}
+.op-phone-name {
+  width: 100%;
+  margin: 13px 0 4px;
+  font-size: 16px;
+  font-weight: 650;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.op-phone-job {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.5;
+  text-align: center;
+  opacity: .8;
+  overflow-wrap: anywhere;
+}
+.op-style-stage .op-phone-links { margin-top: 32px; gap: 10px; }
+.op-style-stage .op-phone-link {
+  flex: none;
+  height: 43px;
+  padding: 0 13px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+}
+.op-phone-link > span:first-child { flex: 1; text-align: center; }
+.op-phone-link > span:last-child { opacity: .65; }
+.op-phone-signature { margin-top: auto; padding-top: 24px; font-size: 9px; opacity: .75; }
+
+.op-style-sheet {
+  flex: 1;
+  min-height: 0;
+  margin-top: 0;
+  padding: 28px 24px 32px;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--style-ink);
+}
+.op-style-sheet-inner { max-width: 480px; }
+.op-style-sheet .op-wiz-title {
+  margin: 0 0 26px;
+  font-family: inherit;
+  font-size: clamp(23px, 2.6vw, 28px);
+  font-weight: 700;
+  letter-spacing: -.8px;
+  line-height: 1.35;
+  color: var(--style-ink);
+  text-wrap: pretty;
+}
+.op-style-sheet .op-tabs {
+  padding: 3px;
+  margin: 0 0 26px;
+  gap: 0;
+  height: 48px;
+  border-radius: 999px;
+  background: #e8e7e4;
+  border: 1px solid #deddd9;
+}
+.op-style-sheet .op-tab {
+  min-height: 42px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--style-ink);
+}
+.op-style-sheet .op-tab.is-active {
+  background: #fff;
+  color: var(--style-ink);
+  box-shadow: inset 0 0 0 1px #c4c2bd, 0 2px 5px #00000012;
+}
+.op-style-sheet .op-swatches {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 16px 22px;
+  padding: 3px;
+}
+.op-style-sheet .op-swatch {
+  min-width: 0;
+  width: 100%;
+  border: 2px solid #00000012;
+  box-shadow: none;
+  font-size: 20px;
+}
+.op-style-sheet .op-swatch.is-active {
+  border-color: #191919;
+  box-shadow: 0 0 0 1px #191919;
+}
+.op-style-sheet .op-swatch.is-active > span { visibility: hidden; }
+.op-style-sheet .op-swatch-custom.is-active > span { visibility: visible; }
+.op-style-sheet .op-swatch-custom { background: #f3f3f3; color: #191919; }
+.op-style-sheet .op-swatch-plus { font-size: 30px; text-shadow: none; font-weight: 300; }
+.op-style-sheet .op-wiz-actions { margin-top: 18px; }
+.op-style-sheet .op-btn-continue {
+  min-height: 56px;
+  border: 0;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0;
+  background: #141414;
+  color: #fff;
+  transition: background .18s, transform .18s;
+}
+.op-style-sheet .op-btn-continue:hover { background: #303030; transform: translateY(-1px); }
+.op-style-sheet .op-btn-continue:active { transform: scale(.99); }
+.op-style-sheet .op-btnstyle,
+.op-style-sheet .op-btncolor {
+  min-height: 76px;
+  border-radius: 16px;
+  background: #f6f5f3;
+  border-color: #e8e6e2;
+  color: #484848;
+}
+.op-style-sheet .op-btnstyle.is-active,
+.op-style-sheet .op-btncolor.is-active { border-color: #191919; color: #191919; box-shadow: inset 0 0 0 1px #191919; }
+
+/* Both tab panels share one grid cell, reserving the taller panel's space. */
+.op-picker-panels {
+  display: grid;
+  width: 100%;
+}
+.op-picker-panels > .op-picker-panel { grid-area: 1 / 1; min-width: 0; }
+.op-picker-panels > .op-picker-panel[hidden] {
+  display: block;
+  visibility: hidden;
+  pointer-events: none;
+}
+.op-style-sheet .op-btnstyles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 3px;
+}
+.op-style-sheet .op-btnstyle {
+  min-width: 0;
+  min-height: 0;
+  aspect-ratio: 1;
+  border: 1px solid #00000020;
+  border-radius: clamp(22px, 5vw, 38px);
+  padding: 12px 8px;
+  justify-content: center;
+  transition: box-shadow .18s, transform .18s;
+}
+.op-style-sheet .op-btnstyle.is-active {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px var(--style-ink);
+}
+.op-style-sheet .op-btnstyle:hover { transform: translateY(-2px); }
+.op-style-sheet .op-btnstyle:active { transform: scale(.98); }
+.op-style-sheet .op-btnstyle-demo {
+  width: 100%;
+  height: auto;
+  min-height: clamp(30px, 7vw, 44px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 2px;
+  border: 1px solid transparent;
+  font-size: clamp(10px, 2.6vw, 13px);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.op-style-sheet .op-btncolors {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 16px;
+}
+.op-style-sheet .op-btncolor {
+  min-width: 0;
+  min-height: 44px;
+  padding: 5px 2px;
+  border-radius: 10px;
+  font-size: 10px;
+  gap: 4px;
+  justify-content: center;
+}
+.op-style-sheet .op-btncolor-demo { width: 24px; height: 8px; }
+.op-style-step button:focus-visible,
+.op-style-step summary:focus-visible,
+.op-style-step .op-swatch-custom:focus-within { outline: 3px solid #47854c; outline-offset: 4px; }
+
+.op-style-step .op-phone-name,
+.op-style-step .op-phone-job { text-wrap: pretty; }
+.op-style-step .op-phone-row { font-size: 11px; min-height: 36px; }
+
+@media (max-width: 600px), (max-height: 900px) {
+  .op-style-step {
+    height: 100svh;
+    min-height: 600px;
+    display: grid;
+    grid-template-rows: minmax(180px, 1fr) auto;
+    flex: none;
+  }
+  .op-style-stage {
+    height: auto;
+    min-height: 0;
+    padding: 12px 20px 0;
+    position: relative;
+    container-type: size;
+  }
+  .op-style-stage .op-wiz-top { position: relative; z-index: 1; }
+  .op-style-stage .op-phone {
+    width: 224px;
+    height: 448px;
+    margin: 12px auto 0;
+    border-radius: 36px;
+    transform-origin: top center;
+    transform: scale(.55);
+    /* Scale the entire device together to fit the remaining preview area. */
+  }
+  @supports (scale: calc(1px / 1px)) {
+    .op-style-stage .op-phone {
+      transform: none;
+      scale: clamp(.3, calc((100cqh - 64px) / 448px), .8);
+    }
+  }
+  .op-style-stage .op-phone-screen { padding-top: 34px; border-radius: 29px; }
+  .op-style-stage .op-phone-avatar { width: 48px; height: 48px; }
+  .op-style-stage .op-phone-links { margin-top: 24px; gap: 8px; }
+  .op-style-stage .op-phone-link { height: 36px; }
+  .op-style-sheet { padding: 16px 20px max(16px, env(safe-area-inset-bottom)); }
+  .op-style-sheet-inner { max-width: 340px; }
+  .op-style-sheet .op-wiz-title { font-size: 22px; margin-bottom: 12px; }
+  .op-style-sheet .op-swatches { gap: 12px 8px; }
+  .op-style-sheet .op-swatch { min-height: 44px; }
+  .op-style-sheet .op-tabs { height: 48px; margin-bottom: 12px; padding: 1px; }
+  .op-style-sheet .op-tab { min-height: 44px; font-size: 15px; }
+  .op-style-sheet .op-btnstyles { gap: 8px; }
+  .op-style-sheet .op-btncolors { margin-top: 12px; }
+  .op-style-sheet .op-wiz-actions { margin-top: 12px; }
+  .op-style-sheet .op-btn-continue { min-height: 48px; padding: 10px 0; font-size: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .op-style-step *, .op-style-step *::before, .op-style-step *::after { transition: none !important; animation: none !important; }
+}
