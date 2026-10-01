@@ -358,7 +358,7 @@
 
 .op-slot-input {
   width: 100%;
-  padding: 13px 14px;
+  padding: 13px 42px 13px 14px;
   font-size: 13.5px;
   font-family: inherit;
   color: var(--ed-ink);
@@ -380,6 +380,28 @@
 .op-slot-input::placeholder {
   color: var(--ed-sub);
   opacity: 0.7;
+}
+
+/* 输入框末尾的链接小图标（仿参考图：浅色圆底 + 链条 icon） */
+.op-slot-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: var(--ed-sub);
+  background: color-mix(in srgb, var(--ed-hairline) 30%, transparent);
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.op-slot.is-reading .op-slot-icon {
+  opacity: 0;
 }
 
 /* 读取中：框体边框呼吸脉动（克制），框内逐行浮现宋体斜体步骤小字 */

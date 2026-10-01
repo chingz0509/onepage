@@ -4,7 +4,7 @@
  * 也被 vite.config.ts 的 dev 中间件直接复用（Node req/res 风格）。
  */
 
-import { fetchAndExtract } from './_extract'
+import { fetchAndExtract } from './_extract.js'
 
 type Req = { url?: string; query?: Record<string, string | string[]> }
 type Res = {
