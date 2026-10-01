@@ -1,8 +1,25 @@
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
+import apiFetch from './api/fetch'
+
+/** 开发环境把 serverless handler 挂进 dev server，/api/fetch 与线上行为一致 */
+function devApi(): Plugin {
+  const mount = (middlewares: {
+    use: (path: string, fn: (req: never, res: never) => void) => void
+  }) => {
+    middlewares.use('/api/fetch', (req, res) => {
+      void apiFetch(req, res)
+    })
+  }
+  return {
+    name: 'dev-api-fetch',
+    configureServer: (server) => mount(server.middlewares as never),
+    configurePreviewServer: (server) => mount(server.middlewares as never),
+  }
+}
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), devApi()],
   base: './',
   server: {
     proxy: {

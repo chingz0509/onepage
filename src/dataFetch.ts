@@ -58,7 +58,40 @@ async function fetchGitHub(username: string): Promise<FetchedMetrics> {
   }
 }
 
-// —— 轨 2：本机 WebBridge 抓取（仅演示机可用） ——
+// —— 轨 2：服务端抓取（/api/fetch，Vercel serverless / dev 中间件同构） ——
+
+type ServerResult = {
+  ok: boolean
+  title?: string
+  image?: string | null
+  description?: string | null
+  metrics?: { label: string; value: string }[]
+  finalUrl?: string
+  reason?: string
+}
+
+async function fetchViaServer(url: string): Promise<ServerResult | null> {
+  try {
+    const res = await fetch(`/api/fetch?url=${encodeURIComponent(url)}`)
+    if (!res.ok) return null
+    const j = (await res.json()) as ServerResult
+    return j.ok ? j : null
+  } catch {
+    return null
+  }
+}
+
+/** 服务端返回的 metrics 里按平台规则挑主指标 */
+function pickMetric(
+  result: ServerResult,
+  prefer: RegExp,
+): { label: string; value: string } | null {
+  const list = result.metrics ?? []
+  if (list.length === 0) return null
+  return list.find((m) => prefer.test(m.label)) ?? list[0]
+}
+
+// —— 轨 3：本机 WebBridge 抓取（仅演示机可用） ——
 
 // 经 Vite dev server 代理访问本机 WebBridge（同源、免 CORS）；
 // 非演示环境（无代理 / 桥不在线）时请求失败，静默回退快照
@@ -101,6 +134,18 @@ const DRIBBBLE_EXTRACT = `(()=>{const t=document.body.innerText; const re=/Comme
 const HUABAN_EXTRACT = `(()=>{const t=document.body.innerText; const fans=t.match(/([\\d.,w万+]+)\\s*粉丝/); const pins=[...t.matchAll(/(\\d+)\\s*采集/g)].reduce((s,m)=>s+parseInt(m[1]),0); const boards=(t.match(/\\d+\\s*采集/g)||[]).length; return JSON.stringify({fans:fans?fans[1]:null,pins,boards})})()`
 
 async function fetchHuaban(url: string): Promise<FetchedMetrics> {
+  const s = await fetchViaServer(url)
+  if (s) {
+    const m = pickMetric(s, /粉丝|followers?/i)
+    if (m) {
+      return {
+        metric: '粉丝',
+        value: m.value,
+        insight: s.title || '数据由 AI 现场读取',
+        source: 'live',
+      }
+    }
+  }
   if (await bridgeAvailable()) {
     try {
       await bridgeCmd('navigate', { url, newTab: true, group_title: 'One Page 数据抓取' })
@@ -131,6 +176,24 @@ const GENERIC_EXTRACT = `(()=>{const og=document.querySelector('meta[property="o
 
 /** 未知平台通用抓取；桥不可用或失败返回 null，由调用方维持「已收录」占位 */
 export async function fetchGenericSite(url: string): Promise<FetchedMetrics | null> {
+  const s = await fetchViaServer(url)
+  if (s) {
+    const stat = s.metrics?.[0]
+    if (stat) {
+      return {
+        metric: stat.label,
+        value: stat.value,
+        insight: s.title || '数据由 AI 现场读取',
+        source: 'live',
+      }
+    }
+    return {
+      metric: '主页链接',
+      value: '✓',
+      insight: s.title || '数据由 AI 现场读取',
+      source: 'live',
+    }
+  }
   if (!(await bridgeAvailable())) return null
   try {
     await bridgeCmd('navigate', { url, newTab: true, group_title: 'One Page 数据抓取' })
@@ -162,6 +225,18 @@ export async function fetchGenericSite(url: string): Promise<FetchedMetrics | nu
 }
 
 async function fetchDribbble(url: string): Promise<FetchedMetrics> {
+  const s = await fetchViaServer(url)
+  if (s) {
+    const m = pickMetric(s, /获赞|点赞|likes/i)
+    if (m) {
+      return {
+        metric: '总获赞',
+        value: m.value,
+        insight: s.title || '数据由 AI 现场读取',
+        source: 'live',
+      }
+    }
+  }
   if (await bridgeAvailable()) {
     try {
       await bridgeCmd('navigate', { url, newTab: true, group_title: 'One Page 数据抓取' })
