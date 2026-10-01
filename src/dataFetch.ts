@@ -94,14 +94,30 @@ type ServerResult = {
   reason?: string
 }
 
-async function fetchViaServer(url: string): Promise<ServerResult | null> {
+export function fetchFailureMessage(reason: string): string {
+  if (reason === 'site-blocked' || reason === 'empty-or-blocked') return '目标网站限制了自动读取，可重试或先保存链接'
+  if (reason === 'login-required') return '目标页面需要登录，暂时只能保存链接'
+  if (reason === 'busy') return '读取请求较多，请稍后重试'
+  if (reason === 'no-metrics') return '页面已打开，但没有找到公开的统计数据'
+  return '暂时无法读取数据，请重试或先保存链接'
+}
+
+type OnFailure = (reason: string) => void
+
+async function fetchViaServer(url: string, onFailure?: OnFailure): Promise<ServerResult | null> {
+  const controller = new AbortController()
+  const timer = window.setTimeout(() => controller.abort(), 85000)
   try {
-    const res = await fetch(`/api/fetch?url=${encodeURIComponent(url)}`)
-    if (!res.ok) return null
+    const res = await fetch(`/api/fetch?url=${encodeURIComponent(url)}`, { signal: controller.signal })
+    if (!res.ok) { onFailure?.('fetch-failed'); return null }
     const j = (await res.json()) as ServerResult
+    if (!j.ok) onFailure?.(j.reason ?? 'fetch-failed')
     return j.ok ? j : null
   } catch {
+    onFailure?.('fetch-failed')
     return null
+  } finally {
+    window.clearTimeout(timer)
   }
 }
 
@@ -143,6 +159,7 @@ async function bridgeCmd(
 }
 
 async function bridgeAvailable(): Promise<boolean> {
+  if (!import.meta.env.DEV) return false
   try {
     const j = await bridgeCmd('evaluate', { code: '1+1' }, 1500)
     return j?.ok === true
@@ -157,19 +174,20 @@ const DRIBBBLE_EXTRACT = `(()=>{const t=document.body.innerText; const re=/Comme
 /** 花瓣主页：头部「N 粉丝」，画板列表「N采集」累加 */
 const HUABAN_EXTRACT = `(()=>{const t=document.body.innerText; const fans=t.match(/([\\d.,w万+]+)\\s*粉丝/); const pins=[...t.matchAll(/(\\d+)\\s*采集/g)].reduce((s,m)=>s+parseInt(m[1]),0); const boards=(t.match(/\\d+\\s*采集/g)||[]).length; return JSON.stringify({fans:fans?fans[1]:null,pins,boards})})()`
 
-async function fetchHuaban(url: string): Promise<FetchedMetrics | null> {
-  const s = await fetchViaServer(url)
+async function fetchHuaban(url: string, onFailure?: OnFailure): Promise<FetchedMetrics | null> {
+  const s = await fetchViaServer(url, onFailure)
   if (s) {
     const m = pickMetric(s, /粉丝|followers?/i)
     if (m) {
       return {
-        metric: '粉丝',
+        metric: m.label,
         value: m.value,
         insight: s.title || '数据由 AI 现场读取',
         source: 'live',
       }
     }
   }
+  if (s && !s.metrics?.length) onFailure?.('no-metrics')
   if (await bridgeAvailable()) {
     try {
       await bridgeCmd('navigate', { url, newTab: true, group_title: 'One Page 数据抓取' })
@@ -199,8 +217,8 @@ async function fetchHuaban(url: string): Promise<FetchedMetrics | null> {
 const GENERIC_EXTRACT = `(()=>{const og=document.querySelector('meta[property="og:title"]'); const title=(og&&og.content)||document.title||''; const t=document.body.innerText.slice(0,20000); const found=[]; const push=(label,value)=>{if(found.length<2&&!found.some(f=>f.label===label))found.push({label,value})}; let m; const re1=/([\\d.,]+(?:\\s?[kwm万])?)\\s*(粉丝|关注者|获赞|点赞|阅读|浏览|播放|star|follower)/gi; while((m=re1.exec(t)))push(m[2],m[1]); const re2=/(粉丝|关注者|获赞|点赞|阅读|浏览|播放)\\s*[:：]?\\s*([\\d.,]+(?:\\s?[kwm万])?)/gi; while((m=re2.exec(t)))push(m[1],m[2]); return JSON.stringify({title,stats:found})})()`
 
 /** 未知平台通用抓取；桥不可用或失败返回 null，由调用方维持「已收录」占位 */
-export async function fetchGenericSite(url: string): Promise<FetchedMetrics | null> {
-  const s = await fetchViaServer(url)
+export async function fetchGenericSite(url: string, onFailure?: OnFailure): Promise<FetchedMetrics | null> {
+  const s = await fetchViaServer(url, onFailure)
   if (s) {
     const stat = s.metrics?.[0]
     if (stat) {
@@ -248,8 +266,8 @@ export async function fetchGenericSite(url: string): Promise<FetchedMetrics | nu
   }
 }
 
-async function fetchDribbble(url: string): Promise<FetchedMetrics | null> {
-  const s = await fetchViaServer(url)
+async function fetchDribbble(url: string, onFailure?: OnFailure): Promise<FetchedMetrics | null> {
+  const s = await fetchViaServer(url, onFailure)
   if (s) {
     const m = pickMetric(s, /获赞|点赞|likes/i)
     if (m) {
@@ -295,6 +313,7 @@ async function fetchDribbble(url: string): Promise<FetchedMetrics | null> {
 export async function fetchPlatformMetrics(
   platform: string,
   url: string,
+  onFailure?: OnFailure,
 ): Promise<FetchedMetrics | null> {
   try {
     if (platform === 'GitHub') {
@@ -302,9 +321,9 @@ export async function fetchPlatformMetrics(
       return username ? await fetchGitHub(username) : null
     }
     if (platform === 'Stack Overflow') return await fetchStackOverflow(url)
-    if (platform === 'Dribbble') return await fetchDribbble(url)
-    if (platform === '花瓣网') return await fetchHuaban(url)
-    return await fetchGenericSite(url)
+    if (platform === 'Dribbble') return await fetchDribbble(url, onFailure)
+    if (platform === '花瓣网') return await fetchHuaban(url, onFailure)
+    return await fetchGenericSite(url, onFailure)
   } catch {
     return null
   }

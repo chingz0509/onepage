@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import QRCode from 'qrcode'
 import { encodeJson } from '../shareCodec'
 import { pageUrl } from '../router'
-import { fetchPlatformMetrics, fetchGenericSite, type FetchedMetrics } from '../dataFetch'
+import { fetchPlatformMetrics, fetchGenericSite, fetchFailureMessage, type FetchedMetrics } from '../dataFetch'
 import {
   BUTTON_COLORS,
   BUTTON_STYLES,
@@ -156,6 +156,7 @@ function LinkInputSlot(props: {
 }) {
   const [value, setValue] = useState('')
   const [reading, setReading] = useState(false)
+  const [failure, setFailure] = useState('')
   const [stepIdx, setStepIdx] = useState(0)
   const [finalText, setFinalText] = useState(READ_STEPS[3])
   const debounceRef = useRef<number | null>(null)
@@ -178,6 +179,7 @@ function LinkInputSlot(props: {
     const url = normalizeUrl(v)
     const dup = detected.kind === 'known' && props.isDuplicate(detected.card.platform)
     setReading(true)
+    setFailure('')
     props.onReadingChange?.(true)
     setStepIdx(0)
     stepTimers.current.push(window.setTimeout(() => setStepIdx(1), 900))
@@ -185,11 +187,19 @@ function LinkInputSlot(props: {
 
     // 真实数据获取与步骤动画并行；两者都就绪才进入完成步（重复平台也真抓，刷新旧条目）
     const minTime = new Promise((r) => stepTimers.current.push(window.setTimeout(r, 2700)))
+    let failureReason = 'fetch-failed'
+    const onFailure = (reason: string) => { failureReason = reason }
     const fetchP =
       detected.kind === 'known'
-        ? fetchPlatformMetrics(detected.card.platform, url)
-        : fetchGenericSite(url)
+        ? fetchPlatformMetrics(detected.card.platform, url, onFailure)
+        : fetchGenericSite(url, onFailure)
     void Promise.all([minTime, fetchP]).then(([, metrics]) => {
+      if (!metrics) {
+        setFailure(fetchFailureMessage(failureReason))
+        setReading(false)
+        props.onReadingChange?.(false)
+        return
+      }
       setFinalText(dup ? (metrics ? '✓ 已刷新最新数据' : '✓ 已在列表中') : READ_STEPS[3])
       setStepIdx(3)
       stepTimers.current.push(
@@ -237,14 +247,31 @@ function LinkInputSlot(props: {
         {reading && (
           <div className="op-slot-steps">
             {READ_STEPS.slice(0, stepIdx + 1).map((text, i) => (
-              <span key={i} className={`op-slot-step${i === 2 ? ' is-final' : ''}`}>
-                {i === 2 ? finalText : text}
+              <span key={i} className={`op-slot-step${i === 3 ? ' is-final' : ''}`}>
+                {i === 3 ? finalText : text}
               </span>
             ))}
           </div>
         )}
       </div>
       {invalid && <p className="op-slot-error">这看起来不是一个链接</p>}
+      {failure && !reading && (
+        <div role="status" aria-live="polite">
+          <p className="op-slot-error">{failure}</p>
+          <button type="button" className="op-mini-btn" onClick={() => start(value)}>重试读取</button>
+          <button type="button" className="op-mini-btn" onClick={() => {
+            const detected = detectUrl(value)
+            if (!detected) return
+            if (detected.kind === 'known' && props.isDuplicate(detected.card.platform)) {
+              props.onDuplicate(detected.card.platform)
+              setValue('')
+              setFailure('')
+              return
+            }
+            props.onResolve(cardFromDetected(detected, normalizeUrl(value)))
+          }}>先保存链接</button>
+        </div>
+      )}
     </div>
   )
 }

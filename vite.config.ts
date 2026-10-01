@@ -20,7 +20,7 @@ function devApi(): Plugin {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  for (const key of ['BROWSER_WS_ENDPOINT', 'SCRAPER_PROVIDER', 'SCRAPER_API_KEY']) {
+  for (const key of ['CHROME_EXECUTABLE_PATH', 'BROWSER_WS_ENDPOINT', 'SCRAPER_PROVIDER', 'SCRAPER_API_KEY']) {
     if (process.env[key] === undefined && env[key]) process.env[key] = env[key]
   }
   return {

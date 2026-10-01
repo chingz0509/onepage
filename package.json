@@ -3,7 +3,9 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "engines": { "node": "22.x" },
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -11,6 +13,7 @@
     "test": "tsx --test server/backend.test.ts"
   },
   "dependencies": {
+    "@sparticuz/chromium": "148.0.0",
     "ipaddr.js": "^2.5.0",
     "pako": "^2.2.0",
     "puppeteer-core": "^24.43.1",

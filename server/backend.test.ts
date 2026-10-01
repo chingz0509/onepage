@@ -3,6 +3,30 @@ import { test } from 'node:test'
 import { extractFromHtml, isEmptyShell } from './extract.js'
 import { isPublicAddress, validateTarget } from './network.js'
 import handler from '../api/fetch.js'
+import { pageFailure } from './browser.js'
+import { startBrowserProxy } from './browser-proxy.js'
+import { request } from 'node:http'
+
+test('Huaban rejection and login pages report explicit failure reasons', () => {
+  assert.equal(pageFailure(405, '出错了-花瓣网', '405：异常访问', 'https://huaban.com/space'), 'site-blocked')
+  assert.equal(pageFailure(200, '登录', '', 'https://example.com/login'), 'login-required')
+  assert.equal(pageFailure(200, '作品集', '1200 粉丝', 'https://example.com/profile'), null)
+})
+
+test('browser proxy blocks private destinations for both HTTP and CONNECT', async () => {
+  const proxy = await startBrowserProxy()
+  try {
+    for (const method of ['GET', 'CONNECT']) {
+      const status = await new Promise<number | undefined>((resolve, reject) => {
+        const req = request(proxy.url, { method, path: method === 'CONNECT' ? '127.0.0.1:443' : 'http://169.254.169.254/' }, (res) => { res.resume(); resolve(res.statusCode) })
+        req.on('connect', (res, socket) => { socket.destroy(); resolve(res.statusCode) })
+        req.on('error', reject)
+        req.end()
+      })
+      assert.equal(status, 403)
+    }
+  } finally { proxy.close() }
+})
 
 test('rejects non-public addresses and disguised URLs', () => {
   for (const url of [

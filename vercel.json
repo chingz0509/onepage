@@ -4,6 +4,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": {
-    "api/fetch.ts": { "maxDuration": 90 }
+    "api/fetch.ts": { "maxDuration": 90, "includeFiles": "node_modules/@sparticuz/chromium/bin/**" }
   }
 }

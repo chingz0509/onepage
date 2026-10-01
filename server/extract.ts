@@ -116,7 +116,7 @@ export function extractFromHtml(html: string, finalUrl: string): FetchResult {
 export function isEmptyShell(r: FetchResult): boolean {
   return r.ok && (
     (!r.title && !r.description && r.metrics.length === 0) ||
-    /just a moment|access denied|security verification|verify you are human|安全验证|人机验证|验证码|访问受限/i.test(r.title)
+    /just a moment|access denied|security verification|verify you are human|安全验证|人机验证|验证码|访问受限|出错了|异常访问/i.test(r.title)
   )
 }
 
@@ -126,20 +126,17 @@ export async function fetchAndExtract(raw: string | null | undefined, mode: 'aut
   const url = target.toString()
 
   // 一级：直连（大多数公开站点这样就够了）
-  if (mode === 'browser' && !process.env.BROWSER_WS_ENDPOINT) {
-    return { ok: false, reason: 'browser-not-configured' }
-  }
   const page = mode === 'auto' ? await fetchPublicHtml(url, 8000) : null
   const direct = page ? extractFromHtml(page.html, page.finalUrl) : null
   // A title alone can belong to a JS shell. Try rendering when no metrics are present.
   if (direct?.ok && !isEmptyShell(direct) && direct.metrics.length) return { ...direct, source: 'http' }
 
   const rendered = await renderPage(url)
-  if (rendered) {
+  if ('html' in rendered) {
     const result = extractFromHtml(rendered.html, rendered.finalUrl)
     if (result.ok && !isEmptyShell(result)) return { ...result, source: 'browser' }
   }
-  if (mode === 'browser') return { ok: false, reason: 'browser-fetch-failed' }
+  if (mode === 'browser') return { ok: false, reason: 'reason' in rendered ? rendered.reason : 'empty-or-blocked' }
 
   // 二级：商业抓取服务（JS 渲染 + 住宅代理），专治挑战页/空壳
   const endpoint = scraperEndpoint(url)
@@ -152,5 +149,5 @@ export async function fetchAndExtract(raw: string | null | undefined, mode: 'aut
   }
 
   if (direct?.ok && !isEmptyShell(direct)) return { ...direct, source: 'http' }
-  return { ok: false, reason: page ? 'empty-or-blocked' : 'fetch-failed' }
+  return { ok: false, reason: 'reason' in rendered ? rendered.reason : 'empty-or-blocked' }
 }
