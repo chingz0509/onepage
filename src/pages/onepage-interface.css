@@ -13,6 +13,21 @@
   font-family: var(--ui-font);
 }
 .op-col { max-width: 430px; }
+.op-page:has(> .op-intro) {
+  min-height: 100dvh;
+  padding-top: 32px;
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
+}
+.op-intro {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.op-intro .op-wiz-top { margin-bottom: 24px; }
+.op-intro .op-wiz-sub { margin-bottom: 20px; }
+.op-intro .op-form { gap: 16px; }
+.op-intro .op-field-input { border-color: #c9c6bc; }
+.op-intro .op-wiz-actions { margin-top: auto; padding-top: 28px; }
 .op-welcome-title {
   font-family: var(--ui-font);
   font-size: clamp(24px, 7vw, 38px);
@@ -31,8 +46,36 @@
 }
 .op-wiz-title em { color: inherit; }
 .op-wiz-sub { margin: 8px 0 24px; font-size: 14px; line-height: 1.65; opacity: .72; }
-.op-wiz-top { gap: 12px; margin-bottom: 28px; }
-.op-wiz-count { font-size: 12px; opacity: .72; }
+.op-page:has(> .op-col) { padding-top: 32px; }
+.op-page .op-wiz-top {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.op-page .op-wiz-progress {
+  width: 96px;
+  max-width: 100%;
+  justify-self: center;
+  height: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--wiz-text) 12%, transparent);
+  /* Three equal steps with two quiet gaps, including when all are complete. */
+  mask-image: linear-gradient(to right, #000 0 29.167%, transparent 29.167% 35.417%, #000 35.417% 64.583%, transparent 64.583% 70.833%, #000 70.833%);
+}
+.op-page .op-wiz-progress-fill {
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--wiz-text) 65%, transparent);
+}
+.op-wiz-count {
+  font-size: 11px;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  opacity: .55;
+}
+.op-page .op-style-stage .op-wiz-top { margin-bottom: 0; }
 .op-wiz-progress-fill { background: currentColor; }
 
 .op-page .op-btn-continue {
@@ -71,6 +114,28 @@
   background: var(--ui-soft);
   border-color: #aaa79d;
   color: var(--ui-ink);
+}
+.op-page .op-wiz-back {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--wiz-text);
+  font-size: 0;
+  font-weight: 400;
+  box-shadow: none;
+}
+.op-page .op-wiz-back::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  border-left: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateX(2px) rotate(45deg);
+}
+.op-page .op-wiz-back:hover {
+  background: color-mix(in srgb, var(--wiz-text) 7%, transparent);
 }
 .op-btn-skip, .op-btn-open, .op-reset-link {
   min-height: 44px;

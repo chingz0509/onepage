@@ -786,7 +786,7 @@ export function OnePagePreview() {
 
       {/* ———— 向导第 1-2 步（壁纸全屏打底） ———— */}
       {(step === 1 || step === 2) && (
-        <div className="op-col">
+        <div className={`op-col${step === 1 ? ' op-intro' : ''}`}>
           <div className="op-wiz-top">
             <button
               className="op-wiz-back"

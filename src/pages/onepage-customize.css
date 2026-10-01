@@ -277,13 +277,13 @@
     margin: 12px auto 0;
     border-radius: 36px;
     transform-origin: top center;
-    transform: scale(.55);
-    /* Scale the entire device together to fit the remaining preview area. */
+    transform: scale(.8);
+    /* Enlarge the preview by 45%; the stage clips the lower device edge. */
   }
   @supports (scale: calc(1px / 1px)) {
     .op-style-stage .op-phone {
       transform: none;
-      scale: clamp(.3, calc((100cqh - 64px) / 448px), .8);
+      scale: min(calc((100cqw - 16px) / 224px), clamp(.435, calc((100cqh - 64px) / 309px), 1.16));
     }
   }
   .op-style-stage .op-phone-screen { padding-top: 34px; border-radius: 29px; }
