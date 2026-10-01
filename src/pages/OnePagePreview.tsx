@@ -21,6 +21,7 @@ import { EditorialItemContent } from './OnePageShared'
 import './onepage-preview.css'
 import './onepage-shared.css'
 import './onepage-customize.css'
+import './onepage-interface.css'
 
 type PersonaId = 'designer' | 'developer'
 
@@ -361,7 +362,7 @@ export function OnePagePreview() {
     })
 
   // 风格
-  const [wallpaperId, setWallpaperId] = useState(initial?.wallpaperId ?? 'custom:7c6d58')
+  const [wallpaperId, setWallpaperId] = useState(initial?.wallpaperId ?? 'cream')
   const [buttonStyle, setButtonStyle] = useState<ButtonStyleId>(initial?.buttonStyle ?? 'pill')
   const [buttonColor, setButtonColor] = useState<ButtonColorId>(initial?.buttonColor ?? 'wallpaper')
   const [styleTab, setStyleTab] = useState<'wallpaper' | 'button'>('wallpaper')
@@ -838,7 +839,7 @@ export function OnePagePreview() {
               <h2 className="op-wiz-title">
                 添加你的<em>价值链接</em>
               </h2>
-              <p className="op-wiz-sub">贴上主页链接，AI 自动读取平台数据生成条目</p>
+              <p className="op-wiz-sub">贴上主页链接，AI 帮你整理成名片</p>
               <div className="op-slots">
                 {slots.map((slot, i) =>
                   slot.card ? (
@@ -1113,7 +1114,7 @@ function StylePicker(props: {
   setStyleTab: (t: 'wallpaper' | 'button') => void
 }) {
   const featuredWallpapers = [
-    ['custom:7c6d58', '暖砂棕'], ['custom:3c4148', '石墨灰'],
+    ['cream', '米白'], ['custom:3c4148', '石墨灰'],
     ['custom:927653', '焦糖'], ['custom:30121d', '深酒红'],
     ['custom:182000', '橄榄绿'], ['custom:f5d3e9', '樱花粉'],
     ['custom:f8d8bd', '蜜桃'], ['custom:ffffff', '纯白'], ['black', '纯黑'],
