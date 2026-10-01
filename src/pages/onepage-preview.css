@@ -273,6 +273,15 @@
   opacity: 1;
 }
 
+.op-btn-continue:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.op-btn-continue:disabled:hover {
+  background: var(--wiz-btn-bg);
+}
+
 .op-btn-skip {
   border: none;
   background: transparent;
@@ -895,6 +904,38 @@
   box-shadow: 0 0 0 2px var(--ed-ground), 0 0 0 4px var(--ed-accent);
 }
 
+.op-swatch-custom {
+  position: relative;
+  overflow: hidden;
+  background: conic-gradient(
+    from 210deg,
+    #d9a5a0,
+    #ddd0a8,
+    #aec8ae,
+    #a3bdcf,
+    #b3aed0,
+    #d3a9bd,
+    #d9a5a0
+  );
+  color: #ffffff;
+}
+
+.op-swatch-plus {
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+.op-swatch-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
 .op-btnstyles {
   display: flex;
   gap: 8px;
@@ -936,20 +977,30 @@
 
 .op-btncolor {
   flex: 1;
-  padding: 8px 0;
+  padding: 10px 6px 9px;
   border: 1px solid var(--ed-hairline);
   border-radius: 0;
   background: var(--ed-ground);
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--ed-sub);
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
   transition: border-color 0.15s ease, color 0.15s ease;
 }
 
 .op-btncolor.is-active {
   border-color: var(--ed-accent);
   color: var(--ed-accent);
+}
+
+.op-btncolor-demo {
+  width: 70%;
+  height: 16px;
+  border: 1px solid transparent;
 }
 
 /* —— 风格弹层里的紧凑预览 —— */

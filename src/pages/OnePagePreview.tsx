@@ -7,6 +7,8 @@ import {
   BUTTON_COLORS,
   BUTTON_STYLES,
   WALLPAPERS,
+  customWallpaperId,
+  isCustomWallpaperId,
   resolveButtonColors,
   wallpaperById,
   type ButtonColorId,
@@ -176,6 +178,8 @@ function LinkInputSlot(props: {
   isDuplicate: (platform: string) => boolean
   onResolve: (card: OnePageLink) => void
   onDuplicate: (platform: string) => void
+  /** 读取开始/结束时上报，父级据此禁用「继续」（跳过保持可点） */
+  onReadingChange?: (reading: boolean) => void
 }) {
   const [value, setValue] = useState('')
   const [reading, setReading] = useState(false)
@@ -183,11 +187,14 @@ function LinkInputSlot(props: {
   const [finalText, setFinalText] = useState(READ_STEPS[3])
   const debounceRef = useRef<number | null>(null)
   const stepTimers = useRef<number[]>([])
+  const readingChangeRef = useRef(props.onReadingChange)
+  readingChangeRef.current = props.onReadingChange
 
   useEffect(
     () => () => {
       if (debounceRef.current) window.clearTimeout(debounceRef.current)
       stepTimers.current.forEach((t) => window.clearTimeout(t))
+      readingChangeRef.current?.(false)
     },
     [],
   )
@@ -199,6 +206,7 @@ function LinkInputSlot(props: {
     const dup = detected.kind === 'known' && props.isDuplicate(detected.card.platform)
     setFinalText(dup ? '✓ 已刷新最新数据' : READ_STEPS[3])
     setReading(true)
+    props.onReadingChange?.(true)
     setStepIdx(0)
     stepTimers.current.push(window.setTimeout(() => setStepIdx(1), 900))
     stepTimers.current.push(window.setTimeout(() => setStepIdx(2), 1800))
@@ -218,6 +226,7 @@ function LinkInputSlot(props: {
             props.onDuplicate(detected.card.platform)
             setValue('')
             setReading(false)
+            props.onReadingChange?.(false)
             return
           }
           const base = cardFromDetected(detected, url)
@@ -281,6 +290,8 @@ type PublishedState = {
   buttonStyle: ButtonStyleId
   buttonColor: ButtonColorId
   shareUrl: string
+  /** 旧存档可能没有；首次加载时补发 */
+  slug?: string
 }
 
 const STORAGE_KEY = 'onepage.published.v1'
@@ -343,6 +354,16 @@ export function OnePagePreview() {
   // 向导第 2 步的输入槽
   const [slots, setSlots] = useState<LinkSlot[]>([])
   const slotSeq = useRef(0)
+  // 正在读取数据的槽位；非空时「继续」禁用（「跳过」保持可点）
+  const [readingSlots, setReadingSlots] = useState<ReadonlySet<number>>(new Set())
+  const setSlotReading = (id: number, reading: boolean) =>
+    setReadingSlots((prev) => {
+      if (reading === prev.has(id)) return prev
+      const next = new Set(prev)
+      if (reading) next.add(id)
+      else next.delete(id)
+      return next
+    })
 
   // 风格
   const [wallpaperId, setWallpaperId] = useState(initial?.wallpaperId ?? 'cream')
@@ -352,6 +373,7 @@ export function OnePagePreview() {
 
   // 分享
   const [shareUrl, setShareUrl] = useState(initial?.shareUrl ?? '')
+  const [slug, setSlug] = useState(initial?.slug ?? '')
   const [shareOpen, setShareOpen] = useState(false)
   const [qr, setQr] = useState('')
   const [copied, setCopied] = useState(false)
@@ -424,6 +446,7 @@ export function OnePagePreview() {
     setButtonStyle('pill')
     setButtonColor('black')
     setShareUrl('')
+    setSlug('')
     setShareOpen(false)
     setEditing(false)
     setVisitor(false)
@@ -449,27 +472,45 @@ export function OnePagePreview() {
     timers.current.push(window.setTimeout(() => setFlashKey(null), 1600))
   }
 
-  const publish = () => {
+  const buildShareUrl = (s: string, linkList: OnePageLink[]): string => {
     const payload: OnePageShare = {
       kind: 'onepage',
-      slug: randomSlug(),
+      slug: s,
       name,
       title: job,
       bio,
-      avatar: avatarChar,
+      avatar: name.trim()[0] ?? persona.avatar,
       wallpaper: wallpaperId,
       buttonStyle,
       buttonColor,
-      links: wizardLinks,
+      links: linkList,
     }
-    const url = pageUrl(payload.slug, encodeJson(payload))
-    setShareUrl(url)
+    return pageUrl(s, encodeJson(payload))
+  }
+
+  const publish = () => {
+    if (!slug) setSlug(randomSlug())
     setLinks(wizardLinks)
     setPublished(true)
-    persist({ links: wizardLinks, shareUrl: url })
     setStep(0)
     setShareOpen(true)
   }
+
+  /**
+   * 分享链接是编码进 URL 的快照：发布后内容/风格任何变化都重新生成链接并落盘，
+   * 否则访客看到的永远是发布那一刻的旧数据。
+   */
+  useEffect(() => {
+    if (!published) return
+    if (!slug) {
+      setSlug(randomSlug())
+      return
+    }
+    const url = buildShareUrl(slug, links)
+    setShareUrl(url)
+    persist({ shareUrl: url })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [published, slug, name, job, bio, links, wallpaperId, buttonStyle, buttonColor])
 
   useEffect(() => {
     if (!shareOpen || !shareUrl) return
@@ -804,6 +845,7 @@ export function OnePagePreview() {
                         )
                       }
                       onDuplicate={flashPlatform}
+                      onReadingChange={(r) => setSlotReading(slot.id, r)}
                     />
                   ),
                 )}
@@ -816,7 +858,11 @@ export function OnePagePreview() {
                 </button>
               </div>
               <div className="op-wiz-actions">
-                <button className="op-btn-continue" onClick={() => setStep(3)}>
+                <button
+                  className="op-btn-continue"
+                  disabled={readingSlots.size > 0}
+                  onClick={() => setStep(3)}
+                >
                   继续{wizardLinks.length > 0 && `（已添加 ${wizardLinks.length} 条）`}
                 </button>
                 <button className="op-btn-skip" onClick={() => setStep(3)}>
@@ -834,6 +880,7 @@ export function OnePagePreview() {
               <p className="op-wiz-sub">页面背景就是你的预览，所见即所得</p>
 
               <StylePicker
+                wallpaper={wallpaper}
                 wallpaperId={wallpaperId}
                 setWallpaperId={setWallpaperId}
                 buttonStyle={buttonStyle}
@@ -906,6 +953,7 @@ export function OnePagePreview() {
                   links={links}
                 />
                 <StylePicker
+                  wallpaper={wallpaper}
                   wallpaperId={wallpaperId}
                   setWallpaperId={setWallpaperId}
                   buttonStyle={buttonStyle}
@@ -965,6 +1013,7 @@ function StylePreviewCompact(props: {
 
 /** 壁纸 + 按钮样式选择器（向导第 3 步与风格弹层共用） */
 function StylePicker(props: {
+  wallpaper: Wallpaper
   wallpaperId: string
   setWallpaperId: (id: string) => void
   buttonStyle: ButtonStyleId
@@ -1004,6 +1053,10 @@ function StylePicker(props: {
               {w.id === props.wallpaperId && <span style={{ color: w.text }}>✓</span>}
             </button>
           ))}
+          <CustomSwatch
+            wallpaperId={props.wallpaperId}
+            setWallpaperId={props.setWallpaperId}
+          />
         </div>
       )}
 
@@ -1016,24 +1069,68 @@ function StylePicker(props: {
                 className={`op-btnstyle${b.id === props.buttonStyle ? ' is-active' : ''}`}
                 onClick={() => props.setButtonStyle(b.id)}
               >
-                <span className="op-btnstyle-demo" style={{ borderRadius: b.radius }} />
+                <span
+                  className="op-btnstyle-demo"
+                  style={{
+                    borderRadius: b.radius,
+                    background: resolveButtonColors(props.wallpaper, props.buttonColor).bg,
+                  }}
+                />
                 {b.name}
               </button>
             ))}
           </div>
           <div className="op-btncolors">
-            {BUTTON_COLORS.map((c) => (
-              <button
-                key={c.id}
-                className={`op-btncolor${c.id === props.buttonColor ? ' is-active' : ''}`}
-                onClick={() => props.setButtonColor(c.id)}
-              >
-                {c.name}
-              </button>
-            ))}
+            {BUTTON_COLORS.map((c) => {
+              const preview = resolveButtonColors(props.wallpaper, c.id)
+              const radius =
+                BUTTON_STYLES.find((b) => b.id === props.buttonStyle)?.radius ?? '12px'
+              return (
+                <button
+                  key={c.id}
+                  className={`op-btncolor${c.id === props.buttonColor ? ' is-active' : ''}`}
+                  onClick={() => props.setButtonColor(c.id)}
+                >
+                  <span
+                    className="op-btncolor-demo"
+                    style={{
+                      borderRadius: radius,
+                      background: preview.bg,
+                      borderColor: preview.border,
+                    }}
+                  />
+                  {c.name}
+                </button>
+              )
+            })}
           </div>
         </>
       )}
     </>
+  )
+}
+
+/** 自定义壁纸色：彩虹圆点唤起系统取色器，选中后色值随分享链接一起编码 */
+function CustomSwatch(props: { wallpaperId: string; setWallpaperId: (id: string) => void }) {
+  const isCustom = isCustomWallpaperId(props.wallpaperId)
+  const customHex = isCustom ? `#${props.wallpaperId.slice('custom:'.length)}` : '#bcc9d4'
+  return (
+    <label
+      className={`op-swatch op-swatch-custom${isCustom ? ' is-active' : ''}`}
+      style={isCustom ? { background: customHex } : undefined}
+      title="自定义颜色"
+    >
+      {isCustom ? (
+        <span style={{ color: wallpaperById(props.wallpaperId).text }}>✓</span>
+      ) : (
+        <span className="op-swatch-plus">+</span>
+      )}
+      <input
+        type="color"
+        className="op-swatch-input"
+        value={customHex}
+        onChange={(e) => props.setWallpaperId(customWallpaperId(e.target.value))}
+      />
+    </label>
   )
 }

@@ -50,8 +50,29 @@ export type Wallpaper = {
   dark: boolean
 }
 
+/**
+ * 选择器里展示的色板：低饱和莫兰迪色系 + 沉稳深色 + 含蓄渐变。
+ * cream 保持为默认值（编辑版式模板绑定 cream）。
+ */
 export const WALLPAPERS: Wallpaper[] = [
   { id: 'cream', name: '米白', type: 'solid', bg: '#F1ECDE', text: '#1A1A18', followBtn: '#E6DCC4', followText: '#1A1A18', dark: false },
+  { id: 'oatmeal', name: '燕麦', type: 'solid', bg: '#EAE3D3', text: '#2C2721', followBtn: '#DBD2BC', followText: '#2C2721', dark: false },
+  { id: 'smoke-pink', name: '烟粉', type: 'solid', bg: '#E6CDC5', text: '#4B3833', followBtn: '#D8B8AE', followText: '#4B3833', dark: false },
+  { id: 'haze-blue', name: '雾霾蓝', type: 'solid', bg: '#BCC9D4', text: '#2C3844', followBtn: '#A9B8C6', followText: '#2C3844', dark: false },
+  { id: 'sage', name: '灰豆绿', type: 'solid', bg: '#C2CBB9', text: '#333D30', followBtn: '#AFBAA4', followText: '#333D30', dark: false },
+  { id: 'taro', name: '香芋紫', type: 'solid', bg: '#C9BFCB', text: '#3D3642', followBtn: '#B7ACBA', followText: '#3D3642', dark: false },
+  { id: 'khaki', name: '卡其', type: 'solid', bg: '#D8CFB8', text: '#3C3526', followBtn: '#C7BC9F', followText: '#3C3526', dark: false },
+  { id: 'charcoal', name: '炭灰', type: 'solid', bg: '#33312E', text: '#E9E5DD', followBtn: '#45423E', followText: '#E9E5DD', dark: true },
+  { id: 'ink', name: '墨蓝', type: 'solid', bg: '#2A3442', text: '#DAE1EA', followBtn: '#3A4656', followText: '#DAE1EA', dark: true },
+  { id: 'pine', name: '松烟绿', type: 'solid', bg: '#2F3D34', text: '#DFE7DC', followBtn: '#3F5044', followText: '#DFE7DC', dark: true },
+  { id: 'coffee', name: '深焙咖啡', type: 'solid', bg: '#3E322B', text: '#E7DCD2', followBtn: '#4F4239', followText: '#E7DCD2', dark: true },
+  { id: 'black', name: '纯黑', type: 'solid', bg: '#101010', text: '#ececec', followBtn: '#262626', followText: '#ececec', dark: true },
+  { id: 'mist', name: '雾山蓝', type: 'gradient', bg: 'linear-gradient(160deg, #93A5B8 0%, #5E6E82 100%)', text: '#F0F3F6', followBtn: 'rgba(255,255,255,0.18)', followText: '#ffffff', dark: true },
+  { id: 'dusk-rose', name: '暮色玫瑰', type: 'gradient', bg: 'linear-gradient(155deg, #C49A9C 0%, #7E5F6B 100%)', text: '#FBF3F1', followBtn: 'rgba(255,255,255,0.2)', followText: '#ffffff', dark: true },
+]
+
+/** 旧版色板：不再展示，仅用于兼容已发布分享链接里的旧壁纸 id */
+const LEGACY_WALLPAPERS: Wallpaper[] = [
   { id: 'gray', name: '浅灰', type: 'solid', bg: '#eef0f3', text: '#23262c', followBtn: '#dcdfe6', followText: '#23262c', dark: false },
   { id: 'blue', name: '浅蓝', type: 'solid', bg: '#e1ecfb', text: '#1d2b45', followBtn: '#c4d7f5', followText: '#1d2b45', dark: false },
   { id: 'pink', name: '浅粉', type: 'solid', bg: '#fbe7ee', text: '#3d2330', followBtn: '#f4cfdc', followText: '#3d2330', dark: false },
@@ -60,12 +81,43 @@ export const WALLPAPERS: Wallpaper[] = [
   { id: 'brown', name: '深棕', type: 'solid', bg: '#3a2d27', text: '#f0e6de', followBtn: '#4d3d34', followText: '#f0e6de', dark: true },
   { id: 'navy', name: '深蓝', type: 'solid', bg: '#16213c', text: '#dfe7f5', followBtn: '#253359', followText: '#dfe7f5', dark: true },
   { id: 'wine', name: '酒红', type: 'solid', bg: '#571c2a', text: '#f5e2e6', followBtn: '#6e2839', followText: '#f5e2e6', dark: true },
-  { id: 'black', name: '纯黑', type: 'solid', bg: '#101010', text: '#ececec', followBtn: '#262626', followText: '#ececec', dark: true },
   { id: 'aurora', name: '紫蓝极光', type: 'gradient', bg: 'linear-gradient(160deg, #667eea 0%, #764ba2 100%)', text: '#f2f0ff', followBtn: 'rgba(255,255,255,0.18)', followText: '#ffffff', dark: true },
   { id: 'sunset', name: '粉橙日落', type: 'gradient', bg: 'linear-gradient(155deg, #fda085 0%, #f76d8d 100%)', text: '#fff5f2', followBtn: 'rgba(255,255,255,0.2)', followText: '#ffffff', dark: true },
   { id: 'lagoon', name: '青绿极光', type: 'gradient', bg: 'linear-gradient(155deg, #0ba360 0%, #3cba92 100%)', text: '#effff8', followBtn: 'rgba(255,255,255,0.18)', followText: '#ffffff', dark: true },
   { id: 'night', name: '深蓝夜幕', type: 'gradient', bg: 'linear-gradient(160deg, #0f2027 0%, #203a43 50%, #2c5364 100%)', text: '#e4eef4', followBtn: 'rgba(255,255,255,0.12)', followText: '#ffffff', dark: true },
 ]
+
+const CUSTOM_PREFIX = 'custom:'
+
+/** 自定义壁纸 id：`custom:rrggbb`，随分享链接一起编码传播 */
+export function customWallpaperId(hex: string): string {
+  return CUSTOM_PREFIX + hex.replace('#', '').toLowerCase()
+}
+
+export function isCustomWallpaperId(id: string): boolean {
+  return /^custom:[0-9a-fA-F]{6}$/.test(id)
+}
+
+/** 由任意颜色推导完整壁纸定义：文字色/跟随按钮色按背景亮度自动取值 */
+function customWallpaper(hex: string): Wallpaper {
+  const r = parseInt(hex.slice(0, 2), 16)
+  const g = parseInt(hex.slice(2, 4), 16)
+  const b = parseInt(hex.slice(4, 6), 16)
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+  const dark = luminance < 0.55
+  const shade = (f: number) =>
+    `#${[r, g, b].map((v) => Math.round(Math.min(255, Math.max(0, v * f))).toString(16).padStart(2, '0')).join('')}`
+  return {
+    id: customWallpaperId(hex),
+    name: '自定义',
+    type: 'solid',
+    bg: `#${hex}`,
+    text: dark ? '#F2EFE8' : '#242019',
+    followBtn: dark ? shade(1.22) : shade(0.9),
+    followText: dark ? '#F2EFE8' : '#242019',
+    dark,
+  }
+}
 
 export const BUTTON_STYLES: { id: ButtonStyleId; name: string; radius: string }[] = [
   { id: 'square', name: '直角专业', radius: '4px' },
@@ -97,5 +149,10 @@ export function resolveButtonColors(
 }
 
 export function wallpaperById(id: string): Wallpaper {
-  return WALLPAPERS.find((w) => w.id === id) ?? WALLPAPERS[0]
+  if (isCustomWallpaperId(id)) return customWallpaper(id.slice(CUSTOM_PREFIX.length))
+  return (
+    WALLPAPERS.find((w) => w.id === id) ??
+    LEGACY_WALLPAPERS.find((w) => w.id === id) ??
+    WALLPAPERS[0]
+  )
 }
