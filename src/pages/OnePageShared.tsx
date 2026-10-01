@@ -6,6 +6,7 @@ import {
   type OnePageShare,
 } from '../onepage'
 import './onepage-shared.css'
+import { PlatformIcon } from '../components/PlatformIcon'
 
 /** 目录式（编辑风）条目内容：品牌色点 + 宋体平台名 + 斜体解读，右侧宋体大数字 */
 export function EditorialItemContent({ link }: { link: OnePageLink }) {
@@ -13,7 +14,7 @@ export function EditorialItemContent({ link }: { link: OnePageLink }) {
     <>
       <span className="opd-left">
         <span className="opd-platform">
-          <span className="opd-dot" style={{ background: link.accent }} />
+          <PlatformIcon url={link.url} />
           {link.platform}
         </span>
         <span className="opd-insight">{link.insight}</span>
@@ -84,8 +85,8 @@ export function OnePageShared({ data }: { data: OnePageShare }) {
                 rel="noopener noreferrer"
                 style={{ background: btn.bg, color: btn.text, borderRadius: radius, borderColor: btn.border }}
               >
-                <span className="ops-link-badge" style={{ background: link.accent }}>
-                  {link.badge}
+                <span className="ops-link-badge">
+                  <PlatformIcon url={link.url} />
                 </span>
                 <span className="ops-link-name">{link.platform}</span>
                 <span className="ops-link-nums">

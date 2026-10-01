@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import QRCode from 'qrcode'
+import { PlatformIcon } from '../components/PlatformIcon'
 import { encodeJson } from '../shareCodec'
 import { pageUrl } from '../router'
 import { fetchPlatformMetrics, fetchGenericSite, fetchFailureMessage, type FetchedMetrics } from '../dataFetch'
@@ -311,8 +312,8 @@ type Sheet =
 function LinkButtonContent({ link }: { link: OnePageLink }) {
   return (
     <>
-      <span className="ops-link-badge" style={{ background: link.accent }}>
-        {link.badge}
+      <span className="ops-link-badge">
+        <PlatformIcon url={link.url} />
       </span>
       <span className="ops-link-name">{link.platform}</span>
       <span className="ops-link-nums">
