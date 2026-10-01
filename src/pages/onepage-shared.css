@@ -212,6 +212,14 @@
   color: var(--ed-sub);
 }
 
+.opd-source {
+  padding-left: 14px;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  color: var(--ed-sub);
+  opacity: 0.75;
+}
+
 .opd-right {
   flex: none;
   display: flex;

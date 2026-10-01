@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import QRCode from 'qrcode'
 import { encodeJson } from '../shareCodec'
 import { pageUrl } from '../router'
+import { fetchPlatformMetrics } from '../dataFetch'
 import {
   BUTTON_COLORS,
   BUTTON_STYLES,
@@ -58,8 +59,8 @@ const KNOWN_PLATFORMS: Record<string, Omit<OnePageLink, 'url'>> = {
     badge: 'Dr',
     accent: '#ea4c89',
     metric: '总获赞',
-    value: '12.8k',
-    insight: '互动量超过 92% 的 UI 设计师',
+    value: '388',
+    insight: '33 件作品 · 累计 102.9k 浏览',
   },
   'behance.net': {
     platform: 'Behance',
@@ -82,8 +83,8 @@ const KNOWN_PLATFORMS: Record<string, Omit<OnePageLink, 'url'>> = {
     badge: 'GH',
     accent: '#24292f',
     metric: '总 Star',
-    value: '2.1k',
-    insight: '前端影响力超过 95% 的同行',
+    value: '0',
+    insight: '5 个公开仓库 · 1 位关注者，正在积累开源影响力',
   },
   'juejin.cn': {
     platform: '掘金',
@@ -139,16 +140,6 @@ function cardFromDetected(detected: Detected, url: string): OnePageLink {
       }
 }
 
-function loadingSteps(detected: Detected, isDup: boolean): string[] {
-  return detected.kind === 'known'
-    ? [
-        `AI 正在打开你的 ${detected.card.platform} 主页…`,
-        '正在读取平台数据…',
-        isDup ? '✓ 已刷新最新数据' : '✓ 读取完成',
-      ]
-    : ['AI 正在识别这个平台…', '正在读取页面内容…', '✓ 读取完成']
-}
-
 function randomSlug(): string {
   return Math.random().toString(36).slice(2, 8)
 }
@@ -162,11 +153,113 @@ function bumpValue(v: string): string {
   return `${n.toFixed(decimals)}${m[2]}`
 }
 
-function Spinner() {
-  return <span className="op-spinner" aria-hidden />
-}
+type LinkSlot = { id: number; card: OnePageLink | null }
 
-type LinkSlot = { id: number; value: string; card: OnePageLink | null; reading?: boolean }
+/** 内联读取步骤（宋体斜体小字，逐行浮现） */
+const READ_STEPS = ['正在打开主页…', '正在读取平台数据…', '正在核实数据…', '✓ 读取完成']
+
+/**
+ * 贴上即读的输入槽：去抖 600ms 自动触发，原地逐行浮现步骤小字，
+ * 期间并行拉取真实数据（dataFetch 三轨制），完成后经 onResolve 交给父级变条目；
+ * 重复平台走 onDuplicate 并自我清空。每个槽位独立持有自己的计时器，多槽并行互不阻塞。
+ */
+function LinkInputSlot(props: {
+  placeholder: string
+  isDuplicate: (platform: string) => boolean
+  onResolve: (card: OnePageLink) => void
+  onDuplicate: (platform: string) => void
+}) {
+  const [value, setValue] = useState('')
+  const [reading, setReading] = useState(false)
+  const [stepIdx, setStepIdx] = useState(0)
+  const [finalText, setFinalText] = useState(READ_STEPS[3])
+  const debounceRef = useRef<number | null>(null)
+  const stepTimers = useRef<number[]>([])
+
+  useEffect(
+    () => () => {
+      if (debounceRef.current) window.clearTimeout(debounceRef.current)
+      stepTimers.current.forEach((t) => window.clearTimeout(t))
+    },
+    [],
+  )
+
+  const start = (v: string) => {
+    const detected = detectUrl(v)
+    if (!detected) return
+    const url = normalizeUrl(v)
+    const dup = detected.kind === 'known' && props.isDuplicate(detected.card.platform)
+    setFinalText(dup ? '✓ 已刷新最新数据' : READ_STEPS[3])
+    setReading(true)
+    setStepIdx(0)
+    stepTimers.current.push(window.setTimeout(() => setStepIdx(1), 900))
+    stepTimers.current.push(window.setTimeout(() => setStepIdx(2), 1800))
+
+    // 真实数据获取与步骤动画并行；两者都就绪才进入完成步
+    const minTime = new Promise((r) => stepTimers.current.push(window.setTimeout(r, 2700)))
+    const fetchP =
+      detected.kind === 'known' && !dup
+        ? fetchPlatformMetrics(detected.card.platform, url)
+        : Promise.resolve(null)
+    void Promise.all([minTime, fetchP]).then(([, metrics]) => {
+      setStepIdx(3)
+      stepTimers.current.push(
+        window.setTimeout(() => {
+          if (dup && detected.kind === 'known') {
+            props.onDuplicate(detected.card.platform)
+            setValue('')
+            setReading(false)
+            return
+          }
+          const base = cardFromDetected(detected, url)
+          const card: OnePageLink = metrics
+            ? {
+                ...base,
+                metric: metrics.metric,
+                value: metrics.value,
+                unit: metrics.unit,
+                insight: metrics.insight,
+                source: metrics.source,
+              }
+            : { ...base, source: 'snapshot' }
+          props.onResolve(card)
+        }, 700),
+      )
+    })
+  }
+
+  const onChange = (v: string) => {
+    setValue(v)
+    if (debounceRef.current) window.clearTimeout(debounceRef.current)
+    debounceRef.current = window.setTimeout(() => start(v), 600)
+  }
+
+  const invalid = !reading && value.trim() !== '' && !detectUrl(value)
+
+  return (
+    <div className={`op-slot${reading ? ' is-reading' : ''}`}>
+      <div className="op-slot-field">
+        <input
+          className="op-slot-input"
+          value={value}
+          placeholder={props.placeholder}
+          disabled={reading}
+          onChange={(e) => onChange(e.target.value)}
+        />
+        {reading && (
+          <div className="op-slot-steps">
+            {READ_STEPS.slice(0, stepIdx + 1).map((text, i) => (
+              <span key={i} className={`op-slot-step${i === 2 ? ' is-final' : ''}`}>
+                {i === 2 ? finalText : text}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+      {invalid && <p className="op-slot-error">这看起来不是一个链接</p>}
+    </div>
+  )
+}
 
 type PublishedState = {
   name: string
@@ -193,8 +286,6 @@ function loadPublished(): PublishedState | null {
 }
 
 type Sheet =
-  | { kind: 'add'; phase: 'input' }
-  | { kind: 'add'; phase: 'loading'; steps: string[]; step: number }
   | { kind: 'style' }
   | null
 
@@ -261,22 +352,13 @@ export function OnePagePreview() {
   const [flashAll, setFlashAll] = useState(false)
   const [undo, setUndo] = useState<{ link: OnePageLink; index: number } | null>(null)
   const [sheet, setSheet] = useState<Sheet>(null)
-  const [sheetInput, setSheetInput] = useState('')
   const [justAdded, setJustAdded] = useState<string | null>(null)
+  const [editSlots, setEditSlots] = useState<number[]>([])
 
   const timers = useRef<number[]>([])
-  const slotsRef = useRef<LinkSlot[]>([])
-  slotsRef.current = slots
-  const sheetInputRef = useRef('')
-  sheetInputRef.current = sheetInput
-  const slotDebounce = useRef<Map<number, number>>(new Map())
-  const sheetDebounce = useRef<number | null>(null)
   const clearTimers = () => {
     timers.current.forEach((t) => window.clearTimeout(t))
     timers.current = []
-    slotDebounce.current.forEach((t) => window.clearTimeout(t))
-    slotDebounce.current.clear()
-    if (sheetDebounce.current) window.clearTimeout(sheetDebounce.current)
   }
   useEffect(() => clearTimers, [])
 
@@ -339,69 +421,21 @@ export function OnePagePreview() {
 
   // —— 向导 ——
 
-  const newSlot = (): LinkSlot => ({ id: ++slotSeq.current, value: '', card: null })
+  const newSlot = (): LinkSlot => ({ id: ++slotSeq.current, card: null })
 
   const enterStep2 = () => {
     if (slots.length === 0) setSlots([newSlot(), newSlot(), newSlot()])
     setStep(2)
   }
 
-  /** 播放抓取动画，结束后回调产出条目 */
-  const runReadFlow = (rawUrl: string, onDone: (detected: Detected, url: string) => void) => {
-    const detected = detectUrl(rawUrl)
-    if (!detected) return
-    const url = normalizeUrl(rawUrl)
-    const isDup =
-      detected.kind === 'known' && links.some((l) => l.platform === detected.card.platform)
-    const steps = loadingSteps(detected, isDup)
-    setSheet({ kind: 'add', phase: 'loading', steps, step: 0 })
-    timers.current.push(
-      window.setTimeout(() => setSheet({ kind: 'add', phase: 'loading', steps, step: 1 }), 1000),
-    )
-    timers.current.push(
-      window.setTimeout(() => setSheet({ kind: 'add', phase: 'loading', steps, step: 2 }), 2100),
-    )
-    timers.current.push(
-      window.setTimeout(() => {
-        setSheet(null)
-        onDone(detected, url)
-      }, 2900),
-    )
-  }
+  /** 平台去重：向导槽位卡片 + 已发布条目一起查 */
+  const isDupPlatform = (platform: string) =>
+    wizardLinks.some((l) => l.platform === platform) ||
+    links.some((l) => l.platform === platform)
 
-  const startSlotRead = (slotId: number) => {
-    const slot = slotsRef.current.find((s) => s.id === slotId)
-    if (!slot || slot.card || slot.reading || !detectUrl(slot.value)) return
-    setSlots((prev) => prev.map((s) => (s.id === slotId ? { ...s, reading: true } : s)))
-    runReadFlow(slot.value, (detected, url) => {
-      const current = slotsRef.current
-      const isDup =
-        detected.kind === 'known' &&
-        current.some((s) => s.card && s.id !== slotId && s.card.platform === detected.card.platform)
-      if (isDup && detected.kind === 'known') {
-        setFlashKey(detected.card.platform)
-        timers.current.push(window.setTimeout(() => setFlashKey(null), 1600))
-        setSlots((prev) =>
-          prev.map((s) => (s.id === slotId ? { ...s, value: '', reading: false } : s)),
-        )
-        return
-      }
-      const card = cardFromDetected(detected, url)
-      setSlots((prev) =>
-        prev.map((s) => (s.id === slotId ? { ...s, card, reading: false } : s)),
-      )
-    })
-  }
-
-  /** 贴上即读：输入去抖 600ms 后自动触发抓取 */
-  const onSlotInput = (slotId: number, value: string) => {
-    setSlots((prev) => prev.map((s) => (s.id === slotId ? { ...s, value } : s)))
-    const prev = slotDebounce.current.get(slotId)
-    if (prev) window.clearTimeout(prev)
-    slotDebounce.current.set(
-      slotId,
-      window.setTimeout(() => startSlotRead(slotId), 600),
-    )
+  const flashPlatform = (platform: string) => {
+    setFlashKey(platform)
+    timers.current.push(window.setTimeout(() => setFlashKey(null), 1600))
   }
 
   const publish = () => {
@@ -493,32 +527,6 @@ export function OnePagePreview() {
     setLinks((prev) => prev.map((l) => ({ ...l, value: bumpValue(l.value) })))
     setFlashAll(true)
     timers.current.push(window.setTimeout(() => setFlashAll(false), 1600))
-  }
-
-  const startSheetAdd = () => {
-    const value = sheetInputRef.current
-    if (!detectUrl(value)) return
-    runReadFlow(value, (detected, url) => {
-      const isDup =
-        detected.kind === 'known' && links.some((l) => l.platform === detected.card.platform)
-      setSheetInput('')
-      if (isDup && detected.kind === 'known') {
-        setFlashKey(detected.card.platform)
-        timers.current.push(window.setTimeout(() => setFlashKey(null), 1600))
-        return
-      }
-      const card = cardFromDetected(detected, url)
-      setLinks((prev) => [...prev, card])
-      setJustAdded(card.platform)
-      timers.current.push(window.setTimeout(() => setJustAdded(null), 800))
-    })
-  }
-
-  /** 弹层输入框：贴上即读，去抖 600ms */
-  const onSheetInput = (value: string) => {
-    setSheetInput(value)
-    if (sheetDebounce.current) window.clearTimeout(sheetDebounce.current)
-    sheetDebounce.current = window.setTimeout(() => startSheetAdd(), 600)
   }
 
   // —— 渲染 ——
@@ -657,16 +665,32 @@ export function OnePagePreview() {
               <p className="ops-empty">还没有链接，点右上角「编辑」添加吧</p>
             )}
             {editing && !visitor && (
-              <button
-                className="op-add-row"
-                onClick={() => {
-                  setSheetInput('')
-                  setSheet({ kind: 'add', phase: 'input' })
-                }}
-              >
-                <span className="op-add-plus">+</span>
-                添加链接
-              </button>
+              <>
+                {editSlots.map((id) => (
+                  <LinkInputSlot
+                    key={id}
+                    placeholder="粘贴你的主页链接，如 dribbble.com/xxx"
+                    isDuplicate={isDupPlatform}
+                    onResolve={(card) => {
+                      setLinks((prev) => [...prev, card])
+                      setJustAdded(card.platform)
+                      timers.current.push(window.setTimeout(() => setJustAdded(null), 800))
+                      setEditSlots((prev) => prev.filter((s) => s !== id))
+                    }}
+                    onDuplicate={(platform) => {
+                      flashPlatform(platform)
+                      setEditSlots((prev) => prev.filter((s) => s !== id))
+                    }}
+                  />
+                ))}
+                <button
+                  className="op-add-row"
+                  onClick={() => setEditSlots((prev) => [...prev, ++slotSeq.current])}
+                >
+                  <span className="op-add-plus">+</span>
+                  添加链接
+                </button>
+              </>
             )}
           </div>
 
@@ -759,26 +783,17 @@ export function OnePagePreview() {
                       )}
                     </div>
                   ) : (
-                    <div className="op-slot" key={slot.id}>
-                      <div className="op-slot-field">
-                        <input
-                          className="op-slot-input"
-                          value={slot.value}
-                          placeholder={persona.placeholders[i] ?? '粘贴你的主页链接'}
-                          disabled={slot.reading}
-                          onChange={(e) => onSlotInput(slot.id, e.target.value)}
-                        />
-                        {slot.reading && (
-                          <span className="op-slot-reading">
-                            <Spinner />
-                            正在读取…
-                          </span>
-                        )}
-                      </div>
-                      {!slot.reading && slot.value.trim() !== '' && !detectUrl(slot.value) && (
-                        <p className="op-slot-error">这看起来不是一个链接</p>
-                      )}
-                    </div>
+                    <LinkInputSlot
+                      key={slot.id}
+                      placeholder={persona.placeholders[i] ?? '粘贴你的主页链接'}
+                      isDuplicate={isDupPlatform}
+                      onResolve={(card) =>
+                        setSlots((prev) =>
+                          prev.map((s) => (s.id === slot.id ? { ...s, card } : s)),
+                        )
+                      }
+                      onDuplicate={flashPlatform}
+                    />
                   ),
                 )}
                 <button
@@ -863,60 +878,11 @@ export function OnePagePreview() {
         </div>
       )}
 
-      {/* 底部弹层：添加链接 / 抓取进度 / 风格 */}
+      {/* 底部弹层：风格 */}
       {sheet && (
-        <div
-          className="op-sheet-mask"
-          onClick={() => sheet.kind === 'style' && setSheet(null)}
-        >
+        <div className="op-sheet-mask" onClick={() => setSheet(null)}>
           <div className="op-sheet" onClick={(e) => e.stopPropagation()}>
             <div className="op-sheet-grabber" />
-
-            {sheet.kind === 'add' && sheet.phase === 'input' && (
-              <>
-                <h3 className="op-sheet-title">添加链接</h3>
-                <input
-                  className="op-sheet-input"
-                  autoFocus
-                  value={sheetInput}
-                  onChange={(e) => onSheetInput(e.target.value)}
-                  placeholder="粘贴你的主页链接，如 dribbble.com/xxx"
-                />
-                {sheetInput.trim() !== '' && !detectUrl(sheetInput) ? (
-                  <p className="op-slot-error">这看起来不是一个链接</p>
-                ) : (
-                  <p className="op-sheet-hint">✦ 贴上链接，AI 自动读取</p>
-                )}
-                <div className="op-sheet-actions">
-                  <button className="op-sheet-cancel op-sheet-cancel-wide" onClick={() => setSheet(null)}>
-                    取消
-                  </button>
-                </div>
-              </>
-            )}
-
-            {sheet.kind === 'add' && sheet.phase === 'loading' && (
-              <div className="op-sheet-loading">
-                <h3 className="op-sheet-title">读取中</h3>
-                <ul className="op-steps">
-                  {sheet.steps.slice(0, sheet.step + 1).map((text, i) => (
-                    <li
-                      key={i}
-                      className={`op-step${i < sheet.step ? ' is-done' : ''}${
-                        i === sheet.step && i === sheet.steps.length - 1 ? ' is-final' : ''
-                      }`}
-                    >
-                      {i < sheet.step || i === sheet.steps.length - 1 ? (
-                        <span className="op-step-check">✓</span>
-                      ) : (
-                        <Spinner />
-                      )}
-                      {text.replace(/^✓ /, '')}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
 
             {sheet.kind === 'style' && (
               <>

@@ -12,6 +12,8 @@ export type OnePageLink = {
   unit?: string
   insight: string
   url: string
+  /** 数据来源：live 实时获取 / snapshot 快照兜底；旧数据缺省按 live 展示 */
+  source?: 'live' | 'snapshot'
   generic?: boolean
 }
 
