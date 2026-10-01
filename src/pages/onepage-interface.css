@@ -24,9 +24,39 @@
   flex-direction: column;
 }
 .op-intro .op-wiz-top { margin-bottom: 24px; }
-.op-intro .op-wiz-sub { margin-bottom: 20px; }
-.op-intro .op-form { gap: 16px; }
-.op-intro .op-field-input { border-color: #c9c6bc; }
+.op-intro .op-wiz-title { font-size: 26px; line-height: 1.4; }
+.op-intro .op-wiz-sub { margin-bottom: 28px; }
+.op-intro .op-form { gap: 24px; }
+.op-intro .op-field { gap: 8px; }
+.op-intro .op-field-label {
+  color: #767268;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  opacity: 1;
+}
+.op-intro .op-field-input {
+  min-height: 48px;
+  padding: 12px 16px;
+  border: 1px solid #dfdbd1;
+  border-radius: 8px;
+  background: #faf9f6;
+  color: #302f2a;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  box-shadow: none;
+  transition: border-color .16s ease;
+}
+.op-intro .op-field-textarea { min-height: 88px; padding-top: 8px; line-height: 1.65; }
+.op-intro .op-field-input:focus {
+  border-color: #969083;
+  box-shadow: none;
+}
+.op-intro .op-field-input:focus-visible {
+  outline: 2px solid #969083;
+  outline-offset: -1px;
+}
 .op-intro .op-wiz-actions { margin-top: auto; padding-top: 28px; }
 .op-welcome-title {
   font-family: var(--ui-font);
