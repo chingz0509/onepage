@@ -1,4 +1,4 @@
-import { defineConfig, type Plugin } from 'vite'
+import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import apiFetch from './api/fetch'
 
@@ -18,23 +18,29 @@ function devApi(): Plugin {
   }
 }
 
-export default defineConfig({
-  plugins: [react(), devApi()],
-  base: './',
-  server: {
-    proxy: {
-      // 演示机上把 WebBridge 代理进同源，页面免 CORS 直接调用本机浏览器抓取。
-      // 桥服务对带 Origin 头的请求会返回空响应，代理时剥掉 Origin。
-      '/bridge': {
-        target: 'http://127.0.0.1:10086',
-        changeOrigin: true,
-        rewrite: (p) => p.replace(/^\/bridge/, ''),
-        configure: (proxy) => {
-          proxy.on('proxyReq', (req) => {
-            req.removeHeader('origin')
-          })
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
+  for (const key of ['BROWSER_WS_ENDPOINT', 'SCRAPER_PROVIDER', 'SCRAPER_API_KEY']) {
+    if (process.env[key] === undefined && env[key]) process.env[key] = env[key]
+  }
+  return {
+    plugins: [react(), devApi()],
+    base: './',
+    server: {
+      proxy: {
+        // 演示机上把 WebBridge 代理进同源，页面免 CORS 直接调用本机浏览器抓取。
+        // 桥服务对带 Origin 头的请求会返回空响应，代理时剥掉 Origin。
+        '/bridge': {
+          target: 'http://127.0.0.1:10086',
+          changeOrigin: true,
+          rewrite: (p) => p.replace(/^\/bridge/, ''),
+          configure: (proxy) => {
+            proxy.on('proxyReq', (req) => {
+              req.removeHeader('origin')
+            })
+          },
         },
       },
     },
-  },
+  }
 })
