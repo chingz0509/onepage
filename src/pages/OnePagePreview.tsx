@@ -292,6 +292,51 @@ function LinkInputSlot(props: {
   )
 }
 
+function CompletedLinkSlot(props: {
+  card: OnePageLink
+  linkBtnStyle: CSSProperties
+  flashing: boolean
+  onDelete: () => void
+}) {
+  const [menuOpen, setMenuOpen] = useState(false)
+  return (
+    <div className={`op-slot-done${menuOpen ? ' is-menu-open' : ''}`}>
+      <span
+        className={`ops-link op-slot-link${props.flashing ? ' is-flashing' : ''}`}
+        style={props.linkBtnStyle}
+      >
+        <LinkButtonContent link={props.card} />
+        <button
+          type="button"
+          className="op-link-menu-trigger"
+          aria-label="打开链接操作菜单"
+          aria-expanded={menuOpen}
+          onClick={(event) => {
+            event.stopPropagation()
+            setMenuOpen((open) => !open)
+          }}
+        >
+          <span aria-hidden="true">⋮</span>
+        </button>
+        {menuOpen && (
+          <div className="op-link-menu" role="menu">
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setMenuOpen(false)
+                props.onDelete()
+              }}
+            >
+              删除链接
+            </button>
+          </div>
+        )}
+      </span>
+    </div>
+  )
+}
+
 type PublishedState = {
   name: string
   job: string
@@ -839,8 +884,8 @@ export function OnePagePreview() {
               <div className="op-slots">
                 {slots.map((slot, i) =>
                   slot.card ? (
-                    <div className="op-slot-done" key={slot.id}>
-                      {editorial ? (
+                    editorial ? (
+                      <div className="op-slot-done" key={slot.id}>
                         <span
                           className={`opd-item op-slot-link${
                             flashKey === slot.card.platform ? ' is-flashing' : ''
@@ -848,17 +893,20 @@ export function OnePagePreview() {
                         >
                           <EditorialItemContent link={slot.card} />
                         </span>
-                      ) : (
-                        <span
-                          className={`ops-link op-slot-link${
-                            flashKey === slot.card.platform ? ' is-flashing' : ''
-                          }`}
-                          style={linkBtnStyle}
-                        >
-                          <LinkButtonContent link={slot.card} />
-                        </span>
-                      )}
-                    </div>
+                      </div>
+                    ) : (
+                      <CompletedLinkSlot
+                        key={slot.id}
+                        card={slot.card}
+                        linkBtnStyle={linkBtnStyle}
+                        flashing={flashKey === slot.card.platform}
+                        onDelete={() =>
+                          setSlots((prev) =>
+                            prev.map((s) => (s.id === slot.id ? { ...s, card: null } : s)),
+                          )
+                        }
+                      />
+                    )
                   ) : (
                     <LinkInputSlot
                       key={slot.id}
