@@ -142,7 +142,8 @@ type LinkSlot = { id: number; card: OnePageLink | null }
 const READ_STEPS = ['正在打开主页…', '正在读取平台数据…', '正在核实数据…', '✓ 读取完成']
 
 /**
- * 贴上即读的输入槽：去抖 600ms 自动触发，原地逐行浮现步骤小字，
+ * 贴上即读的输入槽：粘贴后去抖 600ms 自动触发，原地逐行浮现步骤小字；
+ * 手动输入不会因为输入内容恰好像 URL 就自动触发，按 Enter 才会开始读取，
  * 期间并行拉取真实数据（dataFetch 三轨制），完成后经 onResolve 交给父级变条目；
  * 重复平台走 onDuplicate 并自我清空。每个槽位独立持有自己的计时器，多槽并行互不阻塞。
  */
@@ -222,10 +223,16 @@ function LinkInputSlot(props: {
     })
   }
 
-  const onChange = (v: string) => {
-    setValue(v)
+  const scheduleStart = (v: string) => {
     if (debounceRef.current) window.clearTimeout(debounceRef.current)
     debounceRef.current = window.setTimeout(() => start(v), 600)
+  }
+
+  const onPaste = (event: React.ClipboardEvent<HTMLInputElement>) => {
+    const pasted = event.clipboardData.getData('text')
+    if (!pasted) return
+    setValue(pasted)
+    scheduleStart(pasted)
   }
 
   const invalid = !reading && value.trim() !== '' && !detectUrl(value)
@@ -238,7 +245,15 @@ function LinkInputSlot(props: {
           value={value}
           placeholder={props.placeholder}
           disabled={reading}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => setValue(e.target.value)}
+          onPaste={onPaste}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              if (debounceRef.current) window.clearTimeout(debounceRef.current)
+              start(value)
+            }
+          }}
         />
         <span className="op-slot-icon" aria-hidden="true">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
