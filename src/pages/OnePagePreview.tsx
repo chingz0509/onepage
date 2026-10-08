@@ -377,7 +377,6 @@ export function OnePagePreview() {
 
   // 管理闭环
   const [editing, setEditing] = useState(false)
-  const [visitor, setVisitor] = useState(false)
   const [flashKey, setFlashKey] = useState<string | null>(null)
   const [flashAll, setFlashAll] = useState(false)
   const [undo, setUndo] = useState<{ link: OnePageLink; index: number } | null>(null)
@@ -400,7 +399,7 @@ export function OnePagePreview() {
   const radius = BUTTON_STYLES.find((b) => b.id === buttonStyle)?.radius ?? '999px'
   const btnColors = resolveButtonColors(wallpaper, buttonColor)
   // 默认纸感壁纸下条目用编辑风目录样式；用户定制壁纸后套用用户选择
-  const editorial = wallpaperId === 'cream'
+  const editorial = false
   const linkBtnStyle: CSSProperties = {
     background: btnColors.bg,
     color: btnColors.text,
@@ -443,12 +442,11 @@ export function OnePagePreview() {
     setSlots([])
     setWallpaperId('cream')
     setButtonStyle('pill')
-    setButtonColor('black')
+    setButtonColor('wallpaper')
     setShareUrl('')
     setSlug('')
     setShareOpen(false)
     setEditing(false)
-    setVisitor(false)
     setUndo(null)
   }
 
@@ -544,11 +542,6 @@ export function OnePagePreview() {
 
   // —— 管理闭环 ——
 
-  const enterVisitor = () => {
-    if (editing) finishEditing()
-    setVisitor(true)
-  }
-
   const finishEditing = () => {
     setEditing(false)
     setUndo(null)
@@ -614,19 +607,9 @@ export function OnePagePreview() {
 
   return (
     <div className="op-page" style={pageStyle}>
-      {visitor && (
-        <button className="op-visitor-bar" onClick={() => setVisitor(false)}>
-          <span className="op-visitor-dot" />
-          正在以访客身份查看 · 点击退出
-        </button>
-      )}
-
       {/* 发布态的悬浮管理按钮 */}
-      {step === 0 && published && !visitor && (
+      {step === 0 && published && (
         <>
-          <button className="op-fab op-fab-left" aria-label="访客视角" onClick={enterVisitor}>
-            访客视角
-          </button>
           <div className="op-fab-right">
             {shareUrl && (
               <button className="op-fab" onClick={() => setShareOpen(true)}>
@@ -666,7 +649,7 @@ export function OnePagePreview() {
           <p className="ops-title">{job}</p>
           {bio && <p className="ops-bio">{bio}</p>}
 
-          {editing && !visitor && (
+          {editing && (
             <div className="op-module-editbar">
               <button className="op-mini-btn" disabled={refreshing} onClick={refreshData}>
                 {refreshing ? '⟳ 读取中…' : '⟳ 刷新数据'}
@@ -679,7 +662,7 @@ export function OnePagePreview() {
 
           <div className={editorial ? 'opd-list' : 'ops-links'}>
             {links.map((link, i) =>
-              editing && !visitor ? (
+              editing ? (
                 <div className="op-edit-row" key={link.platform}>
                   <button
                     className="op-row-del"
@@ -745,7 +728,7 @@ export function OnePagePreview() {
             {links.length === 0 && !editing && (
               <p className="ops-empty">还没有链接，点右上角「编辑」添加吧</p>
             )}
-            {editing && !visitor && (
+            {editing && (
               <>
                 {editSlots.map((id) => (
                   <LinkInputSlot
@@ -777,11 +760,9 @@ export function OnePagePreview() {
           </div>
 
           <p className="ops-foot">数据均来自平台直采 · 刚刚更新</p>
-          {!visitor && (
-            <button className="op-reset-link" onClick={resetDemo}>
-              重置演示
-            </button>
-          )}
+          <button className="op-reset-link" onClick={resetDemo}>
+            重置演示
+          </button>
         </div>
       )}
 
@@ -880,15 +861,15 @@ export function OnePagePreview() {
                     />
                   ),
                 )}
+              </div>
                 <button
-                  className="op-add-row"
+                  className="op-add-row op-link-add"
                   onClick={() => setSlots((prev) => [...prev, newSlot()])}
                 >
                   <span className="op-add-plus">+</span>
                   添加链接
                 </button>
-              </div>
-              <div className="op-wiz-actions">
+              <div className="op-wiz-actions op-link-actions">
                 <button
                   className="op-btn-continue"
                   disabled={readingSlots.size > 0}

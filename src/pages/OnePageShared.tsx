@@ -49,7 +49,7 @@ export function OnePageShared({ data }: { data: OnePageShare }) {
   const wallpaper = wallpaperById(data.wallpaper)
   const radius = BUTTON_STYLES.find((b) => b.id === data.buttonStyle)?.radius ?? '999px'
   const btn = resolveButtonColors(wallpaper, data.buttonColor)
-  const editorial = data.wallpaper === 'cream'
+  const editorial = false
 
   return (
     <div className="ops-page" style={{ background: wallpaper.bg, color: wallpaper.text }}>

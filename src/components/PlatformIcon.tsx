@@ -26,7 +26,16 @@ export function PlatformIcon({ url }: { url: string }) {
   return (
     <span className="op-platform-icon" aria-hidden="true">
       {src && failed !== src ? (
-        <img key={src} src={src} alt="" width="20" height="20" referrerPolicy="no-referrer" onError={() => setFailed(src)} />
+        <img
+          key={src}
+          src={src}
+          alt=""
+          width="24"
+          height="24"
+          referrerPolicy="no-referrer"
+          style={{ borderRadius: '50%', clipPath: 'circle(50%)' }}
+          onError={() => setFailed(src)}
+        />
       ) : (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
           <circle cx="12" cy="12" r="9" />

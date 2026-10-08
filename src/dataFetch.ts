@@ -33,13 +33,19 @@ function githubInsight(stars: number, followers: number, repos: number): string 
 
 async function fetchGitHub(username: string): Promise<FetchedMetrics | null> {
   try {
-    const [uRes, rRes] = await Promise.all([
-      fetch(`https://api.github.com/users/${username}`),
-      fetch(`https://api.github.com/users/${username}/repos?per_page=100`),
-    ])
-    if (!uRes.ok || !rRes.ok) throw new Error('github api')
+    const uRes = await fetch(`https://api.github.com/users/${username}`)
+    if (!uRes.ok) throw new Error('github api')
     const user = (await uRes.json()) as { followers?: number }
-    const repos = (await rRes.json()) as { stargazers_count?: number }[]
+    const repos: { stargazers_count?: number }[] = []
+    for (let page = 1; ; page += 1) {
+      const rRes = await fetch(
+        `https://api.github.com/users/${username}/repos?per_page=100&page=${page}`,
+      )
+      if (!rRes.ok) throw new Error('github api')
+      const pageRepos = (await rRes.json()) as { stargazers_count?: number }[]
+      repos.push(...pageRepos)
+      if (pageRepos.length < 100) break
+    }
     const stars = repos.reduce((s, r) => s + (r.stargazers_count ?? 0), 0)
     const followers = user.followers ?? 0
     return {
