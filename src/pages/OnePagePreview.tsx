@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import QRCode from 'qrcode'
 import { PlatformIcon } from '../components/PlatformIcon'
+import { ProfileEditIcon, ProfileShareIcon } from '../components/icons'
 import { encodeJson } from '../shareCodec'
 import { pageUrl } from '../router'
 import { fetchPlatformMetrics, fetchGenericSite, fetchFailureMessage, type FetchedMetrics } from '../dataFetch'
@@ -18,7 +19,7 @@ import {
   type OnePageShare,
   type Wallpaper,
 } from '../onepage'
-import { EditorialItemContent } from './OnePageShared'
+import { EditorialItemContent, ProfileAvatar } from './OnePageShared'
 import './onepage-preview.css'
 import './onepage-shared.css'
 import './onepage-customize.css'
@@ -474,6 +475,11 @@ export function OnePagePreview() {
     '--wiz-text': canvasWallpaper.text,
     '--wiz-btn-bg': canvasWallpaper.dark ? '#ffffff' : '#1a1a18',
     '--wiz-btn-text': '#ffffff',
+    '--profile-subtext': wallpaperId === 'cream' ? '#383A4C' : canvasWallpaper.text,
+    '--profile-metric-text': wallpaperId === 'cream' ? '#6E727A' : canvasWallpaper.text,
+    '--profile-control-bg': wallpaperId === 'cream'
+      ? '#F7F0DE'
+      : `color-mix(in srgb, ${canvasWallpaper.text} 5%, transparent)`,
   } as CSSProperties
 
   const persist = (next?: Partial<PublishedState>) => {
@@ -666,21 +672,27 @@ export function OnePagePreview() {
   // —— 渲染 ——
 
   return (
-    <div className="op-page" style={pageStyle}>
+    <div className={`op-page${step === 0 && published ? ' is-published' : ''}`} style={pageStyle}>
       {/* 发布态的悬浮管理按钮 */}
       {step === 0 && published && (
         <>
           <div className="op-fab-right">
             {shareUrl && (
-              <button className="op-fab" onClick={() => setShareOpen(true)}>
-                分享
+              <button className="op-fab" aria-label="分享" title="分享" onClick={() => setShareOpen(true)}>
+                <ProfileShareIcon />
               </button>
             )}
             <button
               className="op-fab"
+              aria-label={editing ? '完成' : '编辑'}
+              title={editing ? '完成' : '编辑'}
               onClick={() => (editing ? finishEditing() : setEditing(true))}
             >
-              {editing ? '完成' : '编辑'}
+              {editing ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12 4 4L19 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              ) : (
+                <ProfileEditIcon />
+              )}
             </button>
           </div>
         </>
@@ -704,7 +716,7 @@ export function OnePagePreview() {
       {/* ———— 发布态：主页本身 ———— */}
       {step === 0 && published && (
         <div className="ops-column op-home-col">
-          <div className="ops-avatar">{avatarChar}</div>
+          <ProfileAvatar />
           <h1 className="ops-name">{name}</h1>
           <p className="ops-title">{job}</p>
           {bio && <p className="ops-bio">{bio}</p>}
@@ -828,7 +840,7 @@ export function OnePagePreview() {
 
       {/* ———— 向导第 1-2 步（壁纸全屏打底） ———— */}
       {(step === 1 || step === 2) && (
-        <div className={`op-col${step === 1 ? ' op-intro' : ''}`}>
+        <div className={`op-col${step === 1 ? ' op-intro' : ' op-links-step'}`}>
           <div className="op-wiz-top">
             <button
               className="op-wiz-back"

@@ -1,7 +1,7 @@
 /* App 外壳（落地页 / 创建向导）全局样式 —— 与模板渲染层（renderer.css）隔离 */
 
 :root {
-  --app-bg: #f6f7f9;
+  --app-bg: #fff8eb;
   --app-text: #17203a;
   --app-sub: #5b6478;
   --app-brand: #0a6cff;
@@ -18,6 +18,8 @@ html,
 body {
   margin: 0;
   padding: 0;
+  min-height: 100%;
+  background: var(--app-bg);
 }
 
 body {

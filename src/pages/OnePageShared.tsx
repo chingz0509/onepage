@@ -6,7 +6,24 @@ import {
   type OnePageShare,
 } from '../onepage'
 import './onepage-shared.css'
+import './onepage-fonts.css'
+import type { CSSProperties } from 'react'
 import { PlatformIcon } from '../components/PlatformIcon'
+
+export const PROFILE_DESIGN_ASSETS = `${import.meta.env.BASE_URL}onepage-design/`
+
+export function ProfileAvatar() {
+  return <img className="ops-avatar" src={`${PROFILE_DESIGN_ASSETS}avatar-photo.jpg`} alt="头像" data-node-id="4194:40777" />
+}
+
+export function ProfileStatusBar() {
+  return (
+    <div className="ops-status-bar" aria-label="状态栏">
+      <span className="ops-status-time">9:41</span>
+      <img className="ops-status-levels" src={`${PROFILE_DESIGN_ASSETS}status@3x.png`} alt="信号、Wi-Fi、电量" data-node-id="4194:40770" />
+    </div>
+  )
+}
 
 /** 目录式（编辑风）条目内容：品牌色点 + 宋体平台名 + 斜体解读，右侧宋体大数字 */
 export function EditorialItemContent({ link }: { link: OnePageLink }) {
@@ -52,9 +69,13 @@ export function OnePageShared({ data }: { data: OnePageShare }) {
   const editorial = false
 
   return (
-    <div className="ops-page" style={{ background: wallpaper.bg, color: wallpaper.text }}>
+    <div className="ops-page" style={{ background: wallpaper.bg, color: wallpaper.text,
+      '--profile-subtext': data.wallpaper === 'cream' ? '#383A4C' : wallpaper.text,
+      '--profile-metric-text': data.wallpaper === 'cream' ? '#6E727A' : wallpaper.text,
+    } as CSSProperties}>
+      <ProfileStatusBar />
       <div className="ops-column">
-        <div className="ops-avatar">{data.avatar}</div>
+        <ProfileAvatar />
         <h1 className="ops-name">{data.name}</h1>
         <p className="ops-title">{data.title}</p>
         {data.bio && <p className="ops-bio">{data.bio}</p>}

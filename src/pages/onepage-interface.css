@@ -244,3 +244,89 @@
     transition: none !important;
   }
 }
+
+/* Published profile starts below its action row, without a simulated status bar. */
+.op-page.is-published {
+  min-height: 100dvh;
+  padding: 88px 20px 56px;
+  position: relative;
+}
+.is-published .op-home-col { padding-top: 0; }
+.is-published .op-fab-right {
+  /* Align floating controls with the centered profile on desktop and phone edges. */
+  position: absolute;
+  top: 24px;
+  right: max(24px, calc((100% - 430px) / 2 + 4px));
+  gap: 12px;
+}
+.is-published .op-fab {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  background: var(--profile-control-bg);
+  color: var(--wiz-text);
+}
+.is-published .op-fab svg { width: 18px; height: 18px; }
+.is-published .op-reset-link {
+  margin-top: 12px;
+  font-size: 11px;
+}
+.is-published .op-fab:hover {
+  background: color-mix(in srgb, var(--wiz-text) 10%, transparent);
+}
+.is-published .op-module-editbar { flex-wrap: wrap; }
+@media (max-width: 374px) {
+  .ops-link { padding-right: 24px; padding-left: 20px; }
+}
+
+/* Link setup uses the same compact type and spacing as the published profile. */
+.op-links-step { font-family: 'MiSans', var(--ui-font); }
+.op-page:has(> .op-links-step) {
+  padding: 24px 20px 40px;
+  min-height: 100dvh;
+}
+.op-links-step .op-wiz-title {
+  font-family: inherit;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 34px;
+  letter-spacing: 0;
+}
+.op-links-step .op-wiz-sub {
+  margin: 6px 0 24px;
+  font-size: 13px;
+  line-height: 22px;
+}
+.op-links-step .op-slots { gap: 12px; }
+.op-links-step .op-slot-input {
+  min-height: 52px;
+  padding: 14px 48px 14px 16px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 22px;
+  border-radius: 16px;
+  background: #fffaf2;
+}
+.op-links-step .op-link-menu-trigger { background: transparent; }
+.op-links-step .op-link-menu-trigger:hover {
+  background: color-mix(in srgb, currentColor 7%, transparent);
+}
+.op-links-step .op-link-add {
+  margin-top: 20px;
+  min-height: 44px;
+  border: 1px dashed var(--ui-line);
+  font-size: 13px;
+  font-weight: 400;
+}
+.op-links-step .op-link-actions { margin-top: 16px; gap: 4px; }
+.op-links-step .op-btn-continue {
+  min-height: 48px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+}
+.op-links-step .op-btn-skip { font-size: 12px; }

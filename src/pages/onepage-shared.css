@@ -2,8 +2,9 @@
    依赖 :root 令牌（onepage-preview.css）：--ed-ground/surface/ink/sub/hairline/accent/serif/shadow */
 
 .ops-page {
-  min-height: 100vh;
-  padding: 72px 20px 56px;
+  position: relative;
+  min-height: 100dvh;
+  padding: 126px 20px 56px;
   display: flex;
   justify-content: center;
 }
@@ -15,56 +16,96 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
+  font-family: 'MiSans', 'PingFang SC', 'Helvetica Neue', sans-serif;
 }
 
-/* 墨色烫印头像：#1A1A18 底 + 米白首字 */
+/* Design avatar with a translucent white outline. */
 
 .ops-avatar {
-  width: 88px;
-  height: 88px;
+  width: 96px;
+  height: 96px;
+  flex: none;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--ed-serif);
-  font-size: 34px;
+  font-size: 46px;
   font-weight: 700;
   color: #f1ecde;
-  background: #1a1a18;
-  box-shadow: 0 10px 28px rgba(26, 26, 24, 0.22), 0 0 0 3px rgba(26, 26, 24, 0.08);
+  background: transparent;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.4);
+  object-fit: cover;
+  display: block;
+}
+
+/* Design status bar overlays the top safe area; profile content starts at y=126. */
+.ops-status-bar {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 470px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #15161f;
+}
+.ops-status-time {
+  width: 140.5px;
+  text-align: center;
+  font-family: 'PingFang SC', sans-serif;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 22px;
+  padding-top: 4px;
+}
+.ops-status-levels {
+  width: 140.5px;
+  height: 54px;
+  object-fit: contain;
+  display: block;
 }
 
 .ops-name {
-  margin: 18px 0 0;
-  font-family: var(--ed-serif);
-  font-size: 23px;
-  font-weight: 700;
-  letter-spacing: 1px;
+  margin: 16px 0 0;
+  font-family: inherit;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 34px;
+  letter-spacing: 0.4px;
+  overflow-wrap: anywhere;
 }
 
 .ops-title {
-  margin: 8px 0 0;
+  color: var(--profile-subtext, #383a4c);
+  margin: 6px 0 0;
   font-size: 13px;
+  line-height: 20px;
   font-weight: 400;
-  opacity: 0.72;
+  opacity: 0.8;
 }
 
 .ops-bio {
-  margin: 10px 0 0;
-  font-size: 13.5px;
-  line-height: 1.65;
-  opacity: 0.62;
-  max-width: 320px;
+  color: var(--profile-subtext, #383a4c);
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 22px;
+  opacity: 0.8;
+  max-width: min(320px, 100%);
+  overflow-wrap: anywhere;
 }
 
 /* 按钮式条目（用户定制壁纸时） */
 
 .ops-links {
   width: 100%;
-  margin-top: 32px;
+  margin-top: 28px;
   display: flex;
   flex-direction: column;
-  gap: 13px;
+  gap: 16px;
 }
 
 .ops-link {
@@ -72,8 +113,8 @@
   align-items: center;
   gap: 12px;
   width: 100%;
-  min-height: 60px;
-  padding: 12px 18px;
+  min-height: 56px;
+  padding: 8px 24px;
   border: 1px solid transparent;
   text-decoration: none;
   color: inherit;
@@ -82,13 +123,13 @@
 }
 
 .ops-link:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.16);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(26, 26, 24, 0.06);
 }
 
 .ops-link-badge {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   flex: none;
   border-radius: 50%;
   display: flex;
@@ -103,9 +144,10 @@
 .ops-link-name {
   flex: 1;
   min-width: 0;
-  font-size: 15.5px;
-  font-weight: 600;
-  letter-spacing: 0.2px;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 21px;
+  letter-spacing: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -120,21 +162,31 @@
 }
 
 .ops-link-nums strong {
-  font-size: 16px;
-  font-weight: 800;
+  font-family: 'DIN Alternate', 'Helvetica Neue', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 22px;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.3px;
 }
 
 .ops-link-nums small {
-  font-size: 10.5px;
-  opacity: 0.6;
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--profile-metric-text, #6e727a);
 }
 
 .ops-link-generic {
   font-size: 12px;
   font-weight: 600;
   opacity: 0.75;
+}
+
+.ops-link-badge .op-platform-icon,
+.ops-link-badge .op-platform-icon img,
+.ops-link-badge .op-platform-icon svg {
+  width: 28px;
+  height: 28px;
 }
 
 .ops-empty {
@@ -145,12 +197,13 @@
 /* 页脚：发丝线 + 极小字 */
 
 .ops-foot {
-  margin-top: 32px;
-  padding-top: 16px;
+  margin: 28px 0 0;
+  padding-top: 12px;
   border-top: 1px solid var(--ed-hairline);
   font-size: 10.5px;
-  letter-spacing: 1px;
-  opacity: 0.75;
+  line-height: 18px;
+  letter-spacing: 0.6px;
+  opacity: 0.6;
 }
 
 /* —— 目录式条目（编辑风，纸感壁纸默认） —— */

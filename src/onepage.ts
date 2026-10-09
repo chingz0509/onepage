@@ -55,7 +55,7 @@ export type Wallpaper = {
  * cream 保持为默认值（编辑版式模板绑定 cream）。
  */
 export const WALLPAPERS: Wallpaper[] = [
-  { id: 'cream', name: '米白', type: 'solid', bg: '#F1ECDE', text: '#1A1A18', followBtn: '#E6DCC4', followText: '#1A1A18', dark: false },
+  { id: 'cream', name: '米白', type: 'solid', bg: '#FFF8EB', text: '#15161F', followBtn: '#F7F0DE', followText: '#15161F', dark: false },
   { id: 'oatmeal', name: '燕麦', type: 'solid', bg: '#EAE3D3', text: '#2C2721', followBtn: '#DBD2BC', followText: '#2C2721', dark: false },
   { id: 'smoke-pink', name: '烟粉', type: 'solid', bg: '#E6CDC5', text: '#4B3833', followBtn: '#D8B8AE', followText: '#4B3833', dark: false },
   { id: 'haze-blue', name: '雾霾蓝', type: 'solid', bg: '#BCC9D4', text: '#2C3844', followBtn: '#A9B8C6', followText: '#2C3844', dark: false },

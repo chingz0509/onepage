@@ -4,6 +4,21 @@ import type { SVGProps } from 'react'
 
 type P = SVGProps<SVGSVGElement>
 
+/** Reference silhouettes redrawn with matching fine strokes and rounded ends. */
+export function ProfileShareIcon() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M4 9v10a1 1 0 0 0 1 1h14" />
+    <path d="M9 15c0-5 3-7 11-7m-4-4 4 4-4 4" />
+  </svg>
+}
+
+export function ProfileEditIcon() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="m16 3 4 4-12 12-5 1 1-5L16 3Z" />
+    <path d="m13 6 4 4M13 20h7" />
+  </svg>
+}
+
 const base: P = {
   width: 22,
   height: 22,
