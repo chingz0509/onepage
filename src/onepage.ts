@@ -29,6 +29,8 @@ export type OnePageShare = {
   bio: string
   /** 头像单字 */
   avatar: string
+  /** 用户上传并压缩后的头像，随分享数据传递。 */
+  avatarImage?: string
   wallpaper: string
   buttonStyle: ButtonStyleId
   buttonColor: ButtonColorId

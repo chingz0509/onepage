@@ -12,8 +12,8 @@ import { PlatformIcon } from '../components/PlatformIcon'
 
 export const PROFILE_DESIGN_ASSETS = `${import.meta.env.BASE_URL}onepage-design/`
 
-export function ProfileAvatar() {
-  return <img className="ops-avatar" src={`${PROFILE_DESIGN_ASSETS}avatar-photo.jpg`} alt="头像" data-node-id="4194:40777" />
+export function ProfileAvatar({ src }: { src?: string }) {
+  return <img className="ops-avatar" src={src || `${PROFILE_DESIGN_ASSETS}avatar-photo.jpg`} alt="头像" />
 }
 
 export function ProfileStatusBar() {
@@ -75,7 +75,7 @@ export function OnePageShared({ data }: { data: OnePageShare }) {
     } as CSSProperties}>
       <ProfileStatusBar />
       <div className="ops-column">
-        <ProfileAvatar />
+        <ProfileAvatar src={data.avatarImage} />
         <h1 className="ops-name">{data.name}</h1>
         <p className="ops-title">{data.title}</p>
         {data.bio && <p className="ops-bio">{data.bio}</p>}

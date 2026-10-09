@@ -341,6 +341,7 @@ function CompletedLinkSlot(props: {
 
 type PublishedState = {
   name: string
+  avatarImage?: string
   job: string
   bio: string
   links: OnePageLink[]
@@ -405,6 +406,39 @@ export function OnePagePreview() {
   const [name, setName] = useState(initial?.name ?? persona.name)
   const [job, setJob] = useState(initial?.job ?? persona.job)
   const [bio, setBio] = useState(initial?.bio ?? persona.bio)
+  const [avatarImage, setAvatarImage] = useState(initial?.avatarImage ?? '')
+  const [avatarError, setAvatarError] = useState('')
+  const [avatarLoading, setAvatarLoading] = useState(false)
+  const avatarInput = useRef<HTMLInputElement>(null)
+
+  const changeAvatar = async (file?: File) => {
+    if (!file) return
+    setAvatarError('')
+    setAvatarLoading(true)
+    let objectUrl = ''
+    try {
+      if (!file.type.startsWith('image/')) throw new Error('请选择图片文件')
+      objectUrl = URL.createObjectURL(file)
+      const image = new Image()
+      image.src = objectUrl
+      await image.decode()
+      const canvas = document.createElement('canvas')
+      canvas.width = canvas.height = 128
+      const context = canvas.getContext('2d')
+      if (!context) throw new Error('暂时无法处理图片，请重试')
+      const size = Math.min(image.naturalWidth, image.naturalHeight)
+      context.fillStyle = '#fff8eb'
+      context.fillRect(0, 0, 128, 128)
+      context.drawImage(image, (image.naturalWidth - size) / 2, (image.naturalHeight - size) / 2, size, size, 0, 0, 128, 128)
+      setAvatarImage(canvas.toDataURL('image/jpeg', 0.7))
+    } catch {
+      setAvatarError('图片无法读取，请换一张 JPG、PNG 或 WebP 图片')
+    } finally {
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+      setAvatarLoading(false)
+      if (avatarInput.current) avatarInput.current.value = ''
+    }
+  }
 
   // 已发布条目（管理闭环的工作数据）
   const [links, setLinks] = useState<OnePageLink[]>(initial?.links ?? [])
@@ -488,6 +522,7 @@ export function OnePagePreview() {
   const persist = (next?: Partial<PublishedState>) => {
     const data: PublishedState = {
       name,
+      avatarImage,
       job,
       bio,
       links,
@@ -507,6 +542,8 @@ export function OnePagePreview() {
     setName(persona.name)
     setJob(persona.job)
     setBio(persona.bio)
+    setAvatarImage('')
+    setAvatarError('')
     setLinks([])
     setSlots([])
     setWallpaperId('cream')
@@ -555,6 +592,7 @@ export function OnePagePreview() {
       title: job,
       bio,
       avatar: name.trim()[0] ?? persona.avatar,
+      avatarImage: avatarImage || undefined,
       wallpaper: wallpaperId,
       buttonStyle,
       buttonColor,
@@ -585,7 +623,7 @@ export function OnePagePreview() {
     setShareUrl(url)
     persist({ shareUrl: url })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [published, slug, name, job, bio, links, wallpaperId, buttonStyle, buttonColor])
+  }, [published, slug, name, job, bio, avatarImage, links, wallpaperId, buttonStyle, buttonColor])
 
   useEffect(() => {
     if (!shareOpen || !shareUrl) return
@@ -676,6 +714,7 @@ export function OnePagePreview() {
 
   return (
     <div className={`op-page${step === 0 && published ? ' is-published' : ''}`} style={pageStyle}>
+      <input ref={avatarInput} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(event) => void changeAvatar(event.target.files?.[0])} />
       {/* 发布态的悬浮管理按钮 */}
       {step === 0 && published && (
         <>
@@ -719,7 +758,13 @@ export function OnePagePreview() {
       {/* ———— 发布态：主页本身 ———— */}
       {step === 0 && published && (
         <div className="ops-column op-home-col">
-          <ProfileAvatar />
+          {editing ? (
+            <button className="op-avatar-change" aria-label="更换头像" disabled={avatarLoading} onClick={() => avatarInput.current?.click()}>
+              <ProfileAvatar src={avatarImage} />
+              <span>{avatarLoading ? '处理中…' : '更换头像'}</span>
+            </button>
+          ) : <ProfileAvatar src={avatarImage} />}
+          {avatarError && <p className="op-avatar-error" role="alert">{avatarError}</p>}
           <h1 className="ops-name">{name}</h1>
           <p className="ops-title">{job}</p>
           {bio && <p className="ops-bio">{bio}</p>}
@@ -860,11 +905,14 @@ export function OnePagePreview() {
 
           {step === 1 && (
             <>
-              <h2 className="op-wiz-title">
-                介绍一下<em>你自己</em>
-              </h2>
-              <p className="op-wiz-sub">这些信息会展示在你的主页顶部</p>
-              <div className="op-form">
+              <div className="op-form" role="group" aria-label="个人资料">
+                <div className="op-intro-identity">
+                  <button className="op-avatar-change op-intro-avatar" aria-label={avatarLoading ? '头像处理中' : '更换头像'} disabled={avatarLoading} onClick={() => avatarInput.current?.click()}>
+                    <ProfileAvatar src={avatarImage} />
+                    <span className="op-avatar-edit-badge" aria-hidden="true"><ProfileEditIcon /></span>
+                  </button>
+                  {avatarError && <p className="op-avatar-error" role="alert">{avatarError}</p>}
+                </div>
                 <label className="op-field">
                   <span className="op-field-label">姓名</span>
                   <input className="op-field-input" value={name} onChange={(e) => setName(e.target.value)} />
@@ -985,6 +1033,7 @@ export function OnePagePreview() {
             <PhonePreview
               wallpaper={wallpaper}
               avatarChar={avatarChar}
+              avatarImage={avatarImage}
               name={name}
               job={job}
               links={wizardLinks}
@@ -1067,6 +1116,7 @@ export function OnePagePreview() {
                   wallpaper={wallpaper}
                   linkBtnStyle={linkBtnStyle}
                   avatarChar={avatarChar}
+                  avatarImage={avatarImage}
                   name={name}
                   links={links}
                 />
@@ -1101,6 +1151,7 @@ export function OnePagePreview() {
  */
 function PhonePreview(props: {
   wallpaper: Wallpaper
+  avatarImage?: string
   avatarChar: string
   name: string
   job: string
@@ -1110,7 +1161,7 @@ function PhonePreview(props: {
   return (
     <div className="op-phone">
       <div className="op-phone-screen" style={{ background: props.wallpaper.bg, color: props.wallpaper.text }}>
-        <div className="op-phone-avatar">{props.avatarChar}</div>
+        <div className="op-phone-avatar"><ProfileAvatar src={props.avatarImage} /></div>
         <p className="op-phone-name">{props.name}</p>
         <p className="op-phone-job">{props.job}</p>
         <div className="op-phone-links">
@@ -1129,6 +1180,7 @@ function PhonePreview(props: {
 /** 风格弹层里的紧凑预览（白底弹层上需要一块壁纸色示意） */
 function StylePreviewCompact(props: {
   wallpaper: Wallpaper
+  avatarImage?: string
   linkBtnStyle: CSSProperties
   avatarChar: string
   name: string
@@ -1136,7 +1188,7 @@ function StylePreviewCompact(props: {
 }) {
   return (
     <div className="op-style-preview is-compact" style={{ background: props.wallpaper.bg }}>
-      <div className="op-style-avatar">{props.avatarChar}</div>
+      <div className="op-style-avatar"><ProfileAvatar src={props.avatarImage} /></div>
       <p className="op-style-name" style={{ color: props.wallpaper.text }}>
         {props.name}
       </p>
