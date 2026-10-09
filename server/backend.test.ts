@@ -4,9 +4,10 @@ import { extractFromHtml, isEmptyShell } from './extract.js'
 import { isPublicAddress, validateTarget } from './network.js'
 import handler from '../api/fetch.js'
 import webBridgeHandler from '../api/webbridge.js'
+import { resolveWebBridgeUrl } from '../api/webbridge.js'
 import { pageFailure } from './browser.js'
 import { startBrowserProxy } from './browser-proxy.js'
-import { request } from 'node:http'
+import { createServer, request } from 'node:http'
 import { parseGenericWebBridgeResult, parseHuabanPageData } from '../src/dataFetch'
 
 test('parses Huaban board title, owner, collection count, and update time', () => {
@@ -119,6 +120,17 @@ test('extracts metadata and metrics, resolves relative images, excludes scripts'
   assert.ok(!result.metrics.some((m) => m.value === '9999'))
 })
 
+test('sums GitHub repository stars from the public profile HTML fallback', () => {
+  const html = [
+    '<title>xpzouying - Repositories</title>',
+    '<a href="/xpzouying/one/stargazers"><svg></svg> 16,159</a>',
+    '<a href="/xpzouying/two/stargazers"><svg></svg> 469</a>',
+  ].join('')
+  const result = extractFromHtml(html, 'https://github.com/xpzouying?tab=repositories')
+  assert.ok(result.ok)
+  assert.deepEqual(result.metrics, [{ label: 'Stars', value: '16628' }])
+})
+
 test('challenge and empty pages are not successful content', () => {
   assert.equal(isEmptyShell(extractFromHtml('<title>Just a moment...</title>', 'https://example.com')), true)
   assert.equal(isEmptyShell(extractFromHtml('<div id="app"></div>', 'https://example.com')), true)
@@ -151,4 +163,37 @@ test('WebBridge proxy only accepts POST', async () => {
   await webBridgeHandler({ method: 'GET' }, res)
   assert.equal(res.statusCode, 405)
   assert.equal(JSON.parse(body).error.code, 'method-not-allowed')
+})
+
+test('WebBridge proxy uses the local daemon in development and public bridge on Vercel', () => {
+  assert.equal(resolveWebBridgeUrl({}), 'http://127.0.0.1:10086/command')
+  assert.equal(resolveWebBridgeUrl({ VERCEL: '1' }), 'http://39.107.124.201:18021/command')
+  assert.equal(resolveWebBridgeUrl({ WEBBRIDGE_URL: 'https://bridge.example/command' }), 'https://bridge.example/command')
+})
+
+test('WebBridge proxy forwards commands without relying on global fetch', async () => {
+  const upstream = createServer((req, res) => {
+    let body = ''
+    req.on('data', (chunk) => { body += chunk })
+    req.on('end', () => {
+      res.setHeader('Content-Type', 'application/json')
+      res.end(JSON.stringify({ ok: true, received: JSON.parse(body) }))
+    })
+  })
+  await new Promise<void>((resolve) => upstream.listen(0, '127.0.0.1', resolve))
+  const address = upstream.address()
+  assert.ok(address && typeof address === 'object')
+  const previous = process.env.WEBBRIDGE_URL
+  process.env.WEBBRIDGE_URL = `http://127.0.0.1:${address.port}/command`
+  try {
+    let body = ''
+    const res = { statusCode: 0, setHeader: () => undefined, end: (value: string) => { body = value } }
+    await webBridgeHandler({ method: 'POST', body: { action: 'snapshot', args: {} } }, res)
+    assert.equal(res.statusCode, 200)
+    assert.deepEqual(JSON.parse(body), { ok: true, received: { action: 'snapshot', args: {} } })
+  } finally {
+    if (previous === undefined) delete process.env.WEBBRIDGE_URL
+    else process.env.WEBBRIDGE_URL = previous
+    await new Promise<void>((resolve, reject) => upstream.close((error) => error ? reject(error) : resolve()))
+  }
 })

@@ -67,6 +67,26 @@ function decodeEntities(s: string): string {
 const METRIC_WORDS = '粉丝|关注者|获赞|点赞|阅读|浏览|播放|采集|画板|stars?|followers?|likes'
 const NUM = '[\\d.,]+(?:\\s?[kwm万ＫＷＭ])?\\+?'
 
+function githubProfileMetrics(html: string, finalUrl: string): SiteMetric[] {
+  const match = finalUrl.match(/^https?:\/\/github\.com\/([^/?#]+)/i)
+  if (!match) return []
+  const owner = match[1].replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const re = new RegExp(
+    `href="/${owner}/[^"/]+/stargazers">[\\s\\S]*?<\\/svg>\\s*([\\d,.]+)`,
+    'gi',
+  )
+  let totalStars = 0
+  let repositories = 0
+  let item: RegExpExecArray | null
+  while ((item = re.exec(html))) {
+    totalStars += Number(item[1].replace(/,/g, ''))
+    repositories += 1
+  }
+  if (!repositories) return []
+  const metrics: SiteMetric[] = [{ label: 'Stars', value: String(totalStars) }]
+  return metrics
+}
+
 function extractMetrics(html: string): SiteMetric[] {
   const text = decodeEntities(
     html
@@ -104,12 +124,13 @@ export function extractFromHtml(html: string, finalUrl: string): FetchResult {
     metaContent(html, 'description', 'name')
 
   const platformMetrics = dribbbleMetrics(html, finalUrl)
+  const githubMetrics = githubProfileMetrics(html, finalUrl)
   return {
     ok: true,
     title,
     image,
     description: description ? decodeEntities(description) : null,
-    metrics: platformMetrics.length ? platformMetrics : extractMetrics(html),
+    metrics: platformMetrics.length ? platformMetrics : githubMetrics.length ? githubMetrics : extractMetrics(html),
     finalUrl,
   }
 }

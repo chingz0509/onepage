@@ -228,8 +228,9 @@ function LinkInputSlot(props: {
   }
 
   const onPaste = (event: React.ClipboardEvent<HTMLInputElement>) => {
-    const pasted = event.clipboardData.getData('text')
+    const pasted = event.clipboardData.getData('text').trim()
     if (!pasted) return
+    event.preventDefault()
     setValue(pasted)
     scheduleStart(pasted)
   }
