@@ -68,6 +68,19 @@ const METRIC_WORDS = '粉丝|关注者|获赞|点赞|阅读|浏览|播放|采集
 const NUM = '[\\d.,]+(?:\\s?[kwm万ＫＷＭ])?\\+?'
 
 function githubProfileMetrics(html: string, finalUrl: string): SiteMetric[] {
+  const org = finalUrl.match(/^https?:\/\/github\.com\/orgs\/([^/?#]+)\/repositories(?:[?#]|$)/i)
+  if (org) {
+    for (const script of html.matchAll(/<script\b[^>]*type=["']application\/json["'][^>]*>([\s\S]*?)<\/script>/gi)) {
+      try {
+        const route = JSON.parse(script[1])?.payload?.orgReposPageRoute
+        if (!route || route.pageCount !== 1 || !Array.isArray(route.repositories) || route.repositoryCount !== route.repositories.length) continue
+        const repos = route.repositories as { owner?: string; name?: string; starsCount?: number }[]
+        if (!repos.every((repo) => repo.owner?.toLowerCase() === org[1].toLowerCase() && Number.isSafeInteger(repo.starsCount) && repo.starsCount! >= 0)) continue
+        return [{ label: 'Stars', value: String(repos.reduce((sum, repo) => sum + repo.starsCount!, 0)) }, { label: 'Repositories', value: String(repos.length) }]
+      } catch { /* Other embedded JSON is not repository data. */ }
+    }
+    return []
+  }
   const match = finalUrl.match(/^https?:\/\/github\.com\/([^/?#]+)/i)
   if (!match) return []
   const owner = match[1].replace(/[.*+?^${}()|[\]\\]/g, '\\$&')

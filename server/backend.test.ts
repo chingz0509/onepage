@@ -137,6 +137,21 @@ test('challenge and empty pages are not successful content', () => {
   assert.equal(isEmptyShell(extractFromHtml('<title>作品集</title>', 'https://example.com')), false)
 })
 
+test('reads exact GitHub organization stars from complete repository page data', () => {
+  const payload = { payload: { orgReposPageRoute: { pageCount: 1, repositoryCount: 2, repositories: [
+    { owner: 'earendil-works', name: 'pi', starsCount: 113706 },
+    { owner: 'earendil-works', name: 'website', starsCount: 30 },
+  ] } } }
+  const html = `<title>Repositories</title><script type="application/json">${JSON.stringify(payload)}</script>`
+  const result = extractFromHtml(html, 'https://github.com/orgs/earendil-works/repositories')
+  assert.ok(result.ok)
+  assert.deepEqual(result.metrics, [{ label: 'Stars', value: '113736' }, { label: 'Repositories', value: '2' }])
+  payload.payload.orgReposPageRoute.pageCount = 2
+  const partial = extractFromHtml(`<title>Repositories</title><script type="application/json">${JSON.stringify(payload)}</script>`, 'https://github.com/orgs/earendil-works/repositories')
+  assert.ok(partial.ok)
+  assert.ok(!partial.metrics.some((metric) => metric.label === 'Stars'))
+})
+
 test('API rejects methods, invalid modes and private URLs without fetching', async () => {
   for (const [req, status, reason] of [
     [{ method: 'POST' }, 405, 'method-not-allowed'],

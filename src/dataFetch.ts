@@ -84,11 +84,15 @@ async function fetchGitHub(username: string): Promise<FetchedMetrics | null> {
     // GitHub's unauthenticated API is rate-limited by IP. Fall back to the
     // server-side HTML reader, which parses public repository star counts.
     try {
-      const fallback = await fetchViaServer(`https://github.com/${username}?tab=repositories`)
-      const stars = fallback?.metrics?.find((metric) => /^stars?$/i.test(metric.label))
+      let fallback = await fetchViaServer(`https://github.com/${username}?tab=repositories`)
+      let stars = fallback?.metrics?.find((metric) => /^stars?$/i.test(metric.label))
+      if (!stars) {
+        fallback = await fetchViaServer(`https://github.com/orgs/${username}/repositories`)
+        stars = fallback?.metrics?.find((metric) => /^stars?$/i.test(metric.label))
+      }
       if (!fallback || !stars) return null
       const followers = Number((fallback.metrics?.find((metric) => /followers?/i.test(metric.label))?.value ?? '0').replace(/,/g, '')) || 0
-      const repos = fallback.description?.match(/has (\\d+) repositories available/i)?.[1]
+      const repos = fallback.metrics?.find((metric) => metric.label === 'Repositories')?.value ?? fallback.description?.match(/has (\d+) repositories available/i)?.[1]
       const starCount = Number(stars.value.replace(/,/g, ''))
       if (!Number.isFinite(starCount)) return null
       return {
