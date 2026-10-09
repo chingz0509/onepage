@@ -6,7 +6,6 @@ import { encodeJson } from '../shareCodec'
 import { pageUrl } from '../router'
 import { fetchPlatformMetrics, fetchGenericSite, fetchFailureMessage, type FetchedMetrics } from '../dataFetch'
 import {
-  BUTTON_COLORS,
   BUTTON_STYLES,
   WALLPAPERS,
   customWallpaperId,
@@ -1297,31 +1296,6 @@ function StylePicker(props: {
                 {!props.featured && b.name}
               </button>
             ))}
-          </div>
-          <div className="op-btncolors">
-            {BUTTON_COLORS.map((c) => {
-              const preview = resolveButtonColors(props.wallpaper, c.id)
-              const radius =
-                BUTTON_STYLES.find((b) => b.id === props.buttonStyle)?.radius ?? '12px'
-              return (
-                <button
-                  key={c.id}
-                  className={`op-btncolor${c.id === props.buttonColor ? ' is-active' : ''}`}
-                  aria-pressed={c.id === props.buttonColor}
-                  onClick={() => props.setButtonColor(c.id)}
-                >
-                  <span
-                    className="op-btncolor-demo"
-                    style={{
-                      borderRadius: radius,
-                      background: preview.bg,
-                      borderColor: preview.border,
-                    }}
-                  />
-                  {c.name}
-                </button>
-              )
-            })}
           </div>
         </div>
       </div>
