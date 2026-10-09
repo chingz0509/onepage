@@ -467,6 +467,10 @@ export function OnePagePreview() {
   const [slug, setSlug] = useState(initial?.slug ?? '')
   const [shareOpen, setShareOpen] = useState(false)
   const [qr, setQr] = useState('')
+  const [showShareQr, setShowShareQr] = useState(false)
+  const [qrFailed, setQrFailed] = useState(false)
+  const sharePreviewCanvas = useRef<HTMLDivElement>(null)
+  const [previewOverflow, setPreviewOverflow] = useState(false)
   const [copied, setCopied] = useState(false)
 
   // 管理闭环
@@ -625,11 +629,29 @@ export function OnePagePreview() {
   }, [published, slug, name, job, bio, avatarImage, links, wallpaperId, buttonStyle, buttonColor])
 
   useEffect(() => {
-    if (!shareOpen || !shareUrl) return
+    if (!shareOpen) setShowShareQr(false)
+  }, [shareOpen])
+
+  useEffect(() => {
+    const canvas = sharePreviewCanvas.current
+    if (!canvas) return
+    const measure = () => setPreviewOverflow(canvas.scrollHeight > 600)
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(canvas)
+    return () => observer.disconnect()
+  }, [shareOpen, showShareQr, name, job, bio, links, avatarImage])
+
+  useEffect(() => {
+    if (!shareOpen || !showShareQr || !shareUrl) return
+    let cancelled = false
+    setQr('')
+    setQrFailed(false)
     QRCode.toDataURL(shareUrl, { width: 320, margin: 1, color: { dark: '#17203a' } })
-      .then(setQr)
-      .catch(() => setQr(''))
-  }, [shareOpen, shareUrl])
+      .then((value) => { if (!cancelled) setQr(value) })
+      .catch(() => { if (!cancelled) setQrFailed(true) })
+    return () => { cancelled = true }
+  }, [shareOpen, showShareQr, shareUrl])
 
   const copyLink = async () => {
     try {
@@ -1078,25 +1100,43 @@ export function OnePagePreview() {
       {/* 分享弹层 */}
       {shareOpen && (
         <div className="op-modal-mask" onClick={() => setShareOpen(false)}>
-          <div className="op-share-modal" onClick={(e) => e.stopPropagation()}>
+          <div className="op-share-modal" role="dialog" aria-modal="true" aria-labelledby="op-share-title" onClick={(e) => e.stopPropagation()}>
             <button className="op-modal-close" aria-label="关闭" onClick={() => setShareOpen(false)}>
               ✕
             </button>
-            <h3 className="op-share-modal-title">你的 One Page 已上线</h3>
-            {qr ? (
-              <img className="op-share-qr" src={qr} alt="分享二维码" />
+            <h3 className="op-share-modal-title" id="op-share-title">你的一页已上线</h3>
+            <p className="op-share-subtitle">分享你的一页名片</p>
+            {showShareQr ? (
+              <div className="op-share-qr-panel" aria-live="polite">
+                {qr ? <img className="op-share-qr" src={qr} alt="分享二维码" /> : (
+                  <p className="op-share-qr-message">{qrFailed ? '链接较长，无法生成二维码，请复制链接分享' : '正在生成二维码…'}</p>
+                )}
+                {qr && <p>扫码查看我的一页</p>}
+              </div>
             ) : (
-              <div className="op-share-qr op-share-qr-loading">生成中…</div>
+              <div className={`op-share-preview${previewOverflow ? ' is-overflowing' : ''}`} style={{ background: wallpaper.bg, color: wallpaper.text, '--preview-background': wallpaper.bg } as CSSProperties} aria-label="主页预览">
+                <div className="op-share-preview-canvas" ref={sharePreviewCanvas} aria-hidden="true">
+                  <div className="ops-column">
+                    <ProfileAvatar src={avatarImage} />
+                    <h4 className="ops-name">{name}</h4>
+                    <p className="ops-title">{job}</p>
+                    {bio && <p className="ops-bio">{bio}</p>}
+                    <div className="ops-links">
+                      {links.map((link) => <div className="ops-link" key={link.platform} style={linkBtnStyle}><LinkButtonContent link={link} /></div>)}
+                      {links.length === 0 && <p className="ops-empty">这个页面还没有添加链接</p>}
+                    </div>
+                    <p className="ops-foot">数据均来自平台直采 · 刚刚更新</p>
+                  </div>
+                </div>
+              </div>
             )}
-            <p className="op-snapshot-note">链接内容为此刻的快照，主页数据可实时更新</p>
-            <p className="op-share-url">{shareUrl}</p>
             <div className="op-share-actions">
               <button className="op-btn-continue op-btn-copy" onClick={copyLink}>
                 {copied ? '✓ 已复制' : '复制链接'}
               </button>
-              <a className="op-btn-open" href={shareUrl} target="_blank" rel="noopener noreferrer">
-                打开看看 →
-              </a>
+              <div className="op-share-secondary">
+                <button className="op-share-qr-toggle" aria-pressed={showShareQr} onClick={() => setShowShareQr((value) => !value)}>{showShareQr ? '返回预览' : '二维码'}</button>
+              </div>
             </div>
           </div>
         </div>
