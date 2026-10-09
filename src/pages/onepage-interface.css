@@ -268,7 +268,7 @@
   padding: 0;
   border: 0;
   background: var(--profile-control-bg);
-  color: var(--wiz-text);
+  color: var(--profile-control-text, var(--wiz-text));
 }
 .is-published .op-fab svg { width: 18px; height: 18px; }
 .is-published .op-reset-link {

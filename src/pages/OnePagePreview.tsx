@@ -477,6 +477,9 @@ export function OnePagePreview() {
     '--wiz-btn-text': '#ffffff',
     '--profile-subtext': wallpaperId === 'cream' ? '#383A4C' : canvasWallpaper.text,
     '--profile-metric-text': wallpaperId === 'cream' ? '#6E727A' : canvasWallpaper.text,
+    '--profile-control-text': wallpaperId === 'cream'
+      ? '#514D45'
+      : `color-mix(in srgb, ${canvasWallpaper.text} 82%, ${canvasWallpaper.bg})`,
     '--profile-control-bg': wallpaperId === 'cream'
       ? '#F7F0DE'
       : `color-mix(in srgb, ${canvasWallpaper.text} 5%, transparent)`,
