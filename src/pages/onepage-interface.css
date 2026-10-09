@@ -287,10 +287,10 @@
 /* Published profile starts below its action row, without a simulated status bar. */
 .op-page.is-published {
   min-height: 100dvh;
-  padding: 88px 20px 56px;
+  padding: 88px 20px max(16px, env(safe-area-inset-bottom));
   position: relative;
 }
-.is-published .op-home-col { padding-top: 0; }
+.is-published .op-home-col { padding-top: 0; flex: 1; }
 .is-published .op-fab-right {
   /* Align floating controls with the centered profile on desktop and phone edges. */
   position: absolute;
@@ -311,7 +311,8 @@
 }
 .is-published .op-fab svg { width: 18px; height: 18px; }
 .is-published .op-reset-link {
-  margin-top: 12px;
+  margin-top: auto;
+  padding-top: 24px;
   font-size: 11px;
 }
 .is-published .op-fab:hover {
