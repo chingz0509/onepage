@@ -2,8 +2,8 @@
  * 平台数据获取（只认真实数据，抓不到返回 null，由调用方显示「已收录」占位）：
  * 1. GitHub —— 任何环境都走官方公开 API（免密钥）；
  * 2. 服务端抓取 —— /api/fetch（Vercel serverless / dev 中间件同构），线上主力；
- * 3. 本机 WebBridge —— 演示机可用时真实打开主页抓取
- *    （访客机器上 127.0.0.1 必失败，不能影响页面）。
+ * 3. WebBridge —— 通过可配置的公网/本机桥真实打开主页抓取。
+ *    桥不可用时静默回退「已收录」占位，不编造数据。
  */
 
 export type FetchedMetrics = {
@@ -12,6 +12,32 @@ export type FetchedMetrics = {
   unit?: string
   insight: string
   source: 'live'
+}
+
+export type HuabanPageData = {
+  boardTitle: string
+  owner: string
+  collectionCount: number
+  updatedAt: string
+}
+
+/** Parses the public text exposed by a Huaban board page. */
+export function parseHuabanPageData(input: { title?: string; text?: string; owner?: string }): HuabanPageData | null {
+  const title = input.title?.trim() ?? ''
+  const text = input.text ?? ''
+  const titleMatch = title.match(/花瓣\s*(.+?)的画板/)
+  const boardTitle = titleMatch?.[1]?.trim() ?? ''
+  const countMatch = text.match(/([\d,.]+)\s*张?\s*采集/)
+  if (!countMatch) return null
+  const collectionCount = Number(countMatch[1].replace(/,/g, ''))
+  if (!Number.isFinite(collectionCount)) return null
+  const updatedAt = text.match(/更新于\s*([^\n\r]+)/)?.[1]?.trim() ?? ''
+  return {
+    boardTitle,
+    owner: input.owner?.trim() || boardTitle,
+    collectionCount,
+    updatedAt,
+  }
 }
 
 export function formatK(n: number): string {
@@ -137,18 +163,17 @@ function pickMetric(
   return list.find((m) => prefer.test(m.label)) ?? list[0]
 }
 
-// —— 轨 3：本机 WebBridge 抓取（仅演示机可用） ——
+// —— 轨 3：WebBridge 抓取 ——
 
-// 经 Vite dev server 代理访问本机 WebBridge（同源、免 CORS）；
-// 非演示环境（无代理 / 桥不在线）时请求失败，静默回退快照
-const BRIDGE_URL = '/bridge/command'
+// 可通过 VITE_WEBBRIDGE_URL 切换公网或本机桥；请求失败时静默回退占位。
+const BRIDGE_URL = import.meta.env?.VITE_WEBBRIDGE_URL || 'http://39.107.124.201:18021/command'
 const BRIDGE_SESSION = 'onepage-live-fetch'
 
 async function bridgeCmd(
   action: string,
   args: Record<string, unknown>,
   timeout = 8000,
-): Promise<{ ok: boolean; data?: { value?: string } }> {
+): Promise<{ ok: boolean; data?: { value?: string; tabId?: number } }> {
   const ctrl = new AbortController()
   const t = window.setTimeout(() => ctrl.abort(), timeout)
   try {
@@ -158,19 +183,27 @@ async function bridgeCmd(
       body: JSON.stringify({ action, args, session: BRIDGE_SESSION }),
       signal: ctrl.signal,
     })
-    return (await res.json()) as { ok: boolean; data?: { value?: string } }
+    return (await res.json()) as { ok: boolean; data?: { value?: string; tabId?: number } }
   } finally {
     window.clearTimeout(t)
   }
 }
 
-async function bridgeAvailable(): Promise<boolean> {
-  if (!import.meta.env.DEV) return false
+async function readWithWebBridge(url: string, code: string): Promise<string | null> {
+  let tabId: number | undefined
   try {
-    const j = await bridgeCmd('evaluate', { code: '1+1' }, 1500)
-    return j?.ok === true
+    const opened = await bridgeCmd('navigate', { url, newTab: true, group_title: 'One Page 数据抓取' })
+    tabId = opened.data?.tabId
+    if (!opened.ok) return null
+    await new Promise((resolve) => window.setTimeout(resolve, 3000))
+    const result = await bridgeCmd('evaluate', { code })
+    return result.ok ? result.data?.value ?? null : null
   } catch {
-    return false
+    return null
+  } finally {
+    if (tabId !== undefined) {
+      try { await bridgeCmd('close_tab', { tabId }) } catch { /* best effort */ }
+    }
   }
 }
 
@@ -178,7 +211,7 @@ async function bridgeAvailable(): Promise<boolean> {
 const DRIBBBLE_EXTRACT = `(()=>{const t=document.body.innerText; const re=/Comment\\n(\\d+)\\n([\\d.,k]+)\\n([\\d.,k]+)/g; const parse=s=>s.toLowerCase().includes("k")?parseFloat(s)*1000:parseFloat(s.replace(",","")); let m,likes=0,views=0,shots=0; while((m=re.exec(t))){shots++;likes+=parseInt(m[2]);views+=parse(m[3])} return JSON.stringify({shots,likes,views:Math.round(views)})})()`
 
 /** 花瓣主页：头部「N 粉丝」，画板列表「N采集」累加 */
-const HUABAN_EXTRACT = `(()=>{const t=document.body.innerText; const fans=t.match(/([\\d.,w万+]+)\\s*粉丝/); const pins=[...t.matchAll(/(\\d+)\\s*采集/g)].reduce((s,m)=>s+parseInt(m[1]),0); const boards=(t.match(/\\d+\\s*采集/g)||[]).length; return JSON.stringify({fans:fans?fans[1]:null,pins,boards})})()`
+const HUABAN_EXTRACT = `(()=>{const text=document.body.innerText||''; const title=document.title||''; const boardTitle=(title.match(/花瓣\\s*(.+?)的画板/)||[])[1]||''; const owner=(text.match(/([^\\n\\r]+)个人/)||[])[1]?.trim()||boardTitle; const count=(text.match(/([\\d,.]+)\\s*张?\\s*采集/)||[])[1]||''; const updated=(text.match(/更新于\\s*([^\\n\\r]+)/)||[])[1]||''; return JSON.stringify({boardTitle,owner,collectionCount:count,updatedAt:updated})})()`
 
 async function fetchHuaban(url: string, onFailure?: OnFailure): Promise<FetchedMetrics | null> {
   const s = await fetchViaServer(url, onFailure)
@@ -194,21 +227,26 @@ async function fetchHuaban(url: string, onFailure?: OnFailure): Promise<FetchedM
     }
   }
   if (s && !s.metrics?.length) onFailure?.('no-metrics')
-  if (await bridgeAvailable()) {
+  {
     try {
-      await bridgeCmd('navigate', { url, newTab: true, group_title: 'One Page 数据抓取' })
-      await new Promise((r) => window.setTimeout(r, 3000))
-      const j = await bridgeCmd('evaluate', { code: HUABAN_EXTRACT })
-      const d = JSON.parse(j?.data?.value ?? 'null') as {
-        fans: string | null
-        pins: number
-        boards: number
+      const value = await readWithWebBridge(url, HUABAN_EXTRACT)
+      const j = value ? { data: { value } } : null
+      const raw = JSON.parse(j?.data?.value ?? 'null') as {
+        boardTitle?: string
+        owner?: string
+        collectionCount?: string | number
+        updatedAt?: string
       } | null
-      if (d && (d.fans || d.pins > 0)) {
+      const d = raw && parseHuabanPageData({
+        title: raw.boardTitle ? `花瓣${raw.boardTitle}的画板` : '',
+        text: `${raw.collectionCount ?? ''} 张采集\n更新于 ${raw.updatedAt ?? ''}`,
+        owner: raw.owner,
+      })
+      if (d) {
         return {
-          metric: d.fans ? '粉丝' : '采集',
-          value: d.fans ?? formatK(d.pins),
-          insight: d.pins > 0 ? `${d.pins} 次采集 · ${d.boards} 个画板` : '数据由 AI 现场读取',
+          metric: '采集',
+          value: formatK(d.collectionCount),
+          insight: `${d.boardTitle || d.owner || '花瓣画板'} · ${d.collectionCount} 张采集${d.updatedAt ? ` · 更新于 ${d.updatedAt}` : ''}`,
           source: 'live',
         }
       }
@@ -221,6 +259,21 @@ async function fetchHuaban(url: string, onFailure?: OnFailure): Promise<FetchedM
 
 /** 未知平台通用提取：页面标题 + 粉丝/获赞/阅读等关键词附近的数字（双向匹配） */
 const GENERIC_EXTRACT = `(()=>{const og=document.querySelector('meta[property="og:title"]'); const title=(og&&og.content)||document.title||''; const t=document.body.innerText.slice(0,20000); const found=[]; const push=(label,value)=>{if(found.length<2&&!found.some(f=>f.label===label))found.push({label,value})}; let m; const re1=/([\\d.,]+(?:\\s?[kwm万])?)\\s*(粉丝|关注者|获赞|点赞|阅读|浏览|播放|star|follower)/gi; while((m=re1.exec(t)))push(m[2],m[1]); const re2=/(粉丝|关注者|获赞|点赞|阅读|浏览|播放)\\s*[:：]?\\s*([\\d.,]+(?:\\s?[kwm万])?)/gi; while((m=re2.exec(t)))push(m[1],m[2]); return JSON.stringify({title,stats:found})})()`
+
+export function parseGenericWebBridgeResult(value: string | null): { title: string; stats: { label: string; value: string }[] } | null {
+  if (!value) return null
+  try {
+    const parsed = JSON.parse(value) as { title?: string; stats?: { label?: string; value?: string }[] }
+    return {
+      title: parsed.title ?? '',
+      stats: (parsed.stats ?? []).filter(
+        (stat): stat is { label: string; value: string } => Boolean(stat.label && stat.value),
+      ),
+    }
+  } catch {
+    return null
+  }
+}
 
 /** 未知平台通用抓取；桥不可用或失败返回 null，由调用方维持「已收录」占位 */
 export async function fetchGenericSite(url: string, onFailure?: OnFailure): Promise<FetchedMetrics | null> {
@@ -235,22 +288,11 @@ export async function fetchGenericSite(url: string, onFailure?: OnFailure): Prom
         source: 'live',
       }
     }
-    return {
-      metric: '主页链接',
-      value: '✓',
-      insight: s.title || '数据由 AI 现场读取',
-      source: 'live',
-    }
+    onFailure?.('no-metrics')
   }
-  if (!(await bridgeAvailable())) return null
   try {
-    await bridgeCmd('navigate', { url, newTab: true, group_title: 'One Page 数据抓取' })
-    await new Promise((r) => window.setTimeout(r, 3000))
-    const j = await bridgeCmd('evaluate', { code: GENERIC_EXTRACT })
-    const d = JSON.parse(j?.data?.value ?? 'null') as {
-      title: string
-      stats: { label: string; value: string }[]
-    } | null
+    const value = await readWithWebBridge(url, GENERIC_EXTRACT)
+    const d = parseGenericWebBridgeResult(value)
     if (!d) return null
     const stat = d.stats?.[0]
     if (stat) {
@@ -288,12 +330,10 @@ async function fetchDribbble(url: string, onFailure?: OnFailure): Promise<Fetche
     }
   }
   if (s) onFailure?.('no-metrics')
-  if (await bridgeAvailable()) {
+  {
     try {
-      await bridgeCmd('navigate', { url, newTab: true, group_title: 'One Page 数据抓取' })
-      await new Promise((r) => window.setTimeout(r, 3000))
-      const j = await bridgeCmd('evaluate', { code: DRIBBBLE_EXTRACT })
-      const d = JSON.parse(j?.data?.value ?? 'null') as {
+      const value = await readWithWebBridge(url, DRIBBBLE_EXTRACT)
+      const d = JSON.parse(value ?? 'null') as {
         shots: number
         likes: number
         views: number

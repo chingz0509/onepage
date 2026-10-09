@@ -6,6 +6,49 @@ import handler from '../api/fetch.js'
 import { pageFailure } from './browser.js'
 import { startBrowserProxy } from './browser-proxy.js'
 import { request } from 'node:http'
+import { parseGenericWebBridgeResult, parseHuabanPageData } from '../src/dataFetch'
+
+test('parses Huaban board title, owner, collection count, and update time', () => {
+  const result = parseHuabanPageData({
+    title: '作品图片大全-作品高清好看的图片-花瓣cSummer的画板',
+    text: '所属分类：\n平面\n111 张采集\n更新于 1 年前',
+    owner: 'cSummer',
+  })
+  assert.deepEqual(result, {
+    boardTitle: 'cSummer',
+    owner: 'cSummer',
+    collectionCount: 111,
+    updatedAt: '1 年前',
+  })
+})
+
+test('parses Huaban collection counts with commas and without 张', () => {
+  assert.equal(
+    parseHuabanPageData({ title: '花瓣Alice的画板', text: '1,234 采集\n更新于 昨天' })?.collectionCount,
+    1234,
+  )
+})
+
+test('keeps Huaban board owner separate from board title', () => {
+  const result = parseHuabanPageData({
+    title: '花瓣我的灵感画板的画板',
+    text: '设计师小林个人\n24 张采集\n更新于 昨天',
+    owner: '设计师小林',
+  })
+  assert.equal(result?.boardTitle, '我的灵感画板')
+  assert.equal(result?.owner, '设计师小林')
+})
+
+test('normalizes generic WebBridge metrics and ignores malformed entries', () => {
+  assert.deepEqual(parseGenericWebBridgeResult(JSON.stringify({
+    title: '作品主页',
+    stats: [{ label: '获赞', value: '1.2k' }, { label: '', value: 'bad' }],
+  })), {
+    title: '作品主页',
+    stats: [{ label: '获赞', value: '1.2k' }],
+  })
+  assert.equal(parseGenericWebBridgeResult('{bad json'), null)
+})
 
 test('Dribbble public thumbnail JSON yields scoped likes instead of empty metrics', () => {
   const html = '<title>Summer Ching</title><script>var newestShots = ' + JSON.stringify([
