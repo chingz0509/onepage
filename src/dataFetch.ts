@@ -166,7 +166,7 @@ function pickMetric(
 // —— 轨 3：WebBridge 抓取 ——
 
 // 可通过 VITE_WEBBRIDGE_URL 切换公网或本机桥；请求失败时静默回退占位。
-const BRIDGE_URL = import.meta.env?.VITE_WEBBRIDGE_URL || 'http://39.107.124.201:18021/command'
+const BRIDGE_URL = '/api/webbridge'
 const BRIDGE_SESSION = 'onepage-live-fetch'
 
 async function bridgeCmd(

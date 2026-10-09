@@ -3,6 +3,7 @@ import { test } from 'node:test'
 import { extractFromHtml, isEmptyShell } from './extract.js'
 import { isPublicAddress, validateTarget } from './network.js'
 import handler from '../api/fetch.js'
+import webBridgeHandler from '../api/webbridge.js'
 import { pageFailure } from './browser.js'
 import { startBrowserProxy } from './browser-proxy.js'
 import { request } from 'node:http'
@@ -138,4 +139,16 @@ test('API rejects methods, invalid modes and private URLs without fetching', asy
     assert.equal(JSON.parse(body).reason, reason)
     assert.equal(headers['Cache-Control'], 'no-store')
   }
+})
+
+test('WebBridge proxy only accepts POST', async () => {
+  let body = ''
+  const res = {
+    statusCode: 0,
+    setHeader: () => undefined,
+    end: (value: string) => { body = value },
+  }
+  await webBridgeHandler({ method: 'GET' }, res)
+  assert.equal(res.statusCode, 405)
+  assert.equal(JSON.parse(body).error.code, 'method-not-allowed')
 })

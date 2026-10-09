@@ -1,6 +1,7 @@
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import apiFetch from './api/fetch'
+import apiWebBridge from './api/webbridge'
 
 /** 开发环境把 serverless handler 挂进 dev server，/api/fetch 与线上行为一致 */
 function devApi(): Plugin {
@@ -9,6 +10,16 @@ function devApi(): Plugin {
   }) => {
     middlewares.use('/api/fetch', (req, res) => {
       void apiFetch(req, res)
+    })
+    middlewares.use('/api/webbridge', (req, res) => {
+      let body = ''
+      const request = req as unknown as { method?: string; on: (event: string, handler: (chunk?: Buffer) => void) => void }
+      request.on('data', (chunk) => { body += chunk?.toString() ?? '' })
+      request.on('end', () => {
+        let parsed: unknown = {}
+        try { parsed = body ? JSON.parse(body) : {} } catch { parsed = null }
+        void apiWebBridge({ method: request.method, body: parsed }, res)
+      })
     })
   }
   return {
