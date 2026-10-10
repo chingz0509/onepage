@@ -319,6 +319,111 @@
   background: color-mix(in srgb, var(--wiz-text) 10%, transparent);
 }
 .is-published .op-module-editbar { flex-wrap: wrap; }
+
+/* Editing preserves the profile silhouette; controls sit outside the content. */
+.is-editing .op-home-avatar-edit { position: relative; display: block; }
+.is-editing .op-home-avatar-edit .op-avatar-edit-badge {
+  width: 28px;
+  height: 28px;
+  right: -2px;
+  bottom: -2px;
+  border-color: var(--profile-canvas);
+  background: var(--profile-control-bg);
+  color: var(--profile-control-text);
+}
+.is-editing .op-home-avatar-edit .op-avatar-edit-badge svg { width: 14px; height: 14px; }
+.is-editing .op-module-editbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 20px 0 0;
+}
+.op-editor-tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--profile-control-bg);
+  color: var(--profile-control-text);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .16s ease;
+}
+.is-editing .ops-links, .is-editing .opd-list { margin-top: 24px; gap: 16px; }
+.is-editing .op-edit-row { position: relative; display: flex; flex-direction: column; align-items: stretch; gap: 0; width: 100%; }
+.is-editing .op-edit-link { flex: none; width: 100%; padding-right: 60px; }
+.is-editing .op-edit-link:hover { transform: none; box-shadow: none; }
+.op-link-edit-menu { position: absolute; right: 8px; top: 0; height: 100%; display: flex; align-items: center; }
+.op-link-edit-more {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--link-control-text, var(--profile-control-text));
+  cursor: pointer;
+}
+.op-link-edit-actions {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 144px;
+  padding: 5px;
+  border: 1px solid color-mix(in srgb, var(--profile-control-text) 15%, transparent);
+  border-radius: 16px;
+  background: var(--profile-canvas);
+  box-shadow: 0 8px 24px rgba(26, 26, 24, .12);
+}
+.op-link-edit-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--profile-control-text);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background .16s ease, color .16s ease;
+}
+.op-link-edit-actions .op-link-edit-delete { color: #a04a2a; }
+.op-editor-tool:hover:not(:disabled), .op-link-edit-more:hover, .op-link-edit-actions button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--profile-control-text) 8%, transparent);
+}
+.op-link-edit-actions .op-link-edit-delete:hover { color: #a04a2a; }
+.op-editor-tool:focus-visible, .op-link-edit-more:focus-visible, .op-link-edit-actions button:focus-visible {
+  outline: 2px solid var(--profile-control-text);
+  outline-offset: 2px;
+}
+.op-editor-tool:disabled, .op-link-edit-actions button:disabled { opacity: .35; cursor: default; }
+.is-editing .op-add-row {
+  min-height: 48px;
+  margin-top: 0;
+  border: 1px dashed color-mix(in srgb, var(--profile-control-text) 35%, transparent);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--profile-control-text);
+  font-size: 13px;
+  font-weight: 500;
+}
 @media (max-width: 374px) {
   .ops-link { padding-right: 24px; padding-left: 20px; }
 }
@@ -439,6 +544,9 @@
 .op-share-secondary :is(a, button):hover { color: #514d45; }
 .op-page .op-style-sheet {
   background: #fff;
+  /* Expanded templates must grow the white panel instead of overflowing it. */
+  flex: 0 0 auto;
+  min-height: min-content;
   font-family: 'MiSans', var(--ui-font);
   border-radius: 24px 24px 0 0;
   padding: 24px 20px max(24px, env(safe-area-inset-bottom));
@@ -485,7 +593,7 @@
   box-shadow: 0 0 0 3px #fff, 0 0 0 4.5px #777166;
 }
 .op-page .op-style-sheet .op-swatch-plus { font-size: 23px; color: #777166; }
-.op-page .op-custom-entry {
+.op-page .op-custom-entry.op-swatch-custom {
   grid-column: span 2;
   max-width: none;
   width: 100%;
@@ -500,20 +608,31 @@
   color: #777166;
   font-family: inherit;
   font-size: 12px;
+  white-space: nowrap;
 }
-.op-page .op-custom-entry > span { visibility: visible; }
-.op-custom-wallpapers { margin-top: 20px; padding-top: 16px; border-top: 1px solid #eeedeb; }
+.op-custom-wallpapers { margin-top: 0; padding-top: 0; }
 .op-custom-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 12px; color: #777166; }
-.op-custom-heading button { padding: 6px 0 6px 12px; background: transparent; border: 0; font: inherit; color: inherit; cursor: pointer; }
-.op-template-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.op-custom-heading .op-template-back { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; padding: 0 8px 0 0; background: transparent; border: 0; border-radius: 8px; font: inherit; color: #514d45; cursor: pointer; }
+.op-template-back:hover { opacity: .75; }
+.op-template-back:focus-visible { outline: 2px solid #aaa18f; outline-offset: 2px; }
+.op-template-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 14px; }
 .op-wallpaper-template { min-width: 0; padding: 0; border: 0; background: transparent; font: inherit; font-size: 10px; color: #777166; cursor: pointer; }
-.op-template-preview { display: flex; flex-direction: column; align-items: center; width: 100%; aspect-ratio: 3 / 4; padding: 12px 7px; margin-bottom: 7px; border-radius: 10px; border: 1px solid rgba(81,77,69,.08); gap: 5px; }
+.op-template-preview { display: flex; flex-direction: column; align-items: center; width: 100%; aspect-ratio: 3 / 4; padding: 24px 14px; margin-bottom: 9px; border-radius: 18px; border: 1px solid rgba(81,77,69,.08); gap: 8px; }
 .op-template-preview i { width: 18px; height: 18px; border-radius: 50%; background: currentColor; opacity: .25; }
-.op-template-preview b { width: 22px; height: 3px; border-radius: 3px; background: currentColor; opacity: .55; margin-bottom: 4px; }
-.op-template-preview em { width: 100%; height: 9px; border-radius: 5px; }
+.op-template-preview img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,.4); }
+.op-template-preview b { font-size: 12px; font-weight: 500; margin: 2px 0 0; }
+.op-template-preview small { font-size: 9px; opacity: .8; margin-bottom: 6px; }
+.op-template-preview em { display: grid; place-items: center; width: 100%; min-height: 26px; font-size: 9px; font-style: normal; }
+.op-template-description { margin: -4px 0 16px; font-size: 12px; color: #8b867d; }
+.op-template-caption { display: block; margin-top: 4px; font-size: 10px; color: #99948a; }
+.op-profile-editor .op-form { gap: 16px; margin-bottom: 24px; }
+.op-profile-editor .op-field-label { color: var(--ui-muted); font-size: 12px; font-weight: 500; }
+.op-profile-editor .op-field-input { padding: 12px 16px; font-size: 14px; border-radius: 16px; }
+.op-profile-editor .op-field-input:focus { border-color: #aaa18f; box-shadow: 0 0 0 2px #aaa18f18; outline: 0; }
+.op-profile-editor .op-btn-skip { display: block; margin: 8px auto 0; }
+.is-published .ops-foot, .ops-page .ops-foot { color: var(--profile-footer-text, inherit); }
+.op-wallpaper-template:focus-visible { outline: 2px solid #777166; outline-offset: 5px; border-radius: 18px; }
 .op-wallpaper-template.is-active .op-template-preview { outline: 1.5px solid #777166; outline-offset: 2px; }
-.op-custom-color-row { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; font-size: 12px; color: #777166; }
-.op-custom-color-row input { width: 36px; height: 28px; padding: 2px; border: 1px solid #d8d5cc; border-radius: 6px; background: #fff; cursor: pointer; }
 .op-page .op-style-sheet .op-btnstyle {
   aspect-ratio: auto;
   min-height: 88px;

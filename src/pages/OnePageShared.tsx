@@ -71,7 +71,8 @@ export function OnePageShared({ data }: { data: OnePageShare }) {
   return (
     <div className="ops-page" style={{ background: wallpaper.bg, color: wallpaper.text,
       '--profile-subtext': data.wallpaper === 'cream' ? '#383A4C' : wallpaper.text,
-      '--profile-metric-text': data.wallpaper === 'cream' ? '#6E727A' : wallpaper.text,
+      '--profile-footer-text': data.wallpaper === 'cream' ? '#7d7972' : wallpaper.text,
+      '--profile-metric-text': data.wallpaper === 'cream' ? '#6E727A' : btn.text,
     } as CSSProperties}>
       <ProfileStatusBar />
       <div className="ops-column">

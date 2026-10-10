@@ -41,8 +41,10 @@ export type Wallpaper = {
   id: string
   name: string
   /** solid 为颜色值，gradient 为 CSS 渐变；都直接用作 background */
-  type: 'solid' | 'gradient'
+  type: 'solid' | 'gradient' | 'photo'
   bg: string
+  /** Flat color used for editor surfaces and contrast calculations on photo themes. */
+  canvas?: string
   /** 页面文字色 */
   text: string
   /** 「跟随壁纸」时的按钮底色 */
@@ -57,6 +59,8 @@ export type Wallpaper = {
  * cream 保持为默认值（编辑版式模板绑定 cream）。
  */
 export const WALLPAPERS: Wallpaper[] = [
+  { id: 'template-water', name: '海边度假', type: 'photo', bg: 'linear-gradient(180deg, rgba(10,46,53,.48), rgba(10,46,53,.16)), url("/onepage-design/templates/water.jpg") center / cover #234b50', canvas: '#234b50', text: '#ffffff', followBtn: '#ffffff', followText: '#243c40', dark: true },
+  { id: 'template-concrete', name: '城市建筑', type: 'photo', bg: 'linear-gradient(180deg, rgba(22,24,27,.6), rgba(22,24,27,.3)), url("/onepage-design/templates/concrete.jpg") center / cover #373b40', canvas: '#373b40', text: '#ffffff', followBtn: '#f6f4ef', followText: '#262b30', dark: true },
   { id: 'cream', name: '米白', type: 'solid', bg: '#FFF8EB', text: '#15161F', followBtn: '#F7F0DE', followText: '#15161F', dark: false },
   { id: 'oatmeal', name: '燕麦', type: 'solid', bg: '#EAE3D3', text: '#2C2721', followBtn: '#DBD2BC', followText: '#2C2721', dark: false },
   { id: 'smoke-pink', name: '烟粉', type: 'solid', bg: '#E6CDC5', text: '#4B3833', followBtn: '#D8B8AE', followText: '#4B3833', dark: false },
@@ -71,6 +75,12 @@ export const WALLPAPERS: Wallpaper[] = [
   { id: 'black', name: '纯黑', type: 'solid', bg: '#101010', text: '#ececec', followBtn: '#262626', followText: '#ececec', dark: true },
   { id: 'mist', name: '雾山蓝', type: 'gradient', bg: 'linear-gradient(160deg, #93A5B8 0%, #5E6E82 100%)', text: '#F0F3F6', followBtn: 'rgba(255,255,255,0.18)', followText: '#ffffff', dark: true },
   { id: 'dusk-rose', name: '暮色玫瑰', type: 'gradient', bg: 'linear-gradient(155deg, #C49A9C 0%, #7E5F6B 100%)', text: '#FBF3F1', followBtn: 'rgba(255,255,255,0.2)', followText: '#ffffff', dark: true },
+]
+
+export const PAGE_TEMPLATES: { wallpaper: string; name: string; description: string; buttonStyle: ButtonStyleId }[] = [
+  { wallpaper: 'template-water', name: '海边度假', description: '水光背景 · 清爽白色', buttonStyle: 'pill' },
+  { wallpaper: 'template-concrete', name: '城市建筑', description: '建筑光影 · 利落圆角', buttonStyle: 'round' },
+  { wallpaper: 'pine', name: '深色自然', description: '松烟绿调 · 柔和层次', buttonStyle: 'round' },
 ]
 
 /** 旧版色板：不再展示，仅用于兼容已发布分享链接里的旧壁纸 id */
@@ -155,6 +165,6 @@ export function wallpaperById(id: string): Wallpaper {
   return (
     WALLPAPERS.find((w) => w.id === id) ??
     LEGACY_WALLPAPERS.find((w) => w.id === id) ??
-    WALLPAPERS[0]
+    WALLPAPERS.find((w) => w.id === 'cream')!
   )
 }

@@ -7,9 +7,8 @@ import { pageUrl } from '../router'
 import { fetchPlatformMetrics, fetchGenericSite, fetchFailureMessage, type FetchedMetrics } from '../dataFetch'
 import {
   BUTTON_STYLES,
+  PAGE_TEMPLATES,
   WALLPAPERS,
-  customWallpaperId,
-  isCustomWallpaperId,
   resolveButtonColors,
   wallpaperById,
   type ButtonColorId,
@@ -25,6 +24,53 @@ import './onepage-customize.css'
 import './onepage-interface.css'
 
 type PersonaId = 'designer' | 'developer'
+
+function EditorActionIcon({ kind }: { kind: 'refresh' | 'style' | 'up' | 'down' | 'delete' }) {
+  const paths = {
+    refresh: 'M20 7v5h-5M20 12a8 8 0 1 0-2.3 5.7',
+    style: 'M4 7h16M4 17h16M9 4v6M15 14v6',
+    up: 'M12 19V5m-5 5 5-5 5 5',
+    down: 'M12 5v14m-5-5 5 5 5-5',
+    delete: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v5M14 11v5',
+  }
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={paths[kind]} /></svg>
+}
+
+function LinkEditMenu({ platform, first, last, onMove, onDelete }: {
+  platform: string; first: boolean; last: boolean
+  onMove: (direction: -1 | 1) => void; onDelete: () => void
+}) {
+  const [open, setOpen] = useState(false)
+  const root = useRef<HTMLDivElement>(null)
+  const trigger = useRef<HTMLButtonElement>(null)
+  useEffect(() => {
+    if (!open) return
+    root.current?.querySelector<HTMLButtonElement>('.op-link-edit-actions button:not(:disabled)')?.focus()
+    const dismiss = (event: PointerEvent) => {
+      if (!root.current?.contains(event.target as Node)) setOpen(false)
+    }
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { setOpen(false); trigger.current?.focus() }
+    }
+    document.addEventListener('pointerdown', dismiss)
+    document.addEventListener('keydown', escape)
+    return () => {
+      document.removeEventListener('pointerdown', dismiss)
+      document.removeEventListener('keydown', escape)
+    }
+  }, [open])
+  const act = (action: () => void) => { setOpen(false); action(); trigger.current?.focus() }
+  return <div className="op-link-edit-menu" ref={root}>
+    <button ref={trigger} className="op-link-edit-more" aria-label={`${platform} 更多操作`} aria-expanded={open} onClick={() => setOpen(!open)}>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" /></svg>
+    </button>
+    {open && <div className="op-link-edit-actions" role="group" aria-label={`${platform} 链接操作`}>
+      <button disabled={first} onClick={() => act(() => onMove(-1))}><EditorActionIcon kind="up" />上移</button>
+      <button disabled={last} onClick={() => act(() => onMove(1))}><EditorActionIcon kind="down" />下移</button>
+      <button className="op-link-edit-delete" onClick={() => act(onDelete)}><EditorActionIcon kind="delete" />移除链接</button>
+    </div>}
+  </div>
+}
 
 type Persona = {
   id: PersonaId
@@ -366,7 +412,40 @@ function loadPublished(key = STORAGE_KEY): PublishedState | null {
 
 type Sheet =
   | { kind: 'style' }
+  | { kind: 'profile' }
   | null
+
+function ProfileEditor({ name, job, bio, onApply, onClose }: {
+  name: string; job: string; bio: string
+  onApply: (name: string, job: string, bio: string) => void; onClose: () => void
+}) {
+  const [draftName, setDraftName] = useState(name)
+  const [draftJob, setDraftJob] = useState(job)
+  const [draftBio, setDraftBio] = useState(bio)
+  const form = useRef<HTMLFormElement>(null)
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null
+    form.current?.querySelector('input')?.focus()
+    return () => previous?.focus()
+  }, [])
+  return <form ref={form} className="op-profile-editor" onSubmit={(event) => { event.preventDefault(); onApply(draftName.trim(), draftJob.trim(), draftBio.trim()) }} onKeyDown={(event) => {
+    if (event.key === 'Escape') onClose()
+    if (event.key !== 'Tab') return
+    const controls = [...(form.current?.querySelectorAll<HTMLElement>('input, textarea, button:not(:disabled)') ?? [])]
+    const first = controls[0], last = controls[controls.length - 1]
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
+  }}>
+    <h3 className="op-sheet-title" id="op-profile-editor-title">编辑个人资料</h3>
+    <div className="op-form">
+      <label className="op-field"><span className="op-field-label">姓名</span><input required maxLength={80} className="op-field-input" value={draftName} onChange={(event) => setDraftName(event.target.value)} /></label>
+      <label className="op-field"><span className="op-field-label">职位</span><input maxLength={160} className="op-field-input" value={draftJob} onChange={(event) => setDraftJob(event.target.value)} /></label>
+      <label className="op-field"><span className="op-field-label">一句话简介</span><textarea maxLength={800} rows={3} className="op-field-input op-field-textarea" value={draftBio} onChange={(event) => setDraftBio(event.target.value)} /></label>
+    </div>
+    <button className="op-btn-continue" disabled={!draftName.trim()} type="submit">确认修改</button>
+    <button className="op-btn-skip" type="button" onClick={onClose}>取消</button>
+  </form>
+}
 
 /** 主页条目按钮的内容（左侧图标 / 中间平台名 / 右侧数字），<a> 或 <span> 均可套用 */
 function LinkButtonContent({ link }: { link: OnePageLink }) {
@@ -518,13 +597,15 @@ export function OnePagePreview() {
     background: canvasWallpaper.bg,
     color: canvasWallpaper.text,
     '--wiz-text': canvasWallpaper.text,
+    '--profile-canvas': canvasWallpaper.canvas ?? canvasWallpaper.bg,
     '--wiz-btn-bg': canvasWallpaper.dark ? '#ffffff' : '#1a1a18',
     '--wiz-btn-text': '#ffffff',
     '--profile-subtext': wallpaperId === 'cream' ? '#383A4C' : canvasWallpaper.text,
-    '--profile-metric-text': wallpaperId === 'cream' ? '#6E727A' : canvasWallpaper.text,
+    '--profile-footer-text': wallpaperId === 'cream' ? '#7d7972' : canvasWallpaper.text,
+    '--profile-metric-text': wallpaperId === 'cream' ? '#6E727A' : btnColors.text,
     '--profile-control-text': wallpaperId === 'cream'
       ? '#514D45'
-      : `color-mix(in srgb, ${canvasWallpaper.text} 82%, ${canvasWallpaper.bg})`,
+      : `color-mix(in srgb, ${canvasWallpaper.text} 82%, ${canvasWallpaper.canvas ?? canvasWallpaper.bg})`,
     '--profile-control-bg': wallpaperId === 'cream'
       ? '#F7F0DE'
       : `color-mix(in srgb, ${canvasWallpaper.text} 5%, transparent)`,
@@ -786,7 +867,7 @@ export function OnePagePreview() {
   // —— 渲染 ——
 
   return (
-    <div className={`op-page${step === 0 && published ? ' is-published' : ''}`} style={pageStyle}>
+    <div className={`op-page${step === 0 && published ? ' is-published' : ''}${step === 0 && published && editing ? ' is-editing' : ''}`} style={pageStyle}>
       <input ref={avatarInput} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(event) => void changeAvatar(event.target.files?.[0])} />
       {/* 发布态的悬浮管理按钮 */}
       {step === 0 && published && (
@@ -832,9 +913,9 @@ export function OnePagePreview() {
       {step === 0 && published && (
         <div className="ops-column op-home-col">
           {editing ? (
-            <button className="op-avatar-change" aria-label="更换头像" disabled={avatarLoading} onClick={() => avatarInput.current?.click()}>
+            <button className="op-avatar-change op-home-avatar-edit" aria-label={avatarLoading ? '头像处理中' : '更换头像'} title="更换头像" disabled={avatarLoading} onClick={() => avatarInput.current?.click()}>
               <ProfileAvatar src={avatarImage} />
-              <span>{avatarLoading ? '处理中…' : '更换头像'}</span>
+              <span className="op-avatar-edit-badge" aria-hidden="true"><ProfileEditIcon /></span>
             </button>
           ) : <ProfileAvatar src={avatarImage} />}
           {avatarError && <p className="op-avatar-error" role="alert">{avatarError}</p>}
@@ -844,11 +925,14 @@ export function OnePagePreview() {
 
           {editing && (
             <div className="op-module-editbar">
-              <button className="op-mini-btn" disabled={refreshing} onClick={refreshData}>
-                {refreshing ? '⟳ 读取中…' : '⟳ 刷新数据'}
+              <button className="op-editor-tool" onClick={() => setSheet({ kind: 'profile' })}><ProfileEditIcon />编辑资料</button>
+              <button className="op-editor-tool" disabled={refreshing} onClick={refreshData}>
+                <EditorActionIcon kind="refresh" />
+                {refreshing ? '读取中…' : '刷新数据'}
               </button>
-              <button className="op-mini-btn" onClick={() => setSheet({ kind: 'style' })}>
-                风格
+              <button className="op-editor-tool" onClick={() => setSheet({ kind: 'style' })}>
+                <EditorActionIcon kind="style" />
+                调整风格
               </button>
             </div>
           )}
@@ -856,14 +940,7 @@ export function OnePagePreview() {
           <div className={editorial ? 'opd-list' : 'ops-links'}>
             {links.map((link, i) =>
               editing ? (
-                <div className="op-edit-row" key={link.platform}>
-                  <button
-                    className="op-row-del"
-                    aria-label={`删除 ${link.platform}`}
-                    onClick={() => deleteLink(i)}
-                  >
-                    −
-                  </button>
+                <div className="op-edit-row" key={link.platform} style={{ '--link-control-text': btnColors.text } as CSSProperties}>
                   {editorial ? (
                     <span
                       className={`opd-item op-edit-link${flashAll || flashKey === link.platform ? ' is-flashing' : ''}`}
@@ -878,18 +955,7 @@ export function OnePagePreview() {
                       <LinkButtonContent link={link} />
                     </span>
                   )}
-                  <div className="op-row-move">
-                    <button aria-label="上移" disabled={i === 0} onClick={() => moveLink(i, -1)}>
-                      ↑
-                    </button>
-                    <button
-                      aria-label="下移"
-                      disabled={i === links.length - 1}
-                      onClick={() => moveLink(i, 1)}
-                    >
-                      ↓
-                    </button>
-                  </div>
+                  <LinkEditMenu platform={link.platform} first={i === 0} last={i === links.length - 1} onMove={(direction) => moveLink(i, direction)} onDelete={() => deleteLink(i)} />
                 </div>
               ) : editorial ? (
                 <a
@@ -1203,8 +1269,10 @@ export function OnePagePreview() {
       {/* 底部弹层：风格 */}
       {sheet && (
         <div className="op-sheet-mask" onClick={() => setSheet(null)}>
-          <div className="op-sheet" onClick={(e) => e.stopPropagation()}>
+          <div className="op-sheet" role="dialog" aria-modal="true" aria-label={sheet.kind === 'profile' ? '编辑个人资料' : '调整风格'} onClick={(e) => e.stopPropagation()}>
             <div className="op-sheet-grabber" />
+
+            {sheet.kind === 'profile' && <ProfileEditor name={name} job={job} bio={bio} onClose={() => setSheet(null)} onApply={(nextName, nextJob, nextBio) => { setName(nextName); setJob(nextJob); setBio(nextBio); setSheet(null) }} />}
 
             {sheet.kind === 'style' && (
               <>
@@ -1322,14 +1390,14 @@ function StylePicker(props: {
   styleTab: 'wallpaper' | 'button'
   setStyleTab: (t: 'wallpaper' | 'button') => void
 }) {
-  const [customOpen, setCustomOpen] = useState(false)
+  const [customOpen, setCustomOpen] = useState(props.wallpaper.type === 'photo')
   const featuredWallpapers = [
     ['cream', '米白'], ['custom:3c4148', '石墨灰'],
     ['custom:927653', '焦糖'], ['custom:30121d', '深酒红'],
     ['custom:f5d3e9', '樱花粉'],
     ['custom:f8d8bd', '蜜桃'], ['custom:ffffff', '纯白'], ['black', '纯黑'],
   ].map(([id, name]) => ({ ...wallpaperById(id), name }))
-  const visibleWallpapers = props.featured ? featuredWallpapers : WALLPAPERS
+  const visibleWallpapers = props.featured ? featuredWallpapers : WALLPAPERS.filter((w) => w.type !== 'photo')
   return (
     <>
       <div className="op-tabs">
@@ -1343,7 +1411,7 @@ function StylePicker(props: {
         <button
           className={`op-tab${props.styleTab === 'button' ? ' is-active' : ''}`}
           aria-pressed={props.styleTab === 'button'}
-          onClick={() => { props.setStyleTab('button'); setCustomOpen(false) }}
+          onClick={() => props.setStyleTab('button')}
         >
           按钮
         </button>
@@ -1351,7 +1419,7 @@ function StylePicker(props: {
 
       <div className={props.featured ? 'op-picker-panels' : undefined}>
         <div className="op-picker-panel" hidden={props.styleTab !== 'wallpaper'}>
-        <div className="op-swatches">
+        {!customOpen && <div className="op-swatches">
           {visibleWallpapers.map((w) => (
             <button
               key={w.id}
@@ -1372,19 +1440,20 @@ function StylePicker(props: {
             expanded={customOpen}
             onClick={() => setCustomOpen((open) => !open)}
           />
-        </div>
+        </div>}
         {customOpen && <div className="op-custom-wallpapers">
-          <div className="op-custom-heading"><span>基础模板</span><button type="button" onClick={() => setCustomOpen(false)} aria-label="收起自定义壁纸">收起</button></div>
+          <div className="op-custom-heading"><button className="op-template-back" type="button" onClick={() => setCustomOpen(false)}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6" /></svg>返回基础色</button><span>精选模板</span></div>
+          <p className="op-template-description">背景、文字与按钮，一次搭配好</p>
           <div className="op-template-grid">
-            {['oatmeal', 'mist', 'dusk-rose', 'night'].map((id) => {
-              const template = wallpaperById(id)
-              return <button type="button" className={`op-wallpaper-template${props.wallpaperId === id ? ' is-active' : ''}`} key={id} aria-pressed={props.wallpaperId === id} onClick={() => props.setWallpaperId(id)}>
-                <span className="op-template-preview" style={{ background: template.bg, color: template.text }} aria-hidden="true"><i /><b /><em style={{ background: template.followBtn }} /><em style={{ background: template.followBtn }} /></span>
-                <span>{template.name}</span>
+            {PAGE_TEMPLATES.map((preset) => {
+              const template = wallpaperById(preset.wallpaper)
+              const selected = props.wallpaperId === preset.wallpaper && props.buttonStyle === preset.buttonStyle && props.buttonColor === 'wallpaper'
+              return <button type="button" className={`op-wallpaper-template${selected ? ' is-active' : ''}`} key={preset.wallpaper} aria-pressed={selected} onClick={() => { props.setWallpaperId(preset.wallpaper); props.setButtonStyle(preset.buttonStyle); props.setButtonColor('wallpaper') }}>
+                <span className="op-template-preview" style={{ background: template.bg, color: template.text }} aria-hidden="true"><img src="/onepage-design/avatar-photo.jpg" alt="" /><b>你的名字</b><small>让价值被看见</small>{[0, 1, 2].map((n) => <em key={n} style={{ background: template.followBtn, color: template.followText, borderRadius: preset.buttonStyle === 'pill' ? '999px' : '5px' }}>主页链接</em>)}</span>
+                <span>{preset.name}</span><small className="op-template-caption">{preset.description}</small>
               </button>
             })}
           </div>
-          <label className="op-custom-color-row"><span>自选颜色</span><input type="color" aria-label="自定义壁纸颜色" value={isCustomWallpaperId(props.wallpaperId) ? `#${props.wallpaperId.slice('custom:'.length)}` : '#fff8eb'} onChange={(event) => props.setWallpaperId(customWallpaperId(event.target.value))} /></label>
         </div>}
         </div>
 
@@ -1395,7 +1464,6 @@ function StylePicker(props: {
                 key={b.id}
                 className={`op-btnstyle${b.id === props.buttonStyle ? ' is-active' : ''}`}
                 aria-pressed={b.id === props.buttonStyle}
-                style={props.featured ? { background: props.wallpaper.bg } : undefined}
                 onClick={() => props.setButtonStyle(b.id)}
               >
                 <span
@@ -1417,7 +1485,7 @@ function StylePicker(props: {
   )
 }
 
-/** Open the wallpaper templates and custom color controls. */
+/** Open the curated page templates. */
 function CustomSwatch(props: { wallpaperId: string; setWallpaperId: (id: string) => void; presetSelected?: boolean; expanded: boolean; onClick: () => void }) {
   const isCustom = !props.presetSelected
   return (
@@ -1427,7 +1495,7 @@ function CustomSwatch(props: { wallpaperId: string; setWallpaperId: (id: string)
       aria-expanded={props.expanded}
       onClick={props.onClick}
     >
-      <span aria-hidden="true">+</span><span>自定义</span>
+      <span aria-hidden="true">+</span><span>模板 / 自定义</span>
     </button>
   )
 }

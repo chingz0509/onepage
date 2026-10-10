@@ -206,9 +206,11 @@
   min-width: 0;
   min-height: 0;
   aspect-ratio: 1;
-  border: 1px solid #00000020;
+  /* 深色卡片托底，按钮形状用实时配色居中展示（对齐 Linktree 的 Buttons 选择卡） */
+  background: #141414;
+  border: 1px solid transparent;
   border-radius: clamp(22px, 5vw, 38px);
-  padding: 12px 8px;
+  padding: 12px 14px;
   justify-content: center;
   transition: box-shadow .18s, transform .18s;
 }
