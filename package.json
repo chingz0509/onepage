@@ -10,10 +10,11 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test": "tsx --test server/backend.test.ts"
+    "test": "tsx --test server/backend.test.ts server/pages.test.ts"
   },
   "dependencies": {
     "@sparticuz/chromium": "148.0.0",
+    "@supabase/supabase-js": "^2.117.3",
     "ipaddr.js": "^2.5.0",
     "pako": "^2.2.0",
     "puppeteer-core": "^24.43.1",

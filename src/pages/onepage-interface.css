@@ -485,6 +485,35 @@
   box-shadow: 0 0 0 3px #fff, 0 0 0 4.5px #777166;
 }
 .op-page .op-style-sheet .op-swatch-plus { font-size: 23px; color: #777166; }
+.op-page .op-custom-entry {
+  grid-column: span 2;
+  max-width: none;
+  width: 100%;
+  height: 44px;
+  aspect-ratio: auto;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #f4f3f0;
+  color: #777166;
+  font-family: inherit;
+  font-size: 12px;
+}
+.op-page .op-custom-entry > span { visibility: visible; }
+.op-custom-wallpapers { margin-top: 20px; padding-top: 16px; border-top: 1px solid #eeedeb; }
+.op-custom-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 12px; color: #777166; }
+.op-custom-heading button { padding: 6px 0 6px 12px; background: transparent; border: 0; font: inherit; color: inherit; cursor: pointer; }
+.op-template-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.op-wallpaper-template { min-width: 0; padding: 0; border: 0; background: transparent; font: inherit; font-size: 10px; color: #777166; cursor: pointer; }
+.op-template-preview { display: flex; flex-direction: column; align-items: center; width: 100%; aspect-ratio: 3 / 4; padding: 12px 7px; margin-bottom: 7px; border-radius: 10px; border: 1px solid rgba(81,77,69,.08); gap: 5px; }
+.op-template-preview i { width: 18px; height: 18px; border-radius: 50%; background: currentColor; opacity: .25; }
+.op-template-preview b { width: 22px; height: 3px; border-radius: 3px; background: currentColor; opacity: .55; margin-bottom: 4px; }
+.op-template-preview em { width: 100%; height: 9px; border-radius: 5px; }
+.op-wallpaper-template.is-active .op-template-preview { outline: 1.5px solid #777166; outline-offset: 2px; }
+.op-custom-color-row { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; font-size: 12px; color: #777166; }
+.op-custom-color-row input { width: 36px; height: 28px; padding: 2px; border: 1px solid #d8d5cc; border-radius: 6px; background: #fff; cursor: pointer; }
 .op-page .op-style-sheet .op-btnstyle {
   aspect-ratio: auto;
   min-height: 88px;
@@ -506,3 +535,5 @@
   outline: 2px solid #aaa18f;
   outline-offset: 4px;
 }
+.op-page .op-cloud-status { font-size: 12px; line-height: 1.6; color: #857665; text-align: center; margin: 12px 0; }
+.op-page .op-cloud-status button { border: 0; background: none; color: inherit; text-decoration: underline; margin-left: 8px; cursor: pointer; }

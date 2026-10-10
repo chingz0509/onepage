@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import QRCode from 'qrcode'
 import { PlatformIcon } from '../components/PlatformIcon'
 import { ProfileEditIcon, ProfileShareIcon } from '../components/icons'
-import { encodeJson } from '../shareCodec'
+import { savePage } from '../pageRepository'
 import { pageUrl } from '../router'
 import { fetchPlatformMetrics, fetchGenericSite, fetchFailureMessage, type FetchedMetrics } from '../dataFetch'
 import {
@@ -112,10 +112,6 @@ function cardFromDetected(detected: Detected, url: string): OnePageLink {
         insight: `已收录「${detected.domain} 的个人主页」`,
         generic: true,
       }
-}
-
-function randomSlug(): string {
-  return Math.random().toString(36).slice(2, 8)
 }
 
 /** 占位卡片 + 真实抓取结果 → 正式条目；抓到 ✓（页面可读但无数字）维持「已收录」 */
@@ -350,13 +346,16 @@ type PublishedState = {
   shareUrl: string
   /** 旧存档可能没有；首次加载时补发 */
   slug?: string
+  /** Private editing capability. Never included in the public URL or payload. */
+  editToken?: string
 }
 
 const STORAGE_KEY = 'onepage.published.v1'
+const DRAFT_KEY = 'onepage.draft.v1'
 
-function loadPublished(): PublishedState | null {
+function loadPublished(key = STORAGE_KEY): PublishedState | null {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
+    const raw = window.localStorage.getItem(key)
     if (!raw) return null
     const data = JSON.parse(raw) as PublishedState
     return Array.isArray(data.links) ? data : null
@@ -395,11 +394,11 @@ function LinkButtonContent({ link }: { link: OnePageLink }) {
 }
 
 export function OnePagePreview() {
-  const [initial] = useState(loadPublished)
+  const [initial] = useState(() => loadPublished() ?? loadPublished(DRAFT_KEY))
   const persona = PERSONAS[0]
 
   const [step, setStep] = useState<0 | 1 | 2 | 3>(0)
-  const [published, setPublished] = useState(initial !== null)
+  const [published, setPublished] = useState(() => loadPublished() !== null)
 
   // 资料
   const [name, setName] = useState(initial?.name ?? persona.name)
@@ -443,8 +442,8 @@ export function OnePagePreview() {
   const [links, setLinks] = useState<OnePageLink[]>(initial?.links ?? [])
 
   // 向导第 2 步的输入槽
-  const [slots, setSlots] = useState<LinkSlot[]>([])
-  const slotSeq = useRef(0)
+  const [slots, setSlots] = useState<LinkSlot[]>(() => loadPublished() ? [] : (initial?.links ?? []).map((card, id) => ({ id: id + 1, card })))
+  const slotSeq = useRef(slots.length)
   // 正在读取数据的槽位；非空时「继续」禁用（「跳过」保持可点）
   const [readingSlots, setReadingSlots] = useState<ReadonlySet<number>>(new Set())
   const setSlotReading = (id: number, reading: boolean) =>
@@ -465,6 +464,15 @@ export function OnePagePreview() {
   // 分享
   const [shareUrl, setShareUrl] = useState(initial?.shareUrl ?? '')
   const [slug, setSlug] = useState(initial?.slug ?? '')
+  const [editToken, setEditToken] = useState(initial?.editToken ?? '')
+  const credential = useRef(initial?.editToken && initial.slug ? { slug: initial.slug, editToken: initial.editToken } : undefined)
+  const saveQueue = useRef<Promise<unknown>>(Promise.resolve())
+  const pendingSaves = useRef(0)
+  const saveGeneration = useRef(0)
+  const lastSaved = useRef('')
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
+  const [syncRetry, setSyncRetry] = useState(0)
   const [shareOpen, setShareOpen] = useState(false)
   const [qr, setQr] = useState('')
   const [showShareQr, setShowShareQr] = useState(false)
@@ -533,13 +541,22 @@ export function OnePagePreview() {
       buttonStyle,
       buttonColor,
       shareUrl,
+      slug,
+      editToken,
       ...next,
     }
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
   }
 
   const resetDemo = () => {
+    saveGeneration.current += 1
+    credential.current = undefined
+    lastSaved.current = ''
+    setEditToken('')
+    setSaveError('')
+    setSaving(false)
     window.localStorage.removeItem(STORAGE_KEY)
+    window.localStorage.removeItem(DRAFT_KEY)
     setPublished(false)
     setStep(0)
     setName(persona.name)
@@ -587,8 +604,8 @@ export function OnePagePreview() {
     setLinks((prev) => prev.map((l) => (l.platform === card.platform ? card : l)))
   }
 
-  const buildShareUrl = (s: string, linkList: OnePageLink[]): string => {
-    const payload: OnePageShare = {
+  const pageData = (s: string, linkList: OnePageLink[]): OnePageShare => {
+    return {
       kind: 'onepage',
       slug: s,
       name,
@@ -601,32 +618,66 @@ export function OnePagePreview() {
       buttonColor,
       links: linkList,
     }
-    return pageUrl(s, encodeJson(payload))
   }
 
-  const publish = () => {
-    if (!slug) setSlug(randomSlug())
+  const saveCloud = (payload: OnePageShare) => {
+    const generation = saveGeneration.current
+    setSaving(true)
+    pendingSaves.current += 1
+    setSaveError('')
+    const task = saveQueue.current.catch(() => undefined).then(async () => {
+      if (generation !== saveGeneration.current) return false
+      const saved = await savePage(payload, credential.current)
+      if (generation !== saveGeneration.current) return false
+      credential.current = { slug: saved.slug, editToken: saved.editToken }
+      lastSaved.current = JSON.stringify(saved.data)
+      const url = pageUrl(saved.slug)
+      setSlug(saved.slug)
+      setEditToken(saved.editToken)
+      setShareUrl(url)
+      if (saved.data.avatarImage !== payload.avatarImage) setAvatarImage(saved.data.avatarImage ?? '')
+      persist({ slug: saved.slug, editToken: saved.editToken, shareUrl: url,
+        links: saved.data.links, avatarImage: saved.data.avatarImage ?? '' })
+      return true
+    }).catch((error: unknown) => {
+      if (generation === saveGeneration.current) {
+        setSaveError(error instanceof Error && error.message === 'edit-not-allowed'
+          ? '编辑凭证无效，无法修改这个页面'
+          : '暂时无法保存到云端，内容已保留，请重试')
+      }
+      return false
+    }).finally(() => {
+      pendingSaves.current -= 1
+      if (!pendingSaves.current) setSaving(false)
+    })
+    saveQueue.current = task
+    return task
+  }
+
+  const publish = async () => {
+    if (saving) return
+    window.localStorage.setItem(DRAFT_KEY, JSON.stringify({ name, job, bio, avatarImage,
+      links: wizardLinks, wallpaperId, buttonStyle, buttonColor, shareUrl: '', slug, editToken }))
+    if (!await saveCloud(pageData(slug, wizardLinks))) return
+    window.localStorage.removeItem(DRAFT_KEY)
     setLinks(wizardLinks)
     setPublished(true)
     setStep(0)
     setShareOpen(true)
   }
 
-  /**
-   * 分享链接是编码进 URL 的快照：发布后内容/风格任何变化都重新生成链接并落盘，
-   * 否则访客看到的永远是发布那一刻的旧数据。
-   */
+  // Preserve local changes immediately. Cloud updates are serialized and
+  // debounced, so an earlier request cannot overwrite a later edit.
   useEffect(() => {
     if (!published) return
-    if (!slug) {
-      setSlug(randomSlug())
-      return
-    }
-    const url = buildShareUrl(slug, links)
-    setShareUrl(url)
-    persist({ shareUrl: url })
+    persist()
+    if (editing) return
+    const payload = pageData(slug, links)
+    if (JSON.stringify(payload) === lastSaved.current) return
+    const timer = window.setTimeout(() => { void saveCloud(payload) }, 600)
+    return () => window.clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [published, slug, name, job, bio, avatarImage, links, wallpaperId, buttonStyle, buttonColor])
+  }, [published, slug, editToken, name, job, bio, avatarImage, links, wallpaperId, buttonStyle, buttonColor, editing, syncRetry])
 
   useEffect(() => {
     if (!shareOpen) setShowShareQr(false)
@@ -654,6 +705,7 @@ export function OnePagePreview() {
   }, [shareOpen, showShareQr, shareUrl])
 
   const copyLink = async () => {
+    if (!editToken || saving || saveError) return
     try {
       await navigator.clipboard.writeText(shareUrl)
     } catch {
@@ -740,7 +792,7 @@ export function OnePagePreview() {
       {step === 0 && published && (
         <>
           <div className="op-fab-right">
-            {shareUrl && (
+            {shareUrl && editToken && (
               <button className="op-fab" aria-label="分享" title="分享" onClick={() => setShareOpen(true)}>
                 <ProfileShareIcon />
               </button>
@@ -901,6 +953,10 @@ export function OnePagePreview() {
           </div>
 
           <p className="ops-foot">数据均来自平台直采 · 刚刚更新</p>
+          {(saving || saveError) && <p className="op-cloud-status" role={saveError ? 'alert' : 'status'}>
+            {saving ? '正在保存…' : saveError}
+            {saveError && <button onClick={() => setSyncRetry((n) => n + 1)}>重试保存</button>}
+          </p>}
           <button className="op-reset-link" onClick={resetDemo}>
             重置演示
           </button>
@@ -1080,8 +1136,9 @@ export function OnePagePreview() {
               />
 
               <div className="op-wiz-actions">
-                <button className="op-btn-continue" onClick={publish}>
-                  发布我的 One Page
+                {saveError && <p className="op-cloud-status" role="alert">{saveError}</p>}
+                <button className="op-btn-continue" disabled={saving || avatarLoading} onClick={() => void publish()}>
+                  {saving ? '正在发布…' : '发布我的 One Page'}
                 </button>
               </div>
             </div>
@@ -1131,7 +1188,8 @@ export function OnePagePreview() {
               </div>
             )}
             <div className="op-share-actions">
-              <button className="op-btn-continue op-btn-copy" onClick={copyLink}>
+              {(saving || saveError) && <p className="op-cloud-status" role="status">{saving ? '正在保存…' : saveError}</p>}
+              <button className="op-btn-continue op-btn-copy" disabled={saving || !!saveError} onClick={copyLink}>
                 {copied ? '✓ 已复制' : '复制链接'}
               </button>
               <div className="op-share-secondary">
@@ -1264,10 +1322,11 @@ function StylePicker(props: {
   styleTab: 'wallpaper' | 'button'
   setStyleTab: (t: 'wallpaper' | 'button') => void
 }) {
+  const [customOpen, setCustomOpen] = useState(false)
   const featuredWallpapers = [
     ['cream', '米白'], ['custom:3c4148', '石墨灰'],
     ['custom:927653', '焦糖'], ['custom:30121d', '深酒红'],
-    ['custom:182000', '橄榄绿'], ['custom:f5d3e9', '樱花粉'],
+    ['custom:f5d3e9', '樱花粉'],
     ['custom:f8d8bd', '蜜桃'], ['custom:ffffff', '纯白'], ['black', '纯黑'],
   ].map(([id, name]) => ({ ...wallpaperById(id), name }))
   const visibleWallpapers = props.featured ? featuredWallpapers : WALLPAPERS
@@ -1284,7 +1343,7 @@ function StylePicker(props: {
         <button
           className={`op-tab${props.styleTab === 'button' ? ' is-active' : ''}`}
           aria-pressed={props.styleTab === 'button'}
-          onClick={() => props.setStyleTab('button')}
+          onClick={() => { props.setStyleTab('button'); setCustomOpen(false) }}
         >
           按钮
         </button>
@@ -1310,8 +1369,23 @@ function StylePicker(props: {
             wallpaperId={props.wallpaperId}
             setWallpaperId={props.setWallpaperId}
             presetSelected={visibleWallpapers.some((w) => w.id === props.wallpaperId)}
+            expanded={customOpen}
+            onClick={() => setCustomOpen((open) => !open)}
           />
         </div>
+        {customOpen && <div className="op-custom-wallpapers">
+          <div className="op-custom-heading"><span>基础模板</span><button type="button" onClick={() => setCustomOpen(false)} aria-label="收起自定义壁纸">收起</button></div>
+          <div className="op-template-grid">
+            {['oatmeal', 'mist', 'dusk-rose', 'night'].map((id) => {
+              const template = wallpaperById(id)
+              return <button type="button" className={`op-wallpaper-template${props.wallpaperId === id ? ' is-active' : ''}`} key={id} aria-pressed={props.wallpaperId === id} onClick={() => props.setWallpaperId(id)}>
+                <span className="op-template-preview" style={{ background: template.bg, color: template.text }} aria-hidden="true"><i /><b /><em style={{ background: template.followBtn }} /><em style={{ background: template.followBtn }} /></span>
+                <span>{template.name}</span>
+              </button>
+            })}
+          </div>
+          <label className="op-custom-color-row"><span>自选颜色</span><input type="color" aria-label="自定义壁纸颜色" value={isCustomWallpaperId(props.wallpaperId) ? `#${props.wallpaperId.slice('custom:'.length)}` : '#fff8eb'} onChange={(event) => props.setWallpaperId(customWallpaperId(event.target.value))} /></label>
+        </div>}
         </div>
 
         <div className="op-picker-panel" hidden={props.styleTab !== 'button'}>
@@ -1343,28 +1417,17 @@ function StylePicker(props: {
   )
 }
 
-/** 自定义壁纸色：彩虹圆点唤起系统取色器，选中后色值随分享链接一起编码 */
-function CustomSwatch(props: { wallpaperId: string; setWallpaperId: (id: string) => void; presetSelected?: boolean }) {
-  const isCustom = isCustomWallpaperId(props.wallpaperId) && !props.presetSelected
-  const customHex = isCustom ? `#${props.wallpaperId.slice('custom:'.length)}` : '#bcc9d4'
+/** Open the wallpaper templates and custom color controls. */
+function CustomSwatch(props: { wallpaperId: string; setWallpaperId: (id: string) => void; presetSelected?: boolean; expanded: boolean; onClick: () => void }) {
+  const isCustom = !props.presetSelected
   return (
-    <label
-      className={`op-swatch op-swatch-custom${isCustom ? ' is-active' : ''}`}
-      style={isCustom ? { background: customHex } : undefined}
-      title="自定义颜色"
+    <button
+      type="button"
+      className={`op-swatch op-swatch-custom op-custom-entry${isCustom ? ' is-active' : ''}`}
+      aria-expanded={props.expanded}
+      onClick={props.onClick}
     >
-      {isCustom ? (
-        <span style={{ color: wallpaperById(props.wallpaperId).text }}>✓</span>
-      ) : (
-        <span className="op-swatch-plus">+</span>
-      )}
-      <input
-        type="color"
-        aria-label="自定义壁纸颜色"
-        className="op-swatch-input"
-        value={customHex}
-        onChange={(e) => props.setWallpaperId(customWallpaperId(e.target.value))}
-      />
-    </label>
+      <span aria-hidden="true">+</span><span>自定义</span>
+    </button>
   )
 }
