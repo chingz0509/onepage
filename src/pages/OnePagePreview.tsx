@@ -590,6 +590,8 @@ export function OnePagePreview() {
     color: btnColors.text,
     borderRadius: radius,
     borderColor: btnColors.border,
+    backdropFilter: buttonColor === 'wallpaper' && wallpaper.followBorder ? 'blur(8px)' : undefined,
+    WebkitBackdropFilter: buttonColor === 'wallpaper' && wallpaper.followBorder ? 'blur(8px)' : undefined,
   }
 
   const canvasWallpaper = !published && step < 3 ? wallpaperById('cream') : wallpaper
@@ -1391,6 +1393,7 @@ function StylePicker(props: {
   setStyleTab: (t: 'wallpaper' | 'button') => void
 }) {
   const [customOpen, setCustomOpen] = useState(props.wallpaper.type === 'photo')
+  const templateMode = customOpen && props.styleTab === 'wallpaper'
   const featuredWallpapers = [
     ['cream', '米白'], ['custom:3c4148', '石墨灰'],
     ['custom:927653', '焦糖'], ['custom:30121d', '深酒红'],
@@ -1400,7 +1403,7 @@ function StylePicker(props: {
   const visibleWallpapers = props.featured ? featuredWallpapers : WALLPAPERS.filter((w) => w.type !== 'photo')
   return (
     <>
-      <div className="op-tabs">
+      {!templateMode && <div className="op-tabs">
         <button
           className={`op-tab${props.styleTab === 'wallpaper' ? ' is-active' : ''}`}
           aria-pressed={props.styleTab === 'wallpaper'}
@@ -1415,7 +1418,7 @@ function StylePicker(props: {
         >
           按钮
         </button>
-      </div>
+      </div>}
 
       <div className={props.featured ? 'op-picker-panels' : undefined}>
         <div className="op-picker-panel" hidden={props.styleTab !== 'wallpaper'}>
@@ -1442,14 +1445,13 @@ function StylePicker(props: {
           />
         </div>}
         {customOpen && <div className="op-custom-wallpapers">
-          <div className="op-custom-heading"><button className="op-template-back" type="button" onClick={() => setCustomOpen(false)}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6" /></svg>返回基础色</button><span>精选模板</span></div>
-          <p className="op-template-description">背景、文字与按钮，一次搭配好</p>
-          <div className="op-template-grid">
+          <div className="op-custom-heading"><button className="op-template-back" type="button" onClick={() => setCustomOpen(false)}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6" /></svg>返回基础色</button><span>选一个喜欢的卡片</span></div>
+          <div className="op-template-rail" role="group" aria-label="选一个喜欢的卡片">
             {PAGE_TEMPLATES.map((preset) => {
               const template = wallpaperById(preset.wallpaper)
               const selected = props.wallpaperId === preset.wallpaper && props.buttonStyle === preset.buttonStyle && props.buttonColor === 'wallpaper'
               return <button type="button" className={`op-wallpaper-template${selected ? ' is-active' : ''}`} key={preset.wallpaper} aria-pressed={selected} onClick={() => { props.setWallpaperId(preset.wallpaper); props.setButtonStyle(preset.buttonStyle); props.setButtonColor('wallpaper') }}>
-                <span className="op-template-preview" style={{ background: template.bg, color: template.text }} aria-hidden="true"><img src="/onepage-design/avatar-photo.jpg" alt="" /><b>你的名字</b><small>让价值被看见</small>{[0, 1, 2].map((n) => <em key={n} style={{ background: template.followBtn, color: template.followText, borderRadius: preset.buttonStyle === 'pill' ? '999px' : '5px' }}>主页链接</em>)}</span>
+                <span className="op-template-preview" style={{ background: template.bg, color: template.text }} aria-hidden="true"><img src="/onepage-design/avatar-photo.jpg" alt="" /><b>你的名字</b><span className="op-template-bio-line" />{[0, 1, 2].map((n) => <em key={n} style={{ background: template.followBtn, color: template.followText, border: `1px solid ${template.followBorder ?? 'transparent'}`, backdropFilter: template.followBorder ? 'blur(4px)' : undefined, WebkitBackdropFilter: template.followBorder ? 'blur(4px)' : undefined, borderRadius: preset.buttonStyle === 'pill' ? '999px' : '5px' }}>主页链接</em>)}</span>
                 <span>{preset.name}</span><small className="op-template-caption">{preset.description}</small>
               </button>
             })}

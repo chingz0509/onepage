@@ -1,0 +1,38 @@
+{
+  "type": "Premium photographic wallpaper asset",
+  "goal": "Background only for a personal link-in-bio card; real avatar and three translucent link buttons overlaid later. Elegant and distinct from pool, stone architecture and fern forest themes.",
+  "layout": {
+    "canvas": "1024x1024 square, beautiful in centered portrait 3:4 and narrow 9:16 crop",
+    "safe_zone": "center 60% is soft low detail and low contrast; avoid strong details behind upper central avatar and lower central buttons"
+  },
+  "text_overlay": {
+    "enabled": false
+  },
+  "constraints": {
+    "avoid": [
+      "people, lettering, logo, avatar, UI, buttons, phone mockup, border",
+      "neon, oversaturation, busy detail, harsh contrast"
+    ],
+    "must_keep": [
+      "real photographic material",
+      "restrained color harmony",
+      "editorial quality composition",
+      "gentle natural light",
+      "beautiful at tiny thumbnail scale"
+    ]
+  },
+  "mood": {
+    "feeling": "quiet airy alpine morning, ethereal but photographic"
+  },
+  "subject": {
+    "description": "Layers of misty blue-gray mountain ridges at lower half, one softly silhouetted distant ridge crossing lower third, luminous soft slate-blue fog across center and upper two thirds. Subtle tranquil atmospheric depth, no sharp peaks in center, no trees, no icy contrast."
+  },
+  "background": {
+    "main_color": "misty slate blue #52687c, pale fog blue #b7c6cd, muted deep blue"
+  },
+  "style": {
+    "rendering": "high end photographic editorial wallpaper, very fine soft grain",
+    "lighting": "soft low contrast natural illumination",
+    "color_palette": "misty slate blue #52687c, pale fog blue #b7c6cd, muted deep blue"
+  }
+}

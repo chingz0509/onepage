@@ -1,0 +1,39 @@
+{
+  "type": "Premium minimal photographic wallpaper",
+  "goal": "Background-only for personal profile card, real UI overlays later, no baked-in UI. Must be beautiful under portrait crop and thumbnail.",
+  "layout": {
+    "canvas": "square 1024x1024",
+    "crop": "center portrait 3:4 and 9:16 crop; dominant feature must remain visible",
+    "safe_zone": "central 65% of width should be low contrast with subtle texture, especially around upper central avatar and lower central button area"
+  },
+  "text_overlay": {
+    "enabled": false
+  },
+  "constraints": {
+    "avoid": [
+      "letters, text, icons, buttons, people, phone, borders",
+      "dense detail, gritty textures, oversaturated colors, extreme black shadows",
+      "multiple architectural objects, large blank flat featureless wall"
+    ],
+    "must_keep": [
+      "coherent subtle lighting",
+      "real photographic detail",
+      "a single beautifully composed visual gesture",
+      "calm premium visual hierarchy"
+    ]
+  },
+  "mood": {
+    "feeling": "quiet gallery, contemporary sculpture, warm restrained architecture"
+  },
+  "subject": {
+    "description": "An intimate architectural photograph of one elegant smooth off-white plaster arch, centrally composed but opening positioned in right third. The arch curves from upper right into the lower center and remains recognizable in narrow portrait crop. Rounded sculptural edge, recessed opening with soft warm taupe shadow. A broad diagonal wash of soft afternoon light across the left wall. Smooth matte mineral plaster, barely perceptible micro texture, no porous stone pits, no brick lines. Restrained but unmistakable architecture rather than plain texture."
+  },
+  "background": {
+    "main_color": "pale warm ivory plaster #e2d8c7, taupe recess #9a8974"
+  },
+  "style": {
+    "rendering": "real luxury architectural editorial photograph, minimalist sculptural composition",
+    "lighting": "soft indirect afternoon light, delicate warm shadow falloff, no harsh black",
+    "color_palette": "warm off-white and taupe"
+  }
+}

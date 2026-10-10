@@ -51,6 +51,8 @@ export type Wallpaper = {
   followBtn: string
   /** 「跟随壁纸」时的按钮文字色 */
   followText: string
+  /** Optional edge for translucent template buttons. */
+  followBorder?: string
   dark: boolean
 }
 
@@ -59,8 +61,12 @@ export type Wallpaper = {
  * cream 保持为默认值（编辑版式模板绑定 cream）。
  */
 export const WALLPAPERS: Wallpaper[] = [
-  { id: 'template-water', name: '海边度假', type: 'photo', bg: 'linear-gradient(180deg, rgba(10,46,53,.48), rgba(10,46,53,.16)), url("/onepage-design/templates/water.jpg") center / cover #234b50', canvas: '#234b50', text: '#ffffff', followBtn: '#ffffff', followText: '#243c40', dark: true },
-  { id: 'template-concrete', name: '城市建筑', type: 'photo', bg: 'linear-gradient(180deg, rgba(22,24,27,.6), rgba(22,24,27,.3)), url("/onepage-design/templates/concrete.jpg") center / cover #373b40', canvas: '#373b40', text: '#ffffff', followBtn: '#f6f4ef', followText: '#262b30', dark: true },
+  { id: 'template-water', name: '海边度假', type: 'photo', bg: 'linear-gradient(180deg, rgba(15,64,69,.28), rgba(15,64,69,.14)), url("/onepage-design/templates/water-serene-v2.jpg") center / cover #2b777a', canvas: '#2b777a', text: '#f4faf7', followBtn: 'rgba(13, 65, 70, .46)', followText: '#f4faf7', followBorder: 'rgba(231,249,243,.28)', dark: true },
+  { id: 'template-concrete', name: '城市建筑', type: 'photo', bg: 'linear-gradient(180deg, rgba(247,242,232,.12), rgba(247,242,232,.04)), url("/onepage-design/templates/city-arch-v2.jpg") center / cover #e2d8c7', canvas: '#e2d8c7', text: '#352e26', followBtn: 'rgba(251,247,238,.58)', followText: '#352e26', followBorder: 'rgba(108,87,62,.2)', dark: false },
+  { id: 'template-forest', name: '深色自然', type: 'photo', bg: 'linear-gradient(180deg, rgba(18,37,29,.12), rgba(18,37,29,.24)), url("/onepage-design/templates/forest-mist.jpg") center / cover #253e34', canvas: '#253e34', text: '#eff4e9', followBtn: 'rgba(213,230,207,.16)', followText: '#eff4e9', dark: true },
+  { id: 'template-coast', name: '暮色海岸', type: 'photo', bg: 'linear-gradient(180deg, rgba(64,38,47,.3), rgba(64,38,47,.16)), url("/onepage-design/templates/coast-dusk.jpg") center / cover #705055', canvas: '#705055', text: '#fff4ee', followBtn: 'rgba(74,45,56,.46)', followText: '#fff4ee', followBorder: 'rgba(255,232,219,.28)', dark: true },
+  { id: 'template-mountain', name: '雾蓝山野', type: 'photo', bg: 'linear-gradient(180deg, rgba(235,241,244,.12), rgba(235,241,244,.06)), url("/onepage-design/templates/mountain-mist.jpg") center / cover #a8b9c4', canvas: '#a8b9c4', text: '#263b4d', followBtn: 'rgba(238,246,249,.56)', followText: '#263b4d', followBorder: 'rgba(62,87,109,.22)', dark: false },
+  { id: 'template-apricot', name: '暖杏花影', type: 'photo', bg: 'linear-gradient(180deg, rgba(250,242,229,.08), rgba(250,242,229,.04)), url("/onepage-design/templates/apricot-botanical.jpg") center / cover #e6cfb4', canvas: '#e6cfb4', text: '#483527', followBtn: 'rgba(255,248,234,.56)', followText: '#483527', followBorder: 'rgba(132,93,60,.2)', dark: false },
   { id: 'cream', name: '米白', type: 'solid', bg: '#FFF8EB', text: '#15161F', followBtn: '#F7F0DE', followText: '#15161F', dark: false },
   { id: 'oatmeal', name: '燕麦', type: 'solid', bg: '#EAE3D3', text: '#2C2721', followBtn: '#DBD2BC', followText: '#2C2721', dark: false },
   { id: 'smoke-pink', name: '烟粉', type: 'solid', bg: '#E6CDC5', text: '#4B3833', followBtn: '#D8B8AE', followText: '#4B3833', dark: false },
@@ -78,9 +84,12 @@ export const WALLPAPERS: Wallpaper[] = [
 ]
 
 export const PAGE_TEMPLATES: { wallpaper: string; name: string; description: string; buttonStyle: ButtonStyleId }[] = [
-  { wallpaper: 'template-water', name: '海边度假', description: '水光背景 · 清爽白色', buttonStyle: 'pill' },
-  { wallpaper: 'template-concrete', name: '城市建筑', description: '建筑光影 · 利落圆角', buttonStyle: 'round' },
-  { wallpaper: 'pine', name: '深色自然', description: '松烟绿调 · 柔和层次', buttonStyle: 'round' },
+  { wallpaper: 'template-water', name: '海边度假', description: '柔波青绿 · 轻透胶囊', buttonStyle: 'pill' },
+  { wallpaper: 'template-concrete', name: '城市建筑', description: '暖白拱廊 · 轻透圆角', buttonStyle: 'round' },
+  { wallpaper: 'template-forest', name: '深色自然', description: '蕨影雾绿 · 轻透圆角', buttonStyle: 'round' },
+  { wallpaper: 'template-coast', name: '暮色海岸', description: '落日玫瑰 · 轻透胶囊', buttonStyle: 'pill' },
+  { wallpaper: 'template-mountain', name: '雾蓝山野', description: '远山雾蓝 · 轻透圆角', buttonStyle: 'round' },
+  { wallpaper: 'template-apricot', name: '暖杏花影', description: '暖杏花枝 · 轻透胶囊', buttonStyle: 'pill' },
 ]
 
 /** 旧版色板：不再展示，仅用于兼容已发布分享链接里的旧壁纸 id */
@@ -156,7 +165,7 @@ export function resolveButtonColors(
     case 'blue':
       return { bg: '#0a6cff', text: '#ffffff', border: 'transparent' }
     case 'wallpaper':
-      return { bg: wallpaper.followBtn, text: wallpaper.followText, border: 'transparent' }
+      return { bg: wallpaper.followBtn, text: wallpaper.followText, border: wallpaper.followBorder ?? 'transparent' }
   }
 }
 

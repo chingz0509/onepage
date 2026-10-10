@@ -615,7 +615,8 @@
 .op-custom-heading .op-template-back { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; padding: 0 8px 0 0; background: transparent; border: 0; border-radius: 8px; font: inherit; color: #514d45; cursor: pointer; }
 .op-template-back:hover { opacity: .75; }
 .op-template-back:focus-visible { outline: 2px solid #aaa18f; outline-offset: 2px; }
-.op-template-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 14px; }
+.op-template-rail { display: grid; grid-auto-flow: column; grid-auto-columns: min(118px, 40%); gap: 12px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; padding: 6px 6px 12px; margin: -6px -6px 0; scrollbar-width: thin; scrollbar-color: #d9d5cd transparent; }
+.op-template-rail > .op-wallpaper-template { scroll-snap-align: start; min-width: 0; }
 .op-wallpaper-template { min-width: 0; padding: 0; border: 0; background: transparent; font: inherit; font-size: 10px; color: #777166; cursor: pointer; }
 .op-template-preview { display: flex; flex-direction: column; align-items: center; width: 100%; aspect-ratio: 3 / 4; padding: 24px 14px; margin-bottom: 9px; border-radius: 18px; border: 1px solid rgba(81,77,69,.08); gap: 8px; }
 .op-template-preview i { width: 18px; height: 18px; border-radius: 50%; background: currentColor; opacity: .25; }
@@ -623,8 +624,14 @@
 .op-template-preview b { font-size: 12px; font-weight: 500; margin: 2px 0 0; }
 .op-template-preview small { font-size: 9px; opacity: .8; margin-bottom: 6px; }
 .op-template-preview em { display: grid; place-items: center; width: 100%; min-height: 26px; font-size: 9px; font-style: normal; }
-.op-template-description { margin: -4px 0 16px; font-size: 12px; color: #8b867d; }
+.op-template-rail .op-template-preview { padding: 12px 10px; gap: 5px; border-radius: 14px; }
+.op-template-rail .op-template-preview img { width: 28px; height: 28px; }
+.op-template-rail .op-template-preview b { font-size: 10px; }
+.op-template-bio-line { display: block; flex: none; width: 48%; height: 4px; margin: 4px 0 8px; border-radius: 999px; background: currentColor; opacity: .5; }
+.op-template-rail .op-template-preview small { font-size: 8px; margin-bottom: 2px; }
+.op-template-rail .op-template-preview em { min-height: 20px; font-size: 8px; }
 .op-template-caption { display: block; margin-top: 4px; font-size: 10px; color: #99948a; }
+.op-template-rail .op-template-caption { font-size: 9px; line-height: 14px; }
 .op-profile-editor .op-form { gap: 16px; margin-bottom: 24px; }
 .op-profile-editor .op-field-label { color: var(--ui-muted); font-size: 12px; font-weight: 500; }
 .op-profile-editor .op-field-input { padding: 12px 16px; font-size: 14px; border-radius: 16px; }

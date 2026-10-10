@@ -105,7 +105,7 @@ export function OnePageShared({ data }: { data: OnePageShare }) {
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ background: btn.bg, color: btn.text, borderRadius: radius, borderColor: btn.border }}
+                style={{ background: btn.bg, color: btn.text, borderRadius: radius, borderColor: btn.border, backdropFilter: data.buttonColor === 'wallpaper' && wallpaper.followBorder ? 'blur(8px)' : undefined, WebkitBackdropFilter: data.buttonColor === 'wallpaper' && wallpaper.followBorder ? 'blur(8px)' : undefined }}
               >
                 <span className="ops-link-badge">
                   <PlatformIcon url={link.url} />

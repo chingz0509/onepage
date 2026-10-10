@@ -1,0 +1,39 @@
+{
+  "type": "Premium minimal photographic wallpaper",
+  "goal": "Background-only for personal profile card, real UI overlays later, no baked-in UI. Must be beautiful under portrait crop and thumbnail.",
+  "layout": {
+    "canvas": "square 1024x1024",
+    "crop": "center portrait 3:4 and 9:16 crop; dominant feature must remain visible",
+    "safe_zone": "central 65% of width should be low contrast with subtle texture, especially around upper central avatar and lower central button area"
+  },
+  "text_overlay": {
+    "enabled": false
+  },
+  "constraints": {
+    "avoid": [
+      "letters, text, icons, buttons, people, phone, borders",
+      "dense detail, gritty textures, oversaturated colors, extreme black shadows",
+      "multiple architectural objects, large blank flat featureless wall"
+    ],
+    "must_keep": [
+      "coherent subtle lighting",
+      "real photographic detail",
+      "a single beautifully composed visual gesture",
+      "calm premium visual hierarchy"
+    ]
+  },
+  "mood": {
+    "feeling": "quiet summer morning, refined blue green serenity"
+  },
+  "subject": {
+    "description": "Top-down photographic view of a tranquil shallow Mediterranean swimming pool, soft muted jade teal water. A few large, gentle, elongated ripples and widely spaced refracted sunlight lines drift diagonally. Very subtle caustics concentrated in the lower left quarter, progressively smoother quieter water in upper center and right. No tiny dense web of bright lines, no shore, no objects, no bubbles."
+  },
+  "background": {
+    "main_color": "muted jade teal #2b777a with subtle seafoam highlights; tonal depth, not neon turquoise"
+  },
+  "style": {
+    "rendering": "luxury travel editorial photograph, clear water, soft fine grain",
+    "lighting": "diffused early morning light, broad delicate highlights; low contrast",
+    "color_palette": "smoky teal, sea glass green"
+  }
+}
