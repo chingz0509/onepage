@@ -900,10 +900,10 @@ export function OnePagePreview() {
       {step === 0 && !published && (
         <div className="op-welcome">
           <p className="op-welcome-eyebrow">VOL.1 — 职场价值特辑</p>
-          <h1 className="op-welcome-title">你的职业，一页为证。</h1>
-          <p className="op-welcome-sub">贴上链接就好，剩下的交给 AI。</p>
+          <h1 className="op-welcome-title">你的个人目录</h1>
+          <p className="op-welcome-sub">不止介绍你的工作，也让人认识你。</p>
           <button className="op-btn-continue op-welcome-btn" onClick={() => setStep(1)}>
-            装订我的一页
+            创建我的个人目录
           </button>
           <div className="op-welcome-foot">
             <span>ONE PAGE · AI-POWERED LINK IN BIO</span>
