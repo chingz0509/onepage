@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import QRCode from 'qrcode'
 import { EditorialLanding } from './EditorialLanding'
+import { EditorialProfile } from './EditorialProfile'
 import { PlatformIcon } from '../components/PlatformIcon'
 import { ProfileEditIcon, ProfileShareIcon } from '../components/icons'
 import { savePage } from '../pageRepository'
@@ -870,7 +871,7 @@ export function OnePagePreview() {
   // —— 渲染 ——
 
   return (
-    <div className={`op-page${step === 0 && !published ? ' is-landing' : ''}${step === 0 && published ? ' is-published' : ''}${step === 0 && published && editing ? ' is-editing' : ''}`} style={pageStyle}>
+    <div className={`op-page${step === 0 && !published ? ' is-landing' : ''}${step === 1 ? ' is-profile-intro' : ''}${step === 0 && published ? ' is-published' : ''}${step === 0 && published && editing ? ' is-editing' : ''}`} style={pageStyle}>
       <input ref={avatarInput} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(event) => void changeAvatar(event.target.files?.[0])} />
       {/* 发布态的悬浮管理按钮 */}
       {step === 0 && published && (
@@ -1022,9 +1023,17 @@ export function OnePagePreview() {
         </div>
       )}
 
-      {/* ———— 向导第 1-2 步（壁纸全屏打底） ———— */}
-      {(step === 1 || step === 2) && (
-        <div className={`op-col${step === 1 ? ' op-intro' : ' op-links-step'}`}>
+      {step === 1 && <EditorialProfile
+        name={name} job={job} bio={bio} avatarImage={avatarImage}
+        avatarLoading={avatarLoading} avatarError={avatarError}
+        onName={setName} onJob={setJob} onBio={setBio}
+        onAvatar={() => avatarInput.current?.click()}
+        onBack={() => setStep(0)} onContinue={enterStep2}
+      />}
+
+      {/* ———— 向导第 2 步 ———— */}
+      {step === 2 && (
+        <div className="op-col op-links-step">
           <div className="op-wiz-top">
             <button
               className="op-wiz-back"
@@ -1038,42 +1047,6 @@ export function OnePagePreview() {
             </div>
             <span className="op-wiz-count">{step} / 3</span>
           </div>
-
-          {step === 1 && (
-            <>
-              <div className="op-form" role="group" aria-label="个人资料">
-                <div className="op-intro-identity">
-                  <button className="op-avatar-change op-intro-avatar" aria-label={avatarLoading ? '头像处理中' : '更换头像'} disabled={avatarLoading} onClick={() => avatarInput.current?.click()}>
-                    <ProfileAvatar src={avatarImage} />
-                    <span className="op-avatar-edit-badge" aria-hidden="true"><ProfileEditIcon /></span>
-                  </button>
-                  {avatarError && <p className="op-avatar-error" role="alert">{avatarError}</p>}
-                </div>
-                <label className="op-field">
-                  <span className="op-field-label">姓名</span>
-                  <input className="op-field-input" value={name} onChange={(e) => setName(e.target.value)} />
-                </label>
-                <label className="op-field">
-                  <span className="op-field-label">职位</span>
-                  <input className="op-field-input" value={job} onChange={(e) => setJob(e.target.value)} />
-                </label>
-                <label className="op-field">
-                  <span className="op-field-label">一句话简介</span>
-                  <textarea
-                    className="op-field-input op-field-textarea"
-                    rows={2}
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                  />
-                </label>
-              </div>
-              <div className="op-wiz-actions">
-                <button className="op-btn-continue" onClick={enterStep2}>
-                  继续
-                </button>
-              </div>
-            </>
-          )}
 
           {step === 2 && (
             <>

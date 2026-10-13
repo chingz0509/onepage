@@ -1,0 +1,48 @@
+.op-page.is-profile-intro {
+  padding: 12px 0;
+  background: #faf7f0 !important;
+  color: #24221b;
+}
+.ep-profile {
+  --ep-ink: #24221b;
+  --ep-muted: #8a877a;
+  --ep-faint: #aaa596;
+  --ep-line: #e5e0d2;
+  width: 393px;
+  padding: 0 23px 24px;
+  flex-shrink: 0;
+  zoom: var(--ep-fit-scale, 1);
+}
+.ep-navigation { display: flex; align-items: center; justify-content: space-between; height: 24px; margin-top: 8px; }
+.ep-back { padding: 0; border: 0; background: transparent; color: var(--ep-ink); width: 24px; height: 24px; cursor: pointer; }
+.ep-back svg { width: 22px; height: 22px; }
+.ep-progress { display: flex; gap: 8px; width: 149px; }
+.ep-progress span { height: 3px; flex: 1; border-radius: 99px; background: #ded8c9; }
+.ep-progress .is-current { background: var(--ep-ink); }
+.ep-count { color: #7e7a6e; font-size: 9.5px; letter-spacing: 2px; }
+.ep-heading { margin-top: 32px; text-align: center; }
+.ep-heading p { margin: 0; color: var(--ep-faint); font-size: 8px; line-height: 12px; letter-spacing: 3px; }
+.ep-heading h1 { margin: 13px 0 0; font-family: 'Songti SC', 'STSong', 'Noto Serif SC', serif; font-size: 25px; line-height: 36px; font-weight: 600; }
+.ep-identity { display: flex; flex-direction: column; align-items: center; margin-top: 21px; }
+.ep-avatar { position: relative; display: block; width: 100px; height: 100px; padding: 5px; border: 1px solid #dfdacd; border-radius: 50%; background: #faf7f0; cursor: pointer; box-shadow: 0 4px 6px #24221b0c; }
+.ep-avatar img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 2px solid white; }
+.ep-edit { position: absolute; right: -6px; bottom: 2px; display: grid; place-items: center; width: 27px; height: 27px; border-radius: 50%; background: var(--ep-ink); color: white; box-shadow: 0 3px 6px #24221b1c; }
+.ep-edit svg { width: 17px; height: 17px; }
+.ep-error { color: #a04a2a; font-size: 10px; }
+.ep-form { margin-top: 33px; }
+.ep-field { display: flex; flex-direction: column; gap: 7px; margin-top: 24px; }
+.ep-field:first-child { margin-top: 0; }
+.ep-field > span { font-size: 11px; line-height: 15px; color: var(--ep-muted); }
+.ep-field input, .ep-field textarea { width: 100%; border: 1px solid var(--ep-line); border-radius: 13px; background: white; color: var(--ep-ink); font: inherit; font-size: 14px; line-height: 22px; padding: 15px 20px; outline: none; }
+.ep-field input { height: 53px; }
+.ep-field input:focus { border-color: #698272; box-shadow: 0 0 0 1px #69827222; }
+.ep-bio { position: relative; }
+.ep-field textarea { display: block; height: 89px; padding: 11px 20px 27px; resize: none; border-color: #6f8979; }
+.ep-field textarea:focus { box-shadow: 0 0 0 1px #69827233; }
+.ep-bio-count { position: absolute; right: 20px; bottom: 10px; font-size: 9px; color: var(--ep-faint); pointer-events: none; }
+.ep-hint { margin: 12px 0 0; font-size: 9px; line-height: 15px; color: var(--ep-faint); }
+.ep-continue { margin-top: 99px; width: 100%; height: 49px; border: 0; border-radius: 999px; background: var(--ep-ink); color: white; font-size: 12px; font-weight: 500; cursor: pointer; }
+.ep-continue:hover { background: #403d32; }
+.ep-continue:active { background: #17160f; }
+.ep-continue:disabled, .ep-avatar:disabled { opacity: .5; cursor: wait; }
+.ep-back:focus-visible, .ep-avatar:focus-visible, .ep-continue:focus-visible { outline: 2px solid #698272; outline-offset: 4px; }

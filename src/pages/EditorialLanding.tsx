@@ -1,29 +1,10 @@
-import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
+import type { CSSProperties } from 'react'
+import { useWindowFit } from './useWindowFit'
 import './editorial-landing.css'
 
 /** The supplied cover is a product illustration, rather than a live user page. */
 export function EditorialLanding({ onCreate }: { onCreate: () => void }) {
-  const coverRef = useRef<HTMLElement>(null)
-  const [fitScale, setFitScale] = useState(1)
-
-  useLayoutEffect(() => {
-    const cover = coverRef.current
-    if (!cover) return
-    // offsetHeight measures the unscaled composition, so resizing does not
-    // repeatedly shrink the page based on its already scaled height.
-    const fitToWindow = () => {
-      const availableHeight = Math.max(1, window.innerHeight - 24)
-      setFitScale(Math.min(1, availableHeight / Math.max(1, cover.offsetHeight)))
-    }
-    fitToWindow()
-    const observer = new ResizeObserver(fitToWindow)
-    observer.observe(cover)
-    window.addEventListener('resize', fitToWindow)
-    return () => {
-      observer.disconnect()
-      window.removeEventListener('resize', fitToWindow)
-    }
-  }, [])
+  const { contentRef: coverRef, fitScale } = useWindowFit()
 
   return (
     <main ref={coverRef} className="el-cover" style={{ '--el-fit-scale': fitScale } as CSSProperties}>
