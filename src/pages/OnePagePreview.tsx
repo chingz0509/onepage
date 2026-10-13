@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import QRCode from 'qrcode'
+import { EditorialLanding } from './EditorialLanding'
 import { PlatformIcon } from '../components/PlatformIcon'
 import { ProfileEditIcon, ProfileShareIcon } from '../components/icons'
 import { savePage } from '../pageRepository'
@@ -869,7 +870,7 @@ export function OnePagePreview() {
   // —— 渲染 ——
 
   return (
-    <div className={`op-page${step === 0 && published ? ' is-published' : ''}${step === 0 && published && editing ? ' is-editing' : ''}`} style={pageStyle}>
+    <div className={`op-page${step === 0 && !published ? ' is-landing' : ''}${step === 0 && published ? ' is-published' : ''}${step === 0 && published && editing ? ' is-editing' : ''}`} style={pageStyle}>
       <input ref={avatarInput} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(event) => void changeAvatar(event.target.files?.[0])} />
       {/* 发布态的悬浮管理按钮 */}
       {step === 0 && published && (
@@ -898,17 +899,7 @@ export function OnePagePreview() {
 
       {/* ———— 欢迎屏（未发布） ———— */}
       {step === 0 && !published && (
-        <div className="op-welcome">
-          <p className="op-welcome-eyebrow">VOL.1 — 职场价值特辑</p>
-          <h1 className="op-welcome-title">你的个人目录</h1>
-          <p className="op-welcome-sub">不止介绍你的工作，也让人认识你。</p>
-          <button className="op-btn-continue op-welcome-btn" onClick={() => setStep(1)}>
-            创建我的个人目录
-          </button>
-          <div className="op-welcome-foot">
-            <span>ONE PAGE · AI-POWERED LINK IN BIO</span>
-          </div>
-        </div>
+        <EditorialLanding onCreate={() => setStep(1)} />
       )}
 
       {/* ———— 发布态：主页本身 ———— */}

@@ -1,0 +1,110 @@
+.op-page.is-landing {
+  --el-paper: #faf7f0;
+  --el-ink: #24221b;
+  --el-muted: #868376;
+  --el-faint: #aaa596;
+  --el-line: #dedacc;
+  background: var(--el-paper) !important;
+  color: var(--el-ink);
+  padding: 12px 0;
+}
+
+.el-cover {
+  width: min(100vw, 393px);
+  flex-shrink: 0;
+  zoom: var(--el-fit-scale, 1);
+  padding: 0 23px 26px;
+  margin: 0 auto;
+  text-wrap: pretty;
+}
+
+.el-masthead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 29px;
+  border-top: 1px solid var(--el-ink);
+  border-bottom: 1px solid var(--el-line);
+  font-size: 8px;
+  letter-spacing: 1px;
+  color: var(--el-muted);
+}
+
+.el-wordmark { color: var(--el-ink); letter-spacing: 2px; }
+.el-introduction { margin-top: 32px; }
+.el-introduction h1 {
+  margin: 0;
+  font-family: 'Songti SC', 'STSong', 'Noto Serif SC', serif;
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 1px;
+}
+.el-introduction > p {
+  margin: 10px 0 0;
+  color: var(--el-muted);
+  font-size: 9.5px;
+  line-height: 19px;
+}
+.el-showcase { margin: 23px 0 0; text-align: center; }
+.el-issue {
+  margin: 0 0 19px;
+  font-size: 7px;
+  line-height: 12px;
+  letter-spacing: 2px;
+  color: var(--el-faint);
+}
+.el-card-stack {
+  display: block;
+  width: calc(100% + 11px);
+  height: auto;
+  margin-left: -5.5px;
+}
+.el-showcase figcaption {
+  margin-top: 7px;
+  font-size: 8.5px;
+  line-height: 16px;
+  letter-spacing: 1px;
+  color: var(--el-faint);
+}
+.el-create { margin-top: 41px; text-align: center; }
+.el-create button {
+  width: 100%;
+  min-height: 49px;
+  padding: 12px 20px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--el-ink);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 160ms ease, transform 160ms ease;
+}
+.el-create button:hover { background: #403d32; }
+.el-create button:active { transform: scale(.985); }
+.el-create button:focus-visible { outline: 2px solid #647f6e; outline-offset: 4px; }
+.el-create > p {
+  margin: 12px 0 0;
+  font-size: 8.5px;
+  line-height: 16px;
+  color: var(--el-faint);
+}
+.el-footer {
+  margin-top: 61px;
+  padding-top: 10px;
+  border-top: 1px solid var(--el-line);
+  text-align: center;
+  color: var(--el-faint);
+}
+.el-footer p { margin: 0; font-size: 7px; line-height: 18px; letter-spacing: 1px; }
+.el-footer p + p { margin-top: 3px; letter-spacing: 2px; }
+@media (max-width: 360px) {
+  .el-cover { padding-right: 20px; padding-left: 20px; }
+  .el-introduction h1 { font-size: 30px; }
+  .el-masthead { letter-spacing: .5px; }
+  .el-footer p { letter-spacing: .6px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .el-create button { transition: none; }
+}
