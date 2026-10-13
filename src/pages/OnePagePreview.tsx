@@ -12,8 +12,9 @@ import { fetchPlatformMetrics, fetchGenericSite, fetchFailureMessage, type Fetch
 import {
   BUTTON_STYLES,
   PAGE_TEMPLATES,
-  WALLPAPERS,
+  CLASSIC_WALLPAPERS,
   resolveButtonColors,
+  resolveButtonShape,
   wallpaperById,
   type ButtonColorId,
   type ButtonStyleId,
@@ -567,14 +568,14 @@ export function OnePagePreview() {
   const avatarChar = name.trim()[0] ?? persona.avatar
   const wizardLinks = slots.filter((s) => s.card).map((s) => s.card as OnePageLink)
 
-  const radius = BUTTON_STYLES.find((b) => b.id === buttonStyle)?.radius ?? '999px'
   const btnColors = resolveButtonColors(wallpaper, buttonColor)
   // 默认纸感壁纸下条目用编辑风目录样式；用户定制壁纸后套用用户选择
   const editorial = false
   const linkBtnStyle: CSSProperties = {
     background: btnColors.bg,
     color: btnColors.text,
-    borderRadius: radius,
+    ...resolveButtonShape(wallpaper, buttonStyle),
+    fontFamily: wallpaper.fontFamily,
     borderColor: btnColors.border,
     backdropFilter: buttonColor === 'wallpaper' && wallpaper.followBorder ? 'blur(8px)' : undefined,
     WebkitBackdropFilter: buttonColor === 'wallpaper' && wallpaper.followBorder ? 'blur(8px)' : undefined,
@@ -583,6 +584,7 @@ export function OnePagePreview() {
   const canvasWallpaper = !published && step < 3 ? wallpaperById('cream') : wallpaper
   const pageStyle = {
     background: canvasWallpaper.bg,
+    '--template-font': wallpaper.fontFamily ?? 'inherit',
     color: canvasWallpaper.text,
     '--wiz-text': canvasWallpaper.text,
     '--profile-canvas': canvasWallpaper.canvas ?? canvasWallpaper.bg,
@@ -1068,6 +1070,8 @@ export function OnePagePreview() {
       }>
               <StylePicker
                 featured
+                name={name}
+                avatarImage={avatarImage}
                 wallpaper={wallpaper}
                 wallpaperId={wallpaperId}
                 setWallpaperId={setWallpaperId}
@@ -1200,12 +1204,12 @@ function PhonePreview(props: {
 }) {
   return (
     <div className="op-phone">
-      <div className="op-phone-screen" style={{ background: props.wallpaper.bg, color: props.wallpaper.text }}>
+      <div className={`op-phone-screen${props.wallpaper.type === 'photo' ? ' is-photo' : ''}`} style={{ background: props.wallpaper.bg, color: props.wallpaper.text, fontFamily: props.wallpaper.fontFamily }}>
         <div className="op-phone-avatar"><ProfileAvatar src={props.avatarImage || '/onepage-design/editorial-avatar.png'} /></div>
-        <p className="op-phone-name">{props.name}</p>
+        <p className="op-phone-name" style={{ fontFamily: props.wallpaper.fontFamily }}>{props.name}</p>
         <p className="op-phone-job">{props.job}</p>
         <div className="op-phone-links">
-          {[0, 1, 2].map((i) => (
+          {(props.links.length ? props.links.map((_, i) => i) : [0, 1, 2]).map((i) => (
               <div key={i} className="op-phone-link-entry">
                 <span className={`op-phone-link${props.links[i] ? '' : ' is-placeholder'}`} style={props.linkBtnStyle}>
                   {props.links[i] && <PlatformIcon url={props.links[i].url} />}<span>{props.links[i]?.platform || '主页链接'}</span>
@@ -1232,7 +1236,7 @@ function StylePreviewCompact(props: {
   return (
     <div className="op-style-preview is-compact" style={{ background: props.wallpaper.bg }}>
       <div className="op-style-avatar"><ProfileAvatar src={props.avatarImage} /></div>
-      <p className="op-style-name" style={{ color: props.wallpaper.text }}>
+      <p className="op-style-name" style={{ color: props.wallpaper.text, fontFamily: props.wallpaper.fontFamily }}>
         {props.name}
       </p>
       <div className="op-style-links">
@@ -1246,7 +1250,7 @@ function StylePreviewCompact(props: {
           </span>
         ))}
         {props.links.length === 0 && (
-          <p className="op-style-empty" style={{ color: props.wallpaper.text }}>
+          <p className="op-style-empty" style={{ color: props.wallpaper.text, fontFamily: props.wallpaper.fontFamily }}>
             还没有链接
           </p>
         )}
@@ -1258,6 +1262,8 @@ function StylePreviewCompact(props: {
 /** 壁纸 + 按钮样式选择器（向导第 3 步与风格弹层共用） */
 function StylePicker(props: {
   featured?: boolean
+  name?: string
+  avatarImage?: string
   wallpaper: Wallpaper
   wallpaperId: string
   setWallpaperId: (id: string) => void
@@ -1268,15 +1274,9 @@ function StylePicker(props: {
   styleTab: 'wallpaper' | 'button'
   setStyleTab: (t: 'wallpaper' | 'button') => void
 }) {
-  const [customOpen, setCustomOpen] = useState(props.wallpaper.type === 'photo')
+  const [customOpen, setCustomOpen] = useState(props.wallpaper.type === 'photo' || PAGE_TEMPLATES.some((preset) => preset.wallpaper === props.wallpaperId))
   const templateMode = customOpen && props.styleTab === 'wallpaper'
-  const featuredWallpapers = [
-    ['cream', '米白'], ['custom:3c4148', '石墨灰'],
-    ['custom:927653', '焦糖'], ['custom:30121d', '深酒红'],
-    ['custom:f5d3e9', '樱花粉'],
-    ['custom:f8d8bd', '蜜桃'], ['custom:ffffff', '纯白'], ['black', '纯黑'],
-  ].map(([id, name]) => ({ ...wallpaperById(id), name }))
-  const visibleWallpapers = props.featured ? featuredWallpapers : WALLPAPERS.filter((w) => w.type !== 'photo')
+  const visibleWallpapers = CLASSIC_WALLPAPERS
   return (
     <>
       {!templateMode && <div className="op-tabs">
@@ -1327,7 +1327,7 @@ function StylePicker(props: {
               const template = wallpaperById(preset.wallpaper)
               const selected = props.wallpaperId === preset.wallpaper && props.buttonStyle === preset.buttonStyle && props.buttonColor === 'wallpaper'
               return <button type="button" className={`op-wallpaper-template${selected ? ' is-active' : ''}`} key={preset.wallpaper} aria-pressed={selected} onClick={() => { props.setWallpaperId(preset.wallpaper); props.setButtonStyle(preset.buttonStyle); props.setButtonColor('wallpaper') }}>
-                <span className="op-template-preview" style={{ background: template.bg, color: template.text }} aria-hidden="true"><img src="/onepage-design/avatar-photo.jpg" alt="" /><b>你的名字</b><span className="op-template-bio-line" />{[0, 1, 2].map((n) => <em key={n} style={{ background: template.followBtn, color: template.followText, border: `1px solid ${template.followBorder ?? 'transparent'}`, backdropFilter: template.followBorder ? 'blur(4px)' : undefined, WebkitBackdropFilter: template.followBorder ? 'blur(4px)' : undefined, borderRadius: preset.buttonStyle === 'pill' ? '999px' : '5px' }}>主页链接</em>)}</span>
+                <span className="op-template-preview" style={{ background: template.bg, color: template.text, fontFamily: template.fontFamily }} aria-hidden="true"><span className="op-template-kicker">ONE PAGE</span><img src={props.avatarImage || "/onepage-design/editorial-avatar.png"} alt="" /><b>{props.name || "你的名字"}</b><span className="op-template-bio-line" />{[0, 1, 2].map((n) => <em key={n} style={{ background: template.followBtn, color: template.followText, border: `1px solid ${template.followBorder ?? 'transparent'}`, backdropFilter: template.followBorder ? 'blur(4px)' : undefined, WebkitBackdropFilter: template.followBorder ? 'blur(4px)' : undefined, ...resolveButtonShape(template, preset.buttonStyle) }}>主页链接</em>)}</span>
                 <span>{preset.name}</span><small className="op-template-caption">{preset.description}</small>
               </button>
             })}
@@ -1347,7 +1347,7 @@ function StylePicker(props: {
                 <span
                   className="op-btnstyle-demo"
                   style={{
-                    borderRadius: b.radius,
+                    ...resolveButtonShape(props.wallpaper, b.id),
                     background: resolveButtonColors(props.wallpaper, props.buttonColor).bg,
                     color: resolveButtonColors(props.wallpaper, props.buttonColor).text,
                     borderColor: resolveButtonColors(props.wallpaper, props.buttonColor).border,
@@ -1370,6 +1370,7 @@ function CustomSwatch(props: { wallpaperId: string; setWallpaperId: (id: string)
     <button
       type="button"
       className={`op-swatch op-swatch-custom op-custom-entry${isCustom ? ' is-active' : ''}`}
+      aria-label="模板 / 自定义"
       aria-expanded={props.expanded}
       onClick={props.onClick}
     >

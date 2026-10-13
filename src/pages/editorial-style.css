@@ -13,7 +13,7 @@
 .op-page.is-style-intro .es-preview .op-phone-link .op-platform-icon img,
 .op-page.is-style-intro .es-preview .op-phone-link .op-platform-icon svg { width: 12px; height: 12px; flex: none; }
 .op-page.is-style-intro .es-preview .op-phone-link > span:last-child { flex: 0 1 auto; opacity: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.op-page.is-style-intro .es-preview .op-phone-link.is-placeholder { opacity: .45; }
+.op-page.is-style-intro .es-preview .op-phone-link.is-placeholder { opacity: 1; }
 .op-page.is-style-intro .es-preview .ops-website-preview { display: none; }
 .op-page.is-style-intro .es-preview .op-phone-signature { margin-top: auto; padding-top: 10px; font-size: 6px; opacity: .5; }
 .op-page.is-style-intro .es-panel { --wiz-text: #24221b; --wiz-btn-bg: #24221b; --wiz-btn-text: white; display: flex; flex-direction: column; flex: 1; min-height: 0; margin: 0 -23px -12px; padding: 22px 23px 24px; border: 1px solid #e5e0d2; border-bottom: 0; border-radius: 23px 23px 0 0; background: white; color: #24221b; box-shadow: none; }
@@ -26,6 +26,7 @@
 .op-page.is-style-intro .es-panel .op-swatch.is-active > span { visibility: hidden; }
 .op-page.is-style-intro .es-panel .op-custom-entry { grid-column: span 2; width: 100%; height: 39px; border: 1px solid #e5e0d2; border-radius: 11px; background: #f7f5f0; color: #8a877a; font-size: 10px; }
 .op-page.is-style-intro .es-panel .op-custom-entry > span { visibility: visible; }
+.op-page.is-style-intro .es-panel .op-custom-entry.is-active > span { visibility: visible; }
 .op-page.is-style-intro .es-panel .op-btnstyles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 4px; }
 .op-page.is-style-intro .es-panel .op-btnstyle { min-height: 90px; border: 1px solid #e5e0d2; border-radius: 12px; background: #faf8f3; color: #8a877a; font-size: 10px; }
 .op-page.is-style-intro .es-panel .op-btnstyle.is-active { border-color: #857e70; box-shadow: 0 0 0 .5px #857e70; }
@@ -35,3 +36,82 @@
 .op-page.is-style-intro .es-panel .op-template-rail { grid-auto-columns: 100px; }
 .op-page.is-style-intro .es-panel .op-template-caption { font-size: 8px; }
 .op-page.is-style-intro .es-panel .op-cloud-status { font-size: 10px; }
+
+/* Keep controls at their actual size; only the preview has a compact scale. */
+.op-page.is-style-intro { align-items: center; justify-content: flex-start; padding-bottom: 0; }
+.es-page { width: min(393px, 100%); height: max(640px, calc(100dvh - 12px)); min-height: 0; max-height: none; padding: 0 23px 12px; zoom: 1; }
+.es-page > .ep-navigation { height: 28px; margin-top: 4px; flex-shrink: 0; }
+.es-page > .ep-heading { margin-top: 20px; flex-shrink: 0; }
+.es-page .ep-heading h1 { margin-top: 8px; color: #24221b; font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; font-size: 24px; line-height: 32px; letter-spacing: -.5px; }
+.es-preview { margin: 16px 0; flex-shrink: 0; }
+.op-page.is-style-intro .es-preview .op-phone { width: 156px; height: 236px; border-radius: 23px; }
+.op-page.is-style-intro .es-preview .op-phone-screen { padding: 14px 10px 8px; border-radius: 18px; }
+.op-page.is-style-intro .es-preview .op-phone-avatar { width: 30px; height: 30px; }
+.op-page.is-style-intro .es-preview .op-phone-name { flex-shrink: 0; max-width: 100%; margin: 6px 0 2px; font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; font-size: 14px; line-height: 18px; overflow-wrap: anywhere; }
+.op-page.is-style-intro .es-preview .op-phone-job { flex-shrink: 0; margin: 0; max-width: 100%; font-size: 8px; line-height: 12px; text-align: center; overflow-wrap: anywhere; }
+.op-page.is-style-intro .es-preview .op-phone-links { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; margin-top: 10px; gap: 6px; }
+.op-page.is-style-intro .es-preview .op-phone-links::-webkit-scrollbar { display: none; }
+.op-page.is-style-intro .es-preview .op-phone-link-entry { flex-shrink: 0; }
+.op-page.is-style-intro .es-preview .op-phone-link { min-height: 26px; height: 26px; font-size: 9px; }
+.op-page.is-style-intro .es-preview .op-phone-signature { flex-shrink: 0; padding-top: 6px; }
+.op-page.is-style-intro .es-panel { margin: 0 -23px -12px; padding: 16px 23px max(18px, env(safe-area-inset-bottom)); overflow: hidden; }
+.op-page.is-style-intro .es-panel .op-tabs { flex-shrink: 0; height: 40px; margin-bottom: 12px; }
+.op-page.is-style-intro .es-panel .op-tab { min-height: 34px; font-size: 13px; }
+.op-page.is-style-intro .es-panel .op-picker-panels { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; padding: 4px; margin: -4px; }
+.op-page.is-style-intro .es-panel .op-picker-panels::-webkit-scrollbar { display: none; }
+.op-page.is-style-intro .es-panel .op-picker-panel[hidden] { display: none; }
+.op-page.is-style-intro .es-panel .op-swatches { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px 8px; }
+.op-page.is-style-intro .es-panel .op-swatch { width: 44px; height: 44px; }
+.op-page.is-style-intro .es-panel .op-custom-entry { width: 100%; height: 44px; font-size: 11px; }
+.op-page.is-style-intro .es-panel .op-btnstyle { min-height: 92px; font-size: 11px; }
+.op-page.is-style-intro .es-panel .op-wiz-actions { flex-shrink: 0; margin-top: 0; padding-top: 16px; }
+.op-page.is-style-intro .es-panel .op-btn-continue { width: 100%; min-height: 49px; border: 0; font-family: inherit; font-size: 12px; font-weight: 500; letter-spacing: normal; box-shadow: none; }
+.op-page.is-style-intro .es-panel .op-btn-continue:hover:not(:disabled) { background: #403d32; }
+.op-page.is-style-intro .es-panel .op-template-rail { scrollbar-width: none; }
+.op-page.is-style-intro .es-panel .op-template-rail::-webkit-scrollbar { display: none; }
+@media (max-height: 700px) {
+  .es-page > .ep-heading { margin-top: 16px; }
+  .es-preview { margin: 12px 0; }
+}
+
+/* Match the preceding step's displayed action size without shrinking the picker. */
+.es-page { width: min(100%, calc(393px * var(--es-action-scale, 1))); padding-left: calc(23px * var(--es-action-scale, 1)); padding-right: calc(23px * var(--es-action-scale, 1)); }
+.op-page.is-style-intro .es-panel { margin-left: calc(-23px * var(--es-action-scale, 1)); margin-right: calc(-23px * var(--es-action-scale, 1)); padding-left: calc(23px * var(--es-action-scale, 1)); padding-right: calc(23px * var(--es-action-scale, 1)); border-left: 0; border-right: 0; }
+.es-panel-title { flex-shrink: 0; margin: 0 0 16px; color: #24221b; font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; font-size: 20px; line-height: 28px; font-weight: 600; text-align: center; letter-spacing: -.3px; }
+.op-page.is-style-intro .es-panel .op-tabs { height: 36px; padding: 2px; border-radius: 9px; background: #f5f3ee; }
+.op-page.is-style-intro .es-panel .op-tab { min-height: 32px; font-size: 12px; border-radius: 7px; }
+.op-page.is-style-intro .es-panel .op-tab.is-active { box-shadow: 0 1px 3px #24221b08; }
+.op-page.is-style-intro .es-panel .op-swatch:not(.op-custom-entry) { border: 5px solid white; box-shadow: inset 0 0 0 1px #24221b0c; }
+.op-page.is-style-intro .es-panel .op-swatch.is-active:not(.op-custom-entry) { outline: 1px solid #8b8476; outline-offset: -2px; }
+.op-page.is-style-intro .es-panel .op-swatches { gap: 6px 8px; padding: 2px; }
+.op-page.is-style-intro .es-panel .op-custom-entry { height: 36px; align-self: center; font-size: 10px; font-weight: 400; border-radius: 8px; background: #faf9f5; border-color: #e9e5dc; }
+.op-page.is-style-intro .es-panel .op-btnstyles { gap: 8px; padding: 2px; }
+.op-page.is-style-intro .es-panel .op-btnstyle { aspect-ratio: auto; min-height: 76px; padding: 12px 8px; border-color: #e9e5dc; border-radius: 9px; background: #faf9f5; }
+.op-page.is-style-intro .es-panel .op-btnstyle.is-active { border-color: #9c9587; box-shadow: none; }
+.op-page.is-style-intro .es-panel .op-btnstyle-demo { min-height: 28px; padding: 4px 2px; font-size: 10px; font-weight: 400; }
+.op-page.is-style-intro .es-panel .op-btn-continue { height: calc(49px * var(--es-action-scale, 1)); min-height: calc(49px * var(--es-action-scale, 1)); padding: 0 14px; font-size: calc(12px * var(--es-action-scale, 1)); }
+
+/* Curated editions use the same quiet palette and thin edges as the editor. */
+.op-page.is-style-intro .es-panel .op-template-rail { grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: 100px; gap: 12px; margin: 0; padding: 4px 3px 10px; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x proximity; }
+.op-page.is-style-intro .es-panel .op-wallpaper-template { width: 100%; padding: 0; text-align: left; }
+.op-page.is-style-intro .es-panel .op-template-preview { aspect-ratio: 3 / 4; padding: 8px; gap: 3px; margin-bottom: 8px; border-radius: 10px; box-shadow: none; }
+.op-page.is-style-intro .es-panel .op-template-kicker { font-size: 5px; line-height: 7px; letter-spacing: 2px; opacity: .6; margin: 0; }
+.op-page.is-style-intro .es-panel .op-template-preview img { width: 22px; height: 22px; border: 1px solid #ffffff80; }
+.op-page.is-style-intro .es-panel .op-template-preview b { font-size: 10px; line-height: 12px; font-weight: 500; margin: 0; }
+.op-page.is-style-intro .es-panel .op-template-bio-line { width: 28%; height: 1px; margin: 1px 0; opacity: .3; }
+.op-page.is-style-intro .es-panel .op-template-preview em { min-height: 16px; line-height: 12px; font-size: 7px; width: 100%; }
+.op-page.is-style-intro .es-panel .op-wallpaper-template > span:last-of-type { font-size: 11px; font-weight: 500; color: #343129; }
+.op-page.is-style-intro .es-panel .op-template-caption { font-size: 9px; line-height: 14px; color: #9a9488; margin-top: 2px; }
+.op-page.is-style-intro .es-panel .op-wallpaper-template.is-active .op-template-preview { outline: 1px solid #8b8476; outline-offset: 2px; }
+.op-page.is-style-intro .es-panel .op-custom-heading { margin-bottom: 8px; font-size: 10px; }
+.op-page.is-style-intro .es-panel .op-template-back { min-height: 32px; }
+.op-page.is-style-intro:has(.op-custom-wallpapers) .es-preview .op-phone { height: 220px; }
+
+
+/* The white workspace reaches the bottom; the primary action has a stable baseline. */
+.es-page { padding-bottom: 0; }
+.op-page.is-style-intro .es-panel { flex: 1; margin-bottom: 0; padding-bottom: max(16px, env(safe-area-inset-bottom)); border-bottom: 0; border-radius: 23px 23px 0 0; }
+.op-page.is-style-intro .es-panel .op-wiz-actions { margin-top: auto; padding-top: 20px; }
+/* Taller screens give the preview more room, rather than enlarging an empty footer. */
+.op-page.is-style-intro .es-preview .op-phone { height: clamp(236px, calc(100dvh - 400px), 320px); }
+.op-page.is-style-intro:has(.op-custom-wallpapers) .es-preview .op-phone { height: clamp(220px, calc(100dvh - 450px), 300px); }

@@ -366,3 +366,6 @@
     opacity: 1;
   }
 }
+
+/* Template typography stays inside the profile content. */
+.op-home-col .ops-name, .op-home-col .ops-title, .op-home-col .ops-bio { font-family: var(--template-font, inherit); }

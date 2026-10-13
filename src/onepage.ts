@@ -56,13 +56,39 @@ export type Wallpaper = {
   /** Optional edge for translucent template buttons. */
   followBorder?: string
   dark: boolean
+  /** Typography and paper edges belong to the template, not the editor UI. */
+  fontFamily?: string
+  paperEdge?: boolean
 }
+
+/** Curated solid editions; legacy colors remain resolvable for existing pages. */
+export const CLASSIC_WALLPAPERS: Wallpaper[] = [
+  { id: 'custom:ffffff', name: '纯白', type: 'solid', bg: '#FFFFFF', text: '#242629', followBtn: '#F1F2F3', followText: '#242629', dark: false },
+  { id: 'classic-ivory', name: '象牙白', type: 'solid', bg: '#F5F1E8', text: '#38332B', followBtn: '#E7DFD1', followText: '#38332B', dark: false },
+  { id: 'classic-fog', name: '雾灰', type: 'solid', bg: '#E6E9EC', text: '#28313B', followBtn: '#D5DCE1', followText: '#28313B', dark: false },
+  { id: 'classic-sage', name: '鼠尾草绿', type: 'solid', bg: '#DCE4D8', text: '#304234', followBtn: '#C7D3C0', followText: '#304234', dark: false },
+  { id: 'classic-navy', name: '午夜蓝', type: 'solid', bg: '#172B46', text: '#F3F0E9', followBtn: '#2F4663', followText: '#F3F0E9', dark: true },
+  { id: 'classic-burgundy', name: '勃艮第红', type: 'solid', bg: '#562B38', text: '#FFF3E9', followBtn: '#71404E', followText: '#FFF3E9', dark: true },
+  { id: 'classic-clay', name: '陶土', type: 'solid', bg: '#C9AA97', text: '#3D2D24', followBtn: '#EEDCCB', followText: '#3D2D24', dark: false },
+  { id: 'classic-ink', name: '墨黑', type: 'solid', bg: '#202124', text: '#F3F1EA', followBtn: '#37393D', followText: '#F3F1EA', dark: true },
+]
 
 /**
  * 选择器里展示的色板：低饱和莫兰迪色系 + 沉稳深色 + 含蓄渐变。
  * cream 保持为默认值（编辑版式模板绑定 cream）。
  */
 export const WALLPAPERS: Wallpaper[] = [
+  ...CLASSIC_WALLPAPERS,
+  { id: 'premium-track', name: '蓝色起跑', type: 'photo', bg: 'linear-gradient(180deg, rgba(0,38,78,.15), transparent), url("/onepage-design/templates/premium-track.webp?v=20261013-personality-ready") center / cover #086dae', canvas: '#086dae', text: '#ffffff', followBtn: '#ffffff', followText: '#153345', dark: true, paperEdge: true },
+  { id: 'premium-bakery', name: '黄油来信', type: 'photo', bg: 'linear-gradient(180deg, rgba(255,248,234,.42), rgba(255,248,234,.12)), url("/onepage-design/templates/premium-bakery.webp?v=20261013-personality-ready") center / cover #ab8358', canvas: '#ab8358', text: '#603c28', followBtn: '#fffaf0', followText: '#9b301a', dark: false, fontFamily: 'Georgia, "Songti SC", serif', paperEdge: true },
+  { id: 'premium-vanity', name: '金色妆台', type: 'photo', bg: 'linear-gradient(180deg, rgba(255,248,234,.22), transparent), url("/onepage-design/templates/premium-vanity.webp?v=20261013-personality-ready") center / cover #9e794b', canvas: '#9e794b', text: '#4b3320', followBtn: '#f1ddbc', followText: '#60482c', dark: false, fontFamily: 'Georgia, "Songti SC", serif' },
+  { id: 'premium-film', name: '焦糖胶片', type: 'photo', bg: 'linear-gradient(180deg, rgba(0,0,0,.22), rgba(0,0,0,.03)), url("/onepage-design/templates/premium-film.webp?v=20261013-personality-ready") center / cover #8b5536', canvas: '#8b5536', text: '#fff0d7', followBtn: '#fff9ee', followText: '#835234', dark: true, fontFamily: '"Courier New", "PingFang SC", monospace' },
+  { id: 'premium-celadon', name: '青瓷微雨', type: 'photo', bg: 'url("/onepage-design/templates/premium-celadon.webp?v=20261013") center / cover #c0cdb5', canvas: '#c0cdb5', text: '#293d30', followBtn: '#fcfdf7', followText: '#293d30', followBorder: 'rgba(255,255,255,.35)', dark: false },
+  { id: 'premium-water', name: '碧波留光', type: 'photo', bg: 'url("/onepage-design/templates/premium-water.webp?v=20261013") center / cover #86b9b5', canvas: '#86b9b5', text: '#173f42', followBtn: '#f4faf7', followText: '#173f42', followBorder: 'rgba(255,255,255,.35)', dark: false },
+  { id: 'premium-architecture', name: '石光拱廊', type: 'photo', bg: 'url("/onepage-design/templates/premium-architecture.webp?v=20261013") center / cover #e6d9c6', canvas: '#e6d9c6', text: '#3f352b', followBtn: '#fffaf0', followText: '#3f352b', followBorder: 'rgba(255,255,255,.35)', dark: false },
+  { id: 'premium-forest', name: '雾林深处', type: 'photo', bg: 'linear-gradient(180deg, rgba(10,31,21,.5), rgba(10,31,21,.14)), url("/onepage-design/templates/premium-forest.webp?v=20261013") center / cover #243c32', canvas: '#243c32', text: '#f2f6eb', followBtn: '#edf3e7', followText: '#273e31', followBorder: 'rgba(255,255,255,.35)', dark: true },
+  { id: 'premium-coast', name: '暮海玫瑰', type: 'photo', bg: 'url("/onepage-design/templates/premium-coast.webp?v=20261013") center / cover #b49b9e', canvas: '#b49b9e', text: '#2e2128', followBtn: '#faf1ee', followText: '#48343e', followBorder: 'rgba(255,255,255,.35)', dark: false },
+  { id: 'premium-botanical', name: '暖杏花影', type: 'photo', bg: 'url("/onepage-design/templates/premium-botanical.webp?v=20261013") center / cover #ead8bc', canvas: '#ead8bc', text: '#4c3b28', followBtn: '#fffaf0', followText: '#4c3b28', followBorder: 'rgba(255,255,255,.35)', dark: false },
   { id: 'template-water', name: '海边度假', type: 'photo', bg: 'linear-gradient(180deg, rgba(15,64,69,.28), rgba(15,64,69,.14)), url("/onepage-design/templates/water-serene-v2.jpg") center / cover #2b777a', canvas: '#2b777a', text: '#f4faf7', followBtn: 'rgba(13, 65, 70, .46)', followText: '#f4faf7', followBorder: 'rgba(231,249,243,.28)', dark: true },
   { id: 'template-concrete', name: '城市建筑', type: 'photo', bg: 'linear-gradient(180deg, rgba(247,242,232,.12), rgba(247,242,232,.04)), url("/onepage-design/templates/city-arch-v2.jpg") center / cover #e2d8c7', canvas: '#e2d8c7', text: '#352e26', followBtn: 'rgba(251,247,238,.58)', followText: '#352e26', followBorder: 'rgba(108,87,62,.2)', dark: false },
   { id: 'template-forest', name: '深色自然', type: 'photo', bg: 'linear-gradient(180deg, rgba(18,37,29,.12), rgba(18,37,29,.24)), url("/onepage-design/templates/forest-mist.jpg") center / cover #253e34', canvas: '#253e34', text: '#eff4e9', followBtn: 'rgba(213,230,207,.16)', followText: '#eff4e9', dark: true },
@@ -86,12 +112,16 @@ export const WALLPAPERS: Wallpaper[] = [
 ]
 
 export const PAGE_TEMPLATES: { wallpaper: string; name: string; description: string; buttonStyle: ButtonStyleId }[] = [
-  { wallpaper: 'template-water', name: '海边度假', description: '柔波青绿 · 轻透胶囊', buttonStyle: 'pill' },
-  { wallpaper: 'template-concrete', name: '城市建筑', description: '暖白拱廊 · 轻透圆角', buttonStyle: 'round' },
-  { wallpaper: 'template-forest', name: '深色自然', description: '蕨影雾绿 · 轻透圆角', buttonStyle: 'round' },
-  { wallpaper: 'template-coast', name: '暮色海岸', description: '落日玫瑰 · 轻透胶囊', buttonStyle: 'pill' },
-  { wallpaper: 'template-mountain', name: '雾蓝山野', description: '远山雾蓝 · 轻透圆角', buttonStyle: 'round' },
-  { wallpaper: 'template-apricot', name: '暖杏花影', description: '暖杏花枝 · 轻透胶囊', buttonStyle: 'pill' },
+  { wallpaper: 'premium-celadon', name: '青瓷微雨', description: '青瓷釉纹 · 柔光颗粒', buttonStyle: 'pill' },
+  { wallpaper: 'premium-water', name: '碧波留光', description: '水纹折光 · 通透青绿', buttonStyle: 'pill' },
+  { wallpaper: 'premium-architecture', name: '石光拱廊', description: '石材肌理 · 温柔光影', buttonStyle: 'round' },
+  { wallpaper: 'premium-forest', name: '雾林深处', description: '蕨叶雾气 · 深绿静谧', buttonStyle: 'round' },
+  { wallpaper: 'premium-coast', name: '暮海玫瑰', description: '海面微光 · 玫瑰暮色', buttonStyle: 'pill' },
+  { wallpaper: 'premium-botanical', name: '暖杏花影', description: '纸纤花影 · 暖杏微光', buttonStyle: 'pill' },
+  { wallpaper: 'premium-track', name: '蓝色起跑', description: '塑胶跑道 · 纸边节奏', buttonStyle: 'square' },
+  { wallpaper: 'premium-bakery', name: '黄油来信', description: '烘焙晨光 · 奶油纸边', buttonStyle: 'square' },
+  { wallpaper: 'premium-vanity', name: '金色妆台', description: '暖金光影 · 丝绒柔感', buttonStyle: 'pill' },
+  { wallpaper: 'premium-film', name: '焦糖胶片', description: '复古颗粒 · 打字机体', buttonStyle: 'pill' },
 ]
 
 /** 旧版色板：不再展示，仅用于兼容已发布分享链接里的旧壁纸 id */
@@ -148,6 +178,16 @@ export const BUTTON_STYLES: { id: ButtonStyleId; name: string; radius: string }[
   { id: 'pill', name: '胶囊现代', radius: '999px' },
 ]
 
+/** Keep template samples, editor previews and shared pages on the same button shape. */
+export function resolveButtonShape(wallpaper: Wallpaper, style: ButtonStyleId) {
+  return {
+    borderRadius: BUTTON_STYLES.find((button) => button.id === style)?.radius ?? '999px',
+    clipPath: wallpaper.paperEdge && style === 'square' ? PAPER_EDGE : undefined,
+  }
+}
+
+const PAPER_EDGE = 'polygon(0% 4.00%, 1% 3.62%, 2% 2.62%, 3% 1.38%, 4% 0.38%, 5% 0.00%, 6% 0.38%, 7% 1.38%, 8% 2.62%, 9% 3.62%, 10% 4.00%, 11% 3.62%, 12% 2.62%, 13% 1.38%, 14% 0.38%, 15% 0.00%, 16% 0.38%, 17% 1.38%, 18% 2.62%, 19% 3.62%, 20% 4.00%, 21% 3.62%, 22% 2.62%, 23% 1.38%, 24% 0.38%, 25% 0.00%, 26% 0.38%, 27% 1.38%, 28% 2.62%, 29% 3.62%, 30% 4.00%, 31% 3.62%, 32% 2.62%, 33% 1.38%, 34% 0.38%, 35% 0.00%, 36% 0.38%, 37% 1.38%, 38% 2.62%, 39% 3.62%, 40% 4.00%, 41% 3.62%, 42% 2.62%, 43% 1.38%, 44% 0.38%, 45% 0.00%, 46% 0.38%, 47% 1.38%, 48% 2.62%, 49% 3.62%, 50% 4.00%, 51% 3.62%, 52% 2.62%, 53% 1.38%, 54% 0.38%, 55% 0.00%, 56% 0.38%, 57% 1.38%, 58% 2.62%, 59% 3.62%, 60% 4.00%, 61% 3.62%, 62% 2.62%, 63% 1.38%, 64% 0.38%, 65% 0.00%, 66% 0.38%, 67% 1.38%, 68% 2.62%, 69% 3.62%, 70% 4.00%, 71% 3.62%, 72% 2.62%, 73% 1.38%, 74% 0.38%, 75% 0.00%, 76% 0.38%, 77% 1.38%, 78% 2.62%, 79% 3.62%, 80% 4.00%, 81% 3.62%, 82% 2.62%, 83% 1.38%, 84% 0.38%, 85% 0.00%, 86% 0.38%, 87% 1.38%, 88% 2.62%, 89% 3.62%, 90% 4.00%, 91% 3.62%, 92% 2.62%, 93% 1.38%, 94% 0.38%, 95% 0.00%, 96% 0.38%, 97% 1.38%, 98% 2.62%, 99% 3.62%, 100% 4.00%, 100% 96.00%, 99% 96.38%, 98% 97.38%, 97% 98.62%, 96% 99.62%, 95% 100.00%, 94% 99.62%, 93% 98.62%, 92% 97.38%, 91% 96.38%, 90% 96.00%, 89% 96.38%, 88% 97.38%, 87% 98.62%, 86% 99.62%, 85% 100.00%, 84% 99.62%, 83% 98.62%, 82% 97.38%, 81% 96.38%, 80% 96.00%, 79% 96.38%, 78% 97.38%, 77% 98.62%, 76% 99.62%, 75% 100.00%, 74% 99.62%, 73% 98.62%, 72% 97.38%, 71% 96.38%, 70% 96.00%, 69% 96.38%, 68% 97.38%, 67% 98.62%, 66% 99.62%, 65% 100.00%, 64% 99.62%, 63% 98.62%, 62% 97.38%, 61% 96.38%, 60% 96.00%, 59% 96.38%, 58% 97.38%, 57% 98.62%, 56% 99.62%, 55% 100.00%, 54% 99.62%, 53% 98.62%, 52% 97.38%, 51% 96.38%, 50% 96.00%, 49% 96.38%, 48% 97.38%, 47% 98.62%, 46% 99.62%, 45% 100.00%, 44% 99.62%, 43% 98.62%, 42% 97.38%, 41% 96.38%, 40% 96.00%, 39% 96.38%, 38% 97.38%, 37% 98.62%, 36% 99.62%, 35% 100.00%, 34% 99.62%, 33% 98.62%, 32% 97.38%, 31% 96.38%, 30% 96.00%, 29% 96.38%, 28% 97.38%, 27% 98.62%, 26% 99.62%, 25% 100.00%, 24% 99.62%, 23% 98.62%, 22% 97.38%, 21% 96.38%, 20% 96.00%, 19% 96.38%, 18% 97.38%, 17% 98.62%, 16% 99.62%, 15% 100.00%, 14% 99.62%, 13% 98.62%, 12% 97.38%, 11% 96.38%, 10% 96.00%, 9% 96.38%, 8% 97.38%, 7% 98.62%, 6% 99.62%, 5% 100.00%, 4% 99.62%, 3% 98.62%, 2% 97.38%, 1% 96.38%, 0% 96.00%)'
+
 export const BUTTON_COLORS: { id: ButtonColorId; name: string }[] = [
   { id: 'black', name: '黑色' },
   { id: 'white', name: '白色' },
@@ -172,6 +212,8 @@ export function resolveButtonColors(
 }
 
 export function wallpaperById(id: string): Wallpaper {
+  const classic = CLASSIC_WALLPAPERS.find((wallpaper) => wallpaper.id === id)
+  if (classic) return classic
   if (isCustomWallpaperId(id)) return customWallpaper(id.slice(CUSTOM_PREFIX.length))
   return (
     WALLPAPERS.find((w) => w.id === id) ??

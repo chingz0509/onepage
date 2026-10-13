@@ -1,5 +1,5 @@
 import {
-  BUTTON_STYLES,
+  resolveButtonShape,
   resolveButtonColors,
   wallpaperById,
   type OnePageLink,
@@ -68,12 +68,11 @@ export function EditorialItemContent({ link }: { link: OnePageLink }) {
  */
 export function OnePageShared({ data }: { data: OnePageShare }) {
   const wallpaper = wallpaperById(data.wallpaper)
-  const radius = BUTTON_STYLES.find((b) => b.id === data.buttonStyle)?.radius ?? '999px'
   const btn = resolveButtonColors(wallpaper, data.buttonColor)
   const editorial = false
 
   return (
-    <div className="ops-page" style={{ background: wallpaper.bg, color: wallpaper.text,
+    <div className="ops-page" style={{ background: wallpaper.bg, color: wallpaper.text, fontFamily: wallpaper.fontFamily,
       '--profile-subtext': data.wallpaper === 'cream' ? '#383A4C' : wallpaper.text,
       '--profile-footer-text': data.wallpaper === 'cream' ? '#7d7972' : wallpaper.text,
       '--profile-metric-text': data.wallpaper === 'cream' ? '#6E727A' : btn.text,
@@ -108,7 +107,7 @@ export function OnePageShared({ data }: { data: OnePageShare }) {
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ background: btn.bg, color: btn.text, borderRadius: radius, borderColor: btn.border, backdropFilter: data.buttonColor === 'wallpaper' && wallpaper.followBorder ? 'blur(8px)' : undefined, WebkitBackdropFilter: data.buttonColor === 'wallpaper' && wallpaper.followBorder ? 'blur(8px)' : undefined }}
+                style={{ background: btn.bg, color: btn.text, ...resolveButtonShape(wallpaper, data.buttonStyle), borderColor: btn.border, backdropFilter: data.buttonColor === 'wallpaper' && wallpaper.followBorder ? 'blur(8px)' : undefined, WebkitBackdropFilter: data.buttonColor === 'wallpaper' && wallpaper.followBorder ? 'blur(8px)' : undefined }}
               >
                 <span className="ops-link-badge">
                   <PlatformIcon url={link.url} />
