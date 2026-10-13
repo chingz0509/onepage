@@ -1026,7 +1026,26 @@ export function OnePagePreview() {
       >
         {slots.map((slot, i) => slot.card ? (
           <EditorialCompletedLink key={slot.id} card={slot.card} flashing={flashKey === slot.card.platform}
-            onDelete={() => setSlots((prev) => prev.map((s) => s.id === slot.id ? { ...s, card: null } : s))} />
+            sortId={slot.id} sortable={wizardLinks.length > 1}
+            onMove={(targetId) => setSlots((prev) => {
+              const from = prev.findIndex((s) => s.id === slot.id)
+              const to = prev.findIndex((s) => s.id === targetId)
+              if (from < 0 || to < 0 || from === to) return prev
+              const next = [...prev]
+              const [moved] = next.splice(from, 1)
+              next.splice(to, 0, moved)
+              return next
+            })}
+            onNudge={(direction) => setSlots((prev) => {
+              const positions = prev.flatMap((s, index) => s.card ? [index] : [])
+              const from = prev.findIndex((s) => s.id === slot.id)
+              const to = positions[positions.indexOf(from) + direction]
+              if (to === undefined) return prev
+              const next = [...prev]
+              ;[next[from], next[to]] = [next[to], next[from]]
+              return next
+            })}
+            onDelete={() => setSlots((prev) => prev.filter((s) => s.id !== slot.id))} />
         ) : (
           <LinkInputSlot editorial key={slot.id} placeholder={persona.placeholders[i] ?? '粘贴你的主页链接'}
             isDuplicate={isDupPlatform} onResolve={(card) => setSlots((prev) => prev.map((s) => s.id === slot.id ? { ...s, card } : s))}
