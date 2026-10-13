@@ -150,6 +150,7 @@ type ServerResult = {
 }
 
 export function fetchFailureMessage(reason: string): string {
+  if (reason === 'webbridge-unavailable') return '备用读取服务暂时不可用，可重试或先保存链接'
   if (reason === 'site-blocked' || reason === 'empty-or-blocked') return '目标网站限制了自动读取，可重试或先保存链接'
   if (reason === 'login-required') return '目标页面需要登录，暂时只能保存链接'
   if (reason === 'busy') return '读取请求较多，请稍后重试'
@@ -176,56 +177,59 @@ async function fetchViaServer(url: string, onFailure?: OnFailure): Promise<Serve
   }
 }
 
-/** 服务端返回的 metrics 里按平台规则挑主指标 */
-function pickMetric(
-  result: ServerResult,
-  prefer: RegExp,
-): { label: string; value: string } | null {
-  const list = result.metrics ?? []
-  if (list.length === 0) return null
-  return list.find((m) => prefer.test(m.label)) ?? list[0]
-}
-
 // —— 轨 3：WebBridge 抓取 ——
 
-// 可通过 VITE_WEBBRIDGE_URL 切换公网或本机桥；请求失败时静默回退占位。
+// The server resolves WEBBRIDGE_URL; each read owns an isolated browser session.
 const BRIDGE_URL = '/api/webbridge'
-const BRIDGE_SESSION = 'onepage-live-fetch'
+let bridgeReadSequence = 0
+
+type BridgeResult = { ok: boolean; data?: { value?: string; tabId?: number }; error?: { code?: string } }
 
 async function bridgeCmd(
   action: string,
   args: Record<string, unknown>,
+  session: string,
   timeout = 8000,
-): Promise<{ ok: boolean; data?: { value?: string; tabId?: number } }> {
+): Promise<BridgeResult> {
   const ctrl = new AbortController()
   const t = window.setTimeout(() => ctrl.abort(), timeout)
   try {
     const res = await fetch(BRIDGE_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action, args, session: BRIDGE_SESSION }),
+      body: JSON.stringify({ action, args, session }),
       signal: ctrl.signal,
     })
-    return (await res.json()) as { ok: boolean; data?: { value?: string; tabId?: number } }
+    if (!res.ok) throw new Error('webbridge-unavailable')
+    return (await res.json()) as BridgeResult
   } finally {
     window.clearTimeout(t)
   }
 }
 
-async function readWithWebBridge(url: string, code: string): Promise<string | null> {
+async function readWithWebBridge(url: string, code: string, onFailure?: OnFailure): Promise<string | null> {
+  const session = `onepage-read-${globalThis.crypto.randomUUID()}-${++bridgeReadSequence}`
   let tabId: number | undefined
   try {
-    const opened = await bridgeCmd('navigate', { url, newTab: true, group_title: 'One Page 数据抓取' })
+    const opened = await bridgeCmd('navigate', { url, newTab: true, group_title: 'One Page 数据抓取' }, session)
     tabId = opened.data?.tabId
-    if (!opened.ok) return null
+    if (!opened.ok) {
+      onFailure?.(opened.error?.code === 'webbridge-unavailable' ? 'webbridge-unavailable' : 'fetch-failed')
+      return null
+    }
     await new Promise((resolve) => window.setTimeout(resolve, 3000))
-    const result = await bridgeCmd('evaluate', { code })
-    return result.ok ? result.data?.value ?? null : null
+    const result = await bridgeCmd('evaluate', { code }, session)
+    if (!result.ok) {
+      onFailure?.(result.error?.code === 'webbridge-unavailable' ? 'webbridge-unavailable' : 'fetch-failed')
+      return null
+    }
+    return result.data?.value ?? null
   } catch {
+    onFailure?.('webbridge-unavailable')
     return null
   } finally {
     if (tabId !== undefined) {
-      try { await bridgeCmd('close_tab', { tabId }) } catch { /* best effort */ }
+      try { await bridgeCmd('close_tab', { tabId }, session) } catch { /* best effort */ }
     }
   }
 }
@@ -233,26 +237,28 @@ async function readWithWebBridge(url: string, code: string): Promise<string | nu
 /** Dribbble 作品统计提取脚本（WebBridge 在页面内执行） */
 const DRIBBBLE_EXTRACT = `(()=>{const t=document.body.innerText; const re=/Comment\\n(\\d+)\\n([\\d.,k]+)\\n([\\d.,k]+)/g; const parse=s=>s.toLowerCase().includes("k")?parseFloat(s)*1000:parseFloat(s.replace(",","")); let m,likes=0,views=0,shots=0; while((m=re.exec(t))){shots++;likes+=parseInt(m[2]);views+=parse(m[3])} return JSON.stringify({shots,likes,views:Math.round(views)})})()`
 
-/** 花瓣主页：头部「N 粉丝」，画板列表「N采集」累加 */
+/** 花瓣画板：读取画板本身的采集数和更新时间。 */
 const HUABAN_EXTRACT = `(()=>{const text=document.body.innerText||''; const title=document.title||''; const boardTitle=(title.match(/花瓣\\s*(.+?)的画板/)||[])[1]||''; const owner=(text.match(/([^\\n\\r]+)个人/)||[])[1]?.trim()||boardTitle; const count=(text.match(/([\\d,.]+)\\s*张?\\s*采集/)||[])[1]||''; const updated=(text.match(/更新于\\s*([^\\n\\r]+)/)||[])[1]||''; return JSON.stringify({boardTitle,owner,collectionCount:count,updatedAt:updated})})()`
 
 async function fetchHuaban(url: string, onFailure?: OnFailure): Promise<FetchedMetrics | null> {
   const s = await fetchViaServer(url, onFailure)
   if (s) {
-    const m = pickMetric(s, /粉丝|followers?/i)
+    const isBoard = /^\/boards\/[^/]+/.test(new URL(url).pathname)
+    const prefer = isBoard ? /采集|collections?|pins?/i : /粉丝|followers?/i
+    const m = s.metrics?.find((metric) => prefer.test(metric.label))
     if (m) {
       return {
         metric: m.label,
         value: m.value,
-        insight: s.title || '数据由 AI 现场读取',
+        insight: (isBoard ? s.description || s.title : s.title) || '数据由 AI 现场读取',
         source: 'live',
       }
     }
   }
-  if (s && !s.metrics?.length) onFailure?.('no-metrics')
+  if (s) onFailure?.('no-metrics')
   {
     try {
-      const value = await readWithWebBridge(url, HUABAN_EXTRACT)
+      const value = await readWithWebBridge(url, HUABAN_EXTRACT, onFailure)
       const j = value ? { data: { value } } : null
       const raw = JSON.parse(j?.data?.value ?? 'null') as {
         boardTitle?: string
@@ -326,7 +332,7 @@ export async function fetchGenericSite(url: string, onFailure?: OnFailure): Prom
   }
   if (preview) return { metric: '主页链接', value: '✓', insight: preview.title, source: 'live', previewImage: preview.previewImage }
   try {
-    const value = await readWithWebBridge(url, GENERIC_EXTRACT)
+    const value = await readWithWebBridge(url, GENERIC_EXTRACT, onFailure)
     const d = parseGenericWebBridgeResult(value)
     if (!d) return null
     const stat = d.stats?.[0]
@@ -367,7 +373,7 @@ async function fetchDribbble(url: string, onFailure?: OnFailure): Promise<Fetche
   if (s) onFailure?.('no-metrics')
   {
     try {
-      const value = await readWithWebBridge(url, DRIBBBLE_EXTRACT)
+      const value = await readWithWebBridge(url, DRIBBBLE_EXTRACT, onFailure)
       const d = JSON.parse(value ?? 'null') as {
         shots: number
         likes: number

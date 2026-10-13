@@ -231,7 +231,7 @@ function LinkInputSlot(props: {
     if (reading || !v.trim()) return
     const detected = detectUrl(v)
     if (!detected) {
-      if (props.editorial) setFailure('链接无法识别，请检查后重试')
+      if (props.editorial) setFailure('请粘贴完整的主页网址，暂不支持直接输入名称')
       return
     }
     const generation = ++requestGeneration.current

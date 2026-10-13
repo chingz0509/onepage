@@ -34,7 +34,7 @@ export async function resolvePublic(url: URL) {
 }
 
 /** Pin each connection to a checked public IP; validate every redirect separately. */
-export async function fetchPublicHtml(raw: string, timeoutMs = 8000): Promise<{ html: string; finalUrl: string } | null> {
+async function fetchPublicBody(raw: string, timeoutMs: number, accept: string, contentType: RegExp): Promise<{ body: string; finalUrl: string } | null> {
   const deadline = Date.now() + timeoutMs
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeoutMs)
@@ -55,7 +55,7 @@ export async function fetchPublicHtml(raw: string, timeoutMs = 8000): Promise<{ 
           headers: {
             Host: url.host,
             'User-Agent': 'Mozilla/5.0 (compatible; OnePage/1.0)',
-            Accept: 'text/html,application/xhtml+xml',
+            Accept: accept,
             'Accept-Encoding': 'identity',
             'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
           },
@@ -65,7 +65,7 @@ export async function fetchPublicHtml(raw: string, timeoutMs = 8000): Promise<{ 
             res.destroy()
             return
           }
-          if (res.statusCode !== 200 || !/text\/html|application\/xhtml\+xml/i.test(res.headers['content-type'] ?? '')) {
+          if (res.statusCode !== 200 || !contentType.test(res.headers['content-type'] ?? '')) {
             res.destroy()
             resolve({})
             return
@@ -87,7 +87,7 @@ export async function fetchPublicHtml(raw: string, timeoutMs = 8000): Promise<{ 
         req.end()
       })
       if (result.redirect) { target = result.redirect; continue }
-      return result.html ? { html: result.html, finalUrl: url.href } : null
+      return result.html ? { body: result.html, finalUrl: url.href } : null
     }
     return null
   } catch {
@@ -95,4 +95,16 @@ export async function fetchPublicHtml(raw: string, timeoutMs = 8000): Promise<{ 
   } finally {
     clearTimeout(timer)
   }
+}
+
+export async function fetchPublicHtml(raw: string, timeoutMs = 8000): Promise<{ html: string; finalUrl: string } | null> {
+  const result = await fetchPublicBody(raw, timeoutMs, 'text/html,application/xhtml+xml', /text\/html|application\/xhtml\+xml/i)
+  return result ? { html: result.body, finalUrl: result.finalUrl } : null
+}
+
+/** JSON requests share the same public-IP checks, redirects, size limit and deadline. */
+export async function fetchPublicJson(raw: string, timeoutMs = 8000): Promise<{ data: unknown; finalUrl: string } | null> {
+  const result = await fetchPublicBody(raw, timeoutMs, 'application/json', /application\/(?:[\w.-]+\+)?json(?:\s*;|$)/i)
+  if (!result) return null
+  try { return { data: JSON.parse(result.body), finalUrl: result.finalUrl } } catch { return null }
 }

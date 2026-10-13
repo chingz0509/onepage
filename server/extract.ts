@@ -6,6 +6,7 @@
 import { fetchPublicHtml, validateTarget } from './network.js'
 import { renderPage } from './browser.js'
 import { dribbbleMetrics } from './dribbble.js'
+import { readHuabanBoard } from './huaban.js'
 
 export { validateTarget } from './network.js'
 export type SiteMetric = { label: string; value: string }
@@ -18,7 +19,7 @@ export type FetchResult =
       description: string | null
       metrics: SiteMetric[]
       finalUrl: string
-      source?: 'http' | 'browser' | 'scraper'
+      source?: 'http' | 'browser' | 'scraper' | 'api'
     }
   | { ok: false; reason: string }
 
@@ -160,6 +161,11 @@ export async function fetchAndExtract(raw: string | null | undefined, mode: 'aut
   const target = validateTarget(raw)
   if (!target) return { ok: false, reason: 'invalid-url' }
   const url = target.toString()
+
+  if (mode === 'auto') {
+    const board = await readHuabanBoard(url)
+    if (board) return board
+  }
 
   // 一级：直连（大多数公开站点这样就够了）
   const page = mode === 'auto' ? await fetchPublicHtml(url, 8000) : null

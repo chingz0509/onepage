@@ -8,9 +8,17 @@
 
 `GET /api/fetch?url=https%3A%2F%2Fhuaban.com%2Fspace`
 
-默认 `mode=auto`：读取 HTML → 没有指标时尝试内置无头浏览器 → 可选商业抓取服务 → 返回可用的原始页面信息。也可加 `&mode=browser` 强制浏览器。Vercel 上无需配置浏览器地址或密钥。
+默认 `mode=auto`：平台数据适配 → 读取 HTML → 没有指标时尝试内置无头浏览器 → 可选商业抓取服务 → 返回可用的原始页面信息。也可加 `&mode=browser` 强制浏览器。Vercel 上无需配置浏览器地址或密钥。
 
-成功结果包含 `ok: true`、`title`、`image`、`description`、`metrics`、`finalUrl` 和 `source`（http/browser/scraper）。抓取失败返回 `ok: false` 和 `reason`，兼容现有前端；不把空壳或常见验证页作为成功结果。此接口提取页面摘要与指标，不保存截图、全文或用户数据。
+成功结果包含 `ok: true`、`title`、`image`、`description`、`metrics`、`finalUrl` 和 `source`（api/http/browser/scraper）。抓取失败返回 `ok: false` 和 `reason`，兼容现有前端；不把空壳或常见验证页作为成功结果。此接口提取页面摘要与指标，不保存截图、全文或用户数据。
+
+### 花瓣公开画板
+
+`server/huaban.ts` 将 `https://huaban.com/boards/<id>` 适配到花瓣当前的 `https://api.huaban.com/v3/boards/<id>?fields=board:BOARD_DETAIL`。直接读取 `board.pin_count`，不把作者粉丝数当作画板采集数；描述包含作者和采集数。
+
+请求不携带 Cookie 或登录凭据，与网页请求共用公开 IP、跳转、响应大小和超时限制。仅接受 ID 一致、`is_private=0` 且计数有效的画板。接口失败或数据不可用时，继续原有网页读取流程。此入口是实测可用的站点接口，不是长期版本兼容承诺。
+
+2026-10-13 实测公开画板 `27823016` 返回作者 cSummer、标题「作品」、111 张采集，本地完整 `/api/fetch` 路径约 0.5 秒。上线后仍需从生产环境验证，避免把本地成功等同于云端可用。
 
 ## 本地运行
 
