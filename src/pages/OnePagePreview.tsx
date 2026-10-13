@@ -4,6 +4,7 @@ import { EditorialLanding } from './EditorialLanding'
 import { EditorialProfile } from './EditorialProfile'
 import { EditorialLinks, EditorialCompletedLink } from './EditorialLinks'
 import { EditorialStyle } from './EditorialStyle'
+import { EditorDialog, ShareDialog } from './EditorOverlays'
 import { PlatformIcon } from '../components/PlatformIcon'
 import { ProfileEditIcon, ProfileShareIcon } from '../components/icons'
 import { savePage } from '../pageRepository'
@@ -408,28 +409,16 @@ function ProfileEditor({ name, job, bio, onApply, onClose }: {
   const [draftName, setDraftName] = useState(name)
   const [draftJob, setDraftJob] = useState(job)
   const [draftBio, setDraftBio] = useState(bio)
-  const form = useRef<HTMLFormElement>(null)
-  useEffect(() => {
-    const previous = document.activeElement as HTMLElement | null
-    form.current?.querySelector('input')?.focus()
-    return () => previous?.focus()
-  }, [])
-  return <form ref={form} className="op-profile-editor" onSubmit={(event) => { event.preventDefault(); onApply(draftName.trim(), draftJob.trim(), draftBio.trim()) }} onKeyDown={(event) => {
-    if (event.key === 'Escape') onClose()
-    if (event.key !== 'Tab') return
-    const controls = [...(form.current?.querySelectorAll<HTMLElement>('input, textarea, button:not(:disabled)') ?? [])]
-    const first = controls[0], last = controls[controls.length - 1]
-    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() }
-    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
-  }}>
-    <h3 className="op-sheet-title" id="op-profile-editor-title">编辑个人资料</h3>
-    <div className="op-form">
+  return <form className="op-profile-editor" onSubmit={(event) => { event.preventDefault(); onApply(draftName.trim(), draftJob.trim(), draftBio.trim()) }}>
+    <div className="op-dialog-body op-form">
       <label className="op-field"><span className="op-field-label">姓名</span><input required maxLength={80} className="op-field-input" value={draftName} onChange={(event) => setDraftName(event.target.value)} /></label>
       <label className="op-field"><span className="op-field-label">职位</span><input maxLength={160} className="op-field-input" value={draftJob} onChange={(event) => setDraftJob(event.target.value)} /></label>
       <label className="op-field"><span className="op-field-label">一句话简介</span><textarea maxLength={800} rows={3} className="op-field-input op-field-textarea" value={draftBio} onChange={(event) => setDraftBio(event.target.value)} /></label>
     </div>
-    <button className="op-btn-continue" disabled={!draftName.trim()} type="submit">确认修改</button>
-    <button className="op-btn-skip" type="button" onClick={onClose}>取消</button>
+    <footer className="op-dialog-actions">
+      <button className="op-btn-continue" disabled={!draftName.trim()} type="submit">确认修改</button>
+      <button className="op-dialog-secondary" type="button" onClick={onClose}>取消</button>
+    </footer>
   </form>
 }
 
@@ -543,8 +532,6 @@ export function OnePagePreview() {
   const [qr, setQr] = useState('')
   const [showShareQr, setShowShareQr] = useState(false)
   const [qrFailed, setQrFailed] = useState(false)
-  const sharePreviewCanvas = useRef<HTMLDivElement>(null)
-  const [previewOverflow, setPreviewOverflow] = useState(false)
   const [copied, setCopied] = useState(false)
 
   // 管理闭环
@@ -584,7 +571,7 @@ export function OnePagePreview() {
   const canvasWallpaper = !published && step < 3 ? wallpaperById('cream') : wallpaper
   const pageStyle = {
     background: canvasWallpaper.bg,
-    '--template-font': wallpaper.fontFamily ?? 'inherit',
+    '--template-font': wallpaper.fontFamily ?? 'var(--op-font)',
     color: canvasWallpaper.text,
     '--wiz-text': canvasWallpaper.text,
     '--profile-canvas': canvasWallpaper.canvas ?? canvasWallpaper.bg,
@@ -755,21 +742,11 @@ export function OnePagePreview() {
   }, [shareOpen])
 
   useEffect(() => {
-    const canvas = sharePreviewCanvas.current
-    if (!canvas) return
-    const measure = () => setPreviewOverflow(canvas.scrollHeight > 600)
-    measure()
-    const observer = new ResizeObserver(measure)
-    observer.observe(canvas)
-    return () => observer.disconnect()
-  }, [shareOpen, showShareQr, name, job, bio, links, avatarImage])
-
-  useEffect(() => {
     if (!shareOpen || !showShareQr || !shareUrl) return
     let cancelled = false
     setQr('')
     setQrFailed(false)
-    QRCode.toDataURL(shareUrl, { width: 320, margin: 1, color: { dark: '#17203a' } })
+    QRCode.toDataURL(shareUrl, { width: 320, margin: 1, color: { dark: '#24221b' } })
       .then((value) => { if (!cancelled) setQr(value) })
       .catch(() => { if (!cancelled) setQrFailed(true) })
     return () => { cancelled = true }
@@ -975,7 +952,7 @@ export function OnePagePreview() {
                 {editSlots.map((id) => (
                   <LinkInputSlot
                     key={id}
-                    placeholder="粘贴你的主页链接，如 dribbble.com/xxx"
+                    editorial placeholder="粘贴你的主页链接，如 dribbble.com/xxx"
                     isDuplicate={isDupPlatform}
                     onResolve={(card) => {
                       setLinks((prev) => [...prev, card])
@@ -1001,7 +978,7 @@ export function OnePagePreview() {
             )}
           </div>
 
-          <p className="ops-foot">数据均来自平台直采 · 刚刚更新</p>
+          <p className="ops-foot">Made with One Page</p>
           {(saving || saveError) && <p className="op-cloud-status" role={saveError ? 'alert' : 'status'}>
             {saving ? '正在保存…' : saveError}
             {saveError && <button onClick={() => setSyncRetry((n) => n + 1)}>重试保存</button>}
@@ -1099,92 +1076,25 @@ export function OnePagePreview() {
         </div>
       )}
 
-      {/* 分享弹层 */}
-      {shareOpen && (
-        <div className="op-modal-mask" onClick={() => setShareOpen(false)}>
-          <div className="op-share-modal" role="dialog" aria-modal="true" aria-labelledby="op-share-title" onClick={(e) => e.stopPropagation()}>
-            <button className="op-modal-close" aria-label="关闭" onClick={() => setShareOpen(false)}>
-              ✕
-            </button>
-            <h3 className="op-share-modal-title" id="op-share-title">你的一页已上线</h3>
-            <p className="op-share-subtitle">分享你的一页名片</p>
-            {showShareQr ? (
-              <div className="op-share-qr-panel" aria-live="polite">
-                {qr ? <img className="op-share-qr" src={qr} alt="分享二维码" /> : (
-                  <p className="op-share-qr-message">{qrFailed ? '链接较长，无法生成二维码，请复制链接分享' : '正在生成二维码…'}</p>
-                )}
-                {qr && <p>扫码查看我的一页</p>}
-              </div>
-            ) : (
-              <div className={`op-share-preview${previewOverflow ? ' is-overflowing' : ''}`} style={{ background: wallpaper.bg, color: wallpaper.text, '--preview-background': wallpaper.bg } as CSSProperties} aria-label="主页预览">
-                <div className="op-share-preview-canvas" ref={sharePreviewCanvas} aria-hidden="true">
-                  <div className="ops-column">
-                    <ProfileAvatar src={avatarImage} />
-                    <h4 className="ops-name">{name}</h4>
-                    <p className="ops-title">{job}</p>
-                    {bio && <p className="ops-bio">{bio}</p>}
-                    <div className="ops-links">
-                      {links.map((link) => <div className="ops-link" key={link.platform} style={linkBtnStyle}><LinkButtonContent link={link} /></div>)}
-                      {links.length === 0 && <p className="ops-empty">这个页面还没有添加链接</p>}
-                    </div>
-                    <p className="ops-foot">数据均来自平台直采 · 刚刚更新</p>
-                  </div>
-                </div>
-              </div>
-            )}
-            <div className="op-share-actions">
-              {(saving || saveError) && <p className="op-cloud-status" role="status">{saving ? '正在保存…' : saveError}</p>}
-              <button className="op-btn-continue op-btn-copy" disabled={saving || !!saveError} onClick={copyLink}>
-                {copied ? '✓ 已复制' : '复制链接'}
-              </button>
-              <div className="op-share-secondary">
-                <button className="op-share-qr-toggle" aria-pressed={showShareQr} onClick={() => setShowShareQr((value) => !value)}>{showShareQr ? '返回预览' : '二维码'}</button>
-              </div>
-            </div>
+      {/* Success, sharing and QR all use the same dialog and actual profile renderer. */}
+      {shareOpen && <ShareDialog data={pageData(slug, links)} qr={qr} qrFailed={qrFailed} showQr={showShareQr}
+        copied={copied} saving={saving} error={saveError} onClose={() => setShareOpen(false)}
+        onCopy={() => void copyLink()} onToggleQr={() => setShowShareQr((value) => !value)} />}
+
+      {sheet && <EditorDialog sheet title={sheet.kind === 'profile' ? '编辑个人资料' : '定制你的风格'}
+        eyebrow={sheet.kind === 'profile' ? 'ONE PAGE · 个人资料' : 'ONE PAGE · 个人风格'} onClose={() => setSheet(null)}>
+        {sheet.kind === 'profile' ? <ProfileEditor name={name} job={job} bio={bio} onClose={() => setSheet(null)} onApply={(nextName, nextJob, nextBio) => { setName(nextName); setJob(nextJob); setBio(nextBio); setSheet(null) }} /> : <>
+          <div className="op-dialog-body op-style-dialog-body">
+            <StylePreviewCompact wallpaper={wallpaper} linkBtnStyle={linkBtnStyle} avatarChar={avatarChar}
+              avatarImage={avatarImage} name={name} links={links} />
+            <StylePicker featured name={name} avatarImage={avatarImage} wallpaper={wallpaper} wallpaperId={wallpaperId}
+              setWallpaperId={setWallpaperId} buttonStyle={buttonStyle} setButtonStyle={setButtonStyle}
+              buttonColor={buttonColor} setButtonColor={setButtonColor} styleTab={styleTab} setStyleTab={setStyleTab} />
           </div>
-        </div>
-      )}
+          <footer className="op-dialog-actions"><button className="op-btn-continue" onClick={() => setSheet(null)}>完成</button></footer>
+        </>}
+      </EditorDialog>}
 
-      {/* 底部弹层：风格 */}
-      {sheet && (
-        <div className="op-sheet-mask" onClick={() => setSheet(null)}>
-          <div className="op-sheet" role="dialog" aria-modal="true" aria-label={sheet.kind === 'profile' ? '编辑个人资料' : '调整风格'} onClick={(e) => e.stopPropagation()}>
-            <div className="op-sheet-grabber" />
-
-            {sheet.kind === 'profile' && <ProfileEditor name={name} job={job} bio={bio} onClose={() => setSheet(null)} onApply={(nextName, nextJob, nextBio) => { setName(nextName); setJob(nextJob); setBio(nextBio); setSheet(null) }} />}
-
-            {sheet.kind === 'style' && (
-              <>
-                <h3 className="op-sheet-title">风格</h3>
-                <StylePreviewCompact
-                  wallpaper={wallpaper}
-                  linkBtnStyle={linkBtnStyle}
-                  avatarChar={avatarChar}
-                  avatarImage={avatarImage}
-                  name={name}
-                  links={links}
-                />
-                <StylePicker
-                  wallpaper={wallpaper}
-                  wallpaperId={wallpaperId}
-                  setWallpaperId={setWallpaperId}
-                  buttonStyle={buttonStyle}
-                  setButtonStyle={setButtonStyle}
-                  buttonColor={buttonColor}
-                  setButtonColor={setButtonColor}
-                  styleTab={styleTab}
-                  setStyleTab={setStyleTab}
-                />
-                <div className="op-wiz-actions">
-                  <button className="op-btn-continue op-sheet-confirm" onClick={() => setSheet(null)}>
-                    完成
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   )
 }

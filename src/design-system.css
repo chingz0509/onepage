@@ -1,0 +1,162 @@
+/* Product chrome uses one quiet paper palette. Personal page themes remain independent. */
+:root {
+  --op-paper: #faf7f0;
+  --op-white: #fff;
+  --op-ink: #24221b;
+  --op-muted: #8a877a;
+  --op-faint: #aaa596;
+  --op-line: #e5e0d2;
+  --op-soft: #f5f3ee;
+  --op-focus: #698272;
+  --op-error: #a04a2a;
+  --op-font: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
+  --app-bg: var(--op-paper);
+  --app-text: var(--op-ink);
+  --app-sub: var(--op-muted);
+  --app-brand: var(--op-ink);
+  --app-line: var(--op-line);
+}
+.op-page { --ui-ink: var(--op-ink); --ui-muted: var(--op-muted); --ui-line: var(--op-line); --ui-surface: var(--op-white); --ui-soft: var(--op-soft); --ui-font: var(--op-font); }
+.ep-heading h1 { font-family: var(--op-font); letter-spacing: -.5px; }
+
+/* Dialog dimensions follow the preceding creation steps, with a scrollable body. */
+.op-editor-mask { position: fixed; inset: 0; z-index: 120; display: flex; align-items: center; justify-content: center; padding: 16px; background: #24221b55; backdrop-filter: blur(6px); }
+.op-editor-mask.is-sheet { align-items: flex-end; padding-bottom: 0; }
+.op-page .op-editor-dialog {
+  --wiz-text: var(--op-ink); --profile-control-text: var(--op-ink); --profile-canvas: var(--op-white);
+  width: min(100%, calc(393px * var(--editor-scale, 1))); max-height: calc(100dvh - 32px);
+  display: flex; flex-direction: column; overflow: hidden; padding: calc(23px * var(--editor-scale, 1));
+  border: 1px solid var(--op-line); border-radius: 24px; background: var(--op-white); color: var(--op-ink);
+  box-shadow: 0 16px 48px #24221b18; font-family: var(--op-font); text-align: left;
+}
+.op-editor-mask.is-sheet .op-editor-dialog { max-height: calc(100dvh - 24px); padding-bottom: max(20px, env(safe-area-inset-bottom)); border-radius: 24px 24px 0 0; border-bottom: 0; }
+.op-dialog-heading { flex: none; position: relative; padding: 10px 28px 18px; text-align: center; }
+.op-dialog-kicker { margin: 0 0 10px; font-size: 8px; line-height: 12px; letter-spacing: 2.5px; color: var(--op-faint); }
+.op-dialog-heading h2 { margin: 0; font-size: 20px; line-height: 28px; letter-spacing: -.3px; font-weight: 600; }
+.op-dialog-subtitle { margin: 6px 0 0; font-size: 11px; line-height: 18px; color: var(--op-muted); }
+.op-dialog-close { position: absolute; top: -6px; right: -8px; display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%; background: var(--op-soft); color: var(--op-muted); cursor: pointer; }
+.op-dialog-close:hover { color: var(--op-ink); }
+.op-dialog-body { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+.op-dialog-body::-webkit-scrollbar { display: none; }
+.op-dialog-actions { width: 100%; flex: none; padding-top: 20px; display: flex; flex-direction: column; gap: 6px; }
+.op-page .op-editor-dialog .op-btn-continue { width: 100%; min-height: calc(49px * var(--editor-scale, 1)); padding: 0 14px; border: 0; border-radius: 999px; background: var(--op-ink); color: #fff; font-family: var(--op-font); font-size: calc(12px * var(--editor-scale, 1)); line-height: 20px; font-weight: 500; box-shadow: none; }
+.op-page .op-editor-dialog .op-btn-continue:hover:not(:disabled) { background: #403d32; transform: none; }
+.op-dialog-secondary { min-height: 36px; padding: 6px; border: 0; background: transparent; color: var(--op-muted); font: inherit; font-size: 11px; cursor: pointer; }
+.op-dialog-secondary:hover { color: var(--op-ink); }
+.op-page .op-editor-dialog :is(button, input, textarea):focus-visible { outline: 2px solid var(--op-focus); outline-offset: 3px; }
+.op-page .op-editor-dialog button:disabled { opacity: .45; cursor: wait; }
+.op-share-body { display: flex; justify-content: center; }
+.op-share-snapshot { width: 182px; height: 264px; flex: none; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; border: 1px solid #24221b12; border-radius: 18px; }
+.op-share-snapshot::-webkit-scrollbar { display: none; }
+.op-share-snapshot-canvas { width: 347px; zoom: .52; }
+.op-share-snapshot .ops-page { min-height: 505px; padding: 40px 20px 20px; }
+.op-share-snapshot .ops-column { min-height: 445px; }
+.op-share-snapshot .ops-avatar { width: 64px; height: 64px; }
+.op-share-snapshot .ops-foot { margin-top: auto; padding-top: 28px; }
+.op-page .op-editor-dialog .op-share-qr-panel { min-height: 264px; width: 100%; gap: 16px; }
+.op-page .op-editor-dialog .op-share-qr-panel .op-share-qr { width: 180px; height: 180px; padding: 8px; border: 1px solid var(--op-line); border-radius: 12px; background: #fff; }
+.op-page .op-editor-dialog .op-share-qr-panel p { color: var(--op-muted); font: inherit; font-size: 11px; line-height: 18px; }
+.op-page .op-editor-dialog .op-profile-editor { display: flex; flex-direction: column; gap: 0; min-height: 0; overflow: hidden; }
+.op-page .op-editor-dialog .op-form { display: flex; flex-direction: column; gap: 16px; }
+.op-page .op-editor-dialog .op-field { display: flex; flex-direction: column; gap: 7px; margin: 0; }
+.op-page .op-editor-dialog .op-field-label { color: var(--op-muted); font-size: 11px; font-weight: 400; }
+.op-page .op-editor-dialog .op-field-input { width: 100%; min-height: 48px; padding: 12px 16px; border: 1px solid var(--op-line); border-radius: 13px; background: #fff; color: var(--op-ink); font-family: var(--op-font); font-size: 13px; line-height: 22px; outline: none; box-shadow: none; }
+.op-page .op-editor-dialog .op-field-input:focus { border-color: var(--op-focus); box-shadow: 0 0 0 1px #69827222; outline: none; }
+.op-page .op-editor-dialog textarea { min-height: 88px; resize: none; }
+.op-page .op-editor-dialog .op-btn-skip { min-height: 32px; margin: 0; padding: 0; color: var(--op-muted); font-size: 11px; }
+.op-page .op-editor-dialog .op-style-preview.is-compact { margin: 0 auto 20px; width: 100%; border: 1px solid #24221b0c; border-radius: 14px; padding: 14px; box-shadow: none; }
+.op-page .op-editor-dialog .op-style-avatar { width: 36px; height: 36px; margin: 0 auto; }
+.op-page .op-editor-dialog .op-style-name { margin: 8px 0; font-size: 14px; line-height: 20px; }
+.op-page .op-editor-dialog .op-style-links { gap: 6px; }
+.op-page .op-editor-dialog .op-style-link { min-height: 32px; font-size: 10px; padding: 6px 12px; }
+.op-page .op-editor-dialog .op-style-empty { margin: 6px 0; font-size: 10px; }
+.op-page .op-editor-dialog .op-tabs { min-height: 0; height: 36px; padding: 2px; margin: 0 0 16px; gap: 0; background: var(--op-soft); border-radius: 9px; }
+.op-page .op-editor-dialog .op-tab { min-height: 32px; padding: 0; font-size: 12px; font-weight: 400; border-radius: 7px; color: var(--op-muted); opacity: 1; box-shadow: none; }
+.op-page .op-editor-dialog .op-tab.is-active { background: #fff; color: var(--op-ink); box-shadow: 0 1px 3px #24221b08; }
+.op-page .op-editor-dialog .op-picker-panels { display: block; padding: 4px; margin: -4px; }
+.op-page .op-editor-dialog .op-picker-panel[hidden] { display: none; }
+.op-page .op-editor-dialog .op-swatches { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px 8px; justify-items: center; padding: 2px; }
+.op-page .op-editor-dialog .op-swatch { width: 44px; height: 44px; min-height: 0; border: 5px solid white; border-radius: 50%; box-shadow: inset 0 0 0 1px #24221b0c; }
+.op-page .op-editor-dialog .op-swatch.is-active { outline: 1px solid #8b8476; outline-offset: -2px; box-shadow: inset 0 0 0 1px #24221b0c; }
+.op-page .op-editor-dialog .op-swatch.is-active:not(.op-custom-entry) > span { visibility: hidden; }
+.op-page .op-editor-dialog .op-custom-entry { grid-column: span 2; width: 100%; height: 36px; align-self: center; border: 1px solid var(--op-line); border-radius: 8px; background: #faf9f5; color: var(--op-muted); font-size: 10px; }
+.op-page .op-editor-dialog .op-custom-entry > span { visibility: visible; }
+.op-page .op-editor-dialog .op-btnstyles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.op-page .op-editor-dialog .op-btnstyle { display: grid; place-items: center; min-height: 76px; aspect-ratio: auto; padding: 12px 6px; border: 1px solid var(--op-line); border-radius: 9px; background: #faf9f5; color: var(--op-ink); }
+.op-page .op-editor-dialog .op-btnstyle.is-active { border-color: #9c9587; box-shadow: none; }
+.op-page .op-editor-dialog .op-btnstyle-demo { min-height: 28px; font-size: 10px; }
+.op-page .op-editor-dialog .op-template-rail { grid-auto-columns: 100px; gap: 12px; padding: 4px 3px 10px; margin: 0; scrollbar-width: none; }
+.op-page .op-editor-dialog .op-template-preview { aspect-ratio: 3 / 4; padding: 8px; gap: 3px; border-radius: 10px; margin-bottom: 8px; }
+.op-page .op-editor-dialog .op-template-kicker { font-size: 5px; line-height: 7px; letter-spacing: 2px; }
+.op-page .op-editor-dialog .op-template-preview img { width: 22px; height: 22px; border-width: 1px; }
+.op-page .op-editor-dialog .op-template-preview b { font-size: 10px; line-height: 12px; margin: 0; }
+.op-page .op-editor-dialog .op-template-bio-line { width: 28%; height: 1px; margin: 1px 0; }
+.op-page .op-editor-dialog .op-template-preview em { min-height: 16px; line-height: 12px; font-size: 7px; }
+.op-page .op-editor-dialog .op-template-caption { font-size: 9px; line-height: 14px; color: var(--op-faint); }
+.op-page .op-editor-dialog .op-custom-heading { min-height: 32px; margin-bottom: 8px; font-size: 10px; }
+.op-page .op-editor-dialog .op-template-back { min-height: 32px; }
+.op-page .op-editor-dialog .op-wallpaper-template.is-active .op-template-preview { outline: 1px solid #8b8476; outline-offset: 2px; }
+.op-page .op-cloud-status { font-family: var(--op-font); font-size: 11px; line-height: 18px; color: var(--op-muted); text-align: center; }
+.op-page .op-cloud-status[role='alert'] { color: var(--op-error); }
+.op-page .op-cloud-status button { min-height: 32px; padding: 4px 8px; border: 0; background: transparent; color: var(--op-error); font: inherit; text-decoration: underline; cursor: pointer; }
+.op-page .op-undo-toast { max-width: calc(100% - 32px); border: 1px solid var(--op-line); border-radius: 14px; background: var(--op-white); color: var(--op-ink); padding: 12px 16px; font-family: var(--op-font); font-size: 12px; box-shadow: 0 8px 24px #24221b18; }
+.op-page .op-undo-toast button { background: transparent; color: var(--op-focus); font: inherit; font-weight: 500; }
+
+/* Profile layouts share their measure and typography in management and public views. */
+.ops-column { max-width: 347px; font-family: var(--template-font, var(--op-font)); }
+.ops-name { font-weight: 600; font-size: 24px; letter-spacing: -.3px; }
+.ops-links { gap: 12px; margin-top: 24px; }
+.ops-foot { font-family: var(--op-font); font-size: 10px; line-height: 16px; opacity: .65; }
+.op-page.is-published { padding-top: 76px; }
+.op-page.is-editing { --lk-ink: var(--op-ink); --lk-muted: var(--op-muted); --lk-faint: var(--op-faint); --lk-line: var(--op-line); --lk-green: var(--op-focus); --lk-error: var(--op-error); }
+.is-published .op-fab-right { top: 20px; right: max(20px, calc((100% - 347px) / 2)); gap: 8px; }
+.is-published .op-fab { width: 36px; height: 36px; background: #fffefaed; border: 1px solid #e5e0d2b0; color: var(--op-ink); }
+.is-editing .op-module-editbar { gap: 6px; }
+.op-editor-tool { min-height: 36px; padding: 0 12px; font-family: var(--op-font); font-size: 11px; background: #fffefaed; color: var(--op-ink); border: 1px solid #e5e0d2b0; }
+.op-link-edit-actions { border: 1px solid var(--op-line); background: var(--op-white); color: var(--op-ink); box-shadow: 0 8px 24px #24221b18; }
+.op-link-edit-actions button { color: var(--op-ink); font-family: var(--op-font); font-size: 11px; }
+.op-page.is-editing .op-add-row { border: 1px dashed var(--op-line); border-radius: 13px; background: #fffefaed; color: var(--op-muted); min-height: 48px; font-family: var(--op-font); font-size: 12px; }
+.op-home-avatar-edit .op-avatar-edit-badge { background: #fff; color: var(--op-muted); border: 2px solid #fff; }
+.is-editing .lk-slot { text-align: left; }
+.is-editing .lk-input { font-family: var(--op-font); }
+.is-editing .lk-input:focus-visible { outline: none; }
+.op-link-edit-more:focus-visible { outline-color: var(--op-focus); }
+
+/* Loading, unavailable and missing pages use the same product shell. */
+.op-status-page { min-height: 100dvh; padding: 24px; display: grid; place-items: center; background: var(--op-paper); color: var(--op-ink); font-family: var(--op-font); }
+.op-status-card { width: min(347px, 100%); text-align: center; padding: 32px 24px; background: #fff; border: 1px solid var(--op-line); border-radius: 20px; }
+.op-status-card h1 { font-size: 24px; line-height: 34px; margin: 12px 0; font-weight: 600; }
+.op-status-card > p { margin: 10px 0 24px; color: var(--op-muted); font-size: 13px; line-height: 22px; }
+.op-status-card .btn { width: 100%; }
+.op-status-kicker { color: var(--op-faint); font-size: 9px; letter-spacing: 3px; }
+.op-status-spinner { width: 24px; height: 24px; margin: 24px auto; border: 2px solid var(--op-line); border-top-color: var(--op-focus); border-radius: 50%; animation: op-status-spin .8s linear infinite; }
+@keyframes op-status-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .op-status-spinner { animation: none; } }
+
+/* Legacy creation screens inherit the same chrome while preserving their module templates. */
+.app-shell { max-width: 880px; font-family: var(--op-font); }
+.app-logo { font-size: 13px; font-weight: 500; letter-spacing: 3px; }
+.app-logo-mark { background: var(--op-ink); border-radius: 8px; font-weight: 500; letter-spacing: 0; }
+.app-shell .wizard-title { font-weight: 600; font-size: 25px; letter-spacing: -.5px; }
+.app-shell .wizard-sub { line-height: 22px; }
+.btn { min-height: 49px; border-radius: 999px; font-size: 12px; font-weight: 500; box-shadow: none; }
+.btn-primary { background: var(--op-ink); box-shadow: none; }
+.app-shell :is(.persona-card, .template-card) { border-width: 1px; box-shadow: none; }
+.app-shell :is(.persona-card, .template-card).selected { border-color: var(--op-focus); box-shadow: 0 0 0 1px #69827222; }
+.app-shell .rec-badge { background: #e4ece3; color: #45634b; box-shadow: none; font-weight: 500; }
+.app-shell .paste-ok { color: var(--op-focus); }
+.app-shell .paste-error { color: var(--op-error); }
+.app-shell :is(.field input, .field textarea, .field select, .paste-box textarea) { border-radius: 13px; border-color: var(--op-line); }
+.app-shell :is(.field input, .field textarea, .field select, .paste-box textarea):focus { outline: none; border-color: var(--op-focus); box-shadow: 0 0 0 1px #69827222; }
+.app-shell .publish-result { max-width: 440px; margin: 0 auto; padding: 28px 24px; border: 1px solid var(--op-line); border-radius: 20px; background: #fff; }
+.app-shell .publish-result h2 { font-size: 24px; font-weight: 600; }
+.app-shell .publish-link { color: var(--op-muted); font-size: 11px; overflow-wrap: anywhere; }
+.app-shell .publish-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.app-shell .publish-actions .btn { flex: 1 0 100%; }
+@media (max-height: 600px) {
+  .op-dialog-heading { padding-bottom: 12px; }
+  .op-share-snapshot { width: 137px; height: 200px; }
+  .op-share-snapshot-canvas { zoom: .39; }
+  .op-page .op-editor-dialog .op-share-qr-panel { min-height: 200px; }
+  .op-dialog-actions { padding-top: 12px; }
+}

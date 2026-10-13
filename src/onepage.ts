@@ -113,12 +113,12 @@ export const WALLPAPERS: Wallpaper[] = [
 
 export const PAGE_TEMPLATES: { wallpaper: string; name: string; description: string; buttonStyle: ButtonStyleId }[] = [
   { wallpaper: 'premium-celadon', name: '青瓷微雨', description: '青瓷釉纹 · 柔光颗粒', buttonStyle: 'pill' },
+  { wallpaper: 'premium-track', name: '蓝色起跑', description: '塑胶跑道 · 纸边节奏', buttonStyle: 'square' },
   { wallpaper: 'premium-water', name: '碧波留光', description: '水纹折光 · 通透青绿', buttonStyle: 'pill' },
   { wallpaper: 'premium-architecture', name: '石光拱廊', description: '石材肌理 · 温柔光影', buttonStyle: 'round' },
   { wallpaper: 'premium-forest', name: '雾林深处', description: '蕨叶雾气 · 深绿静谧', buttonStyle: 'round' },
   { wallpaper: 'premium-coast', name: '暮海玫瑰', description: '海面微光 · 玫瑰暮色', buttonStyle: 'pill' },
   { wallpaper: 'premium-botanical', name: '暖杏花影', description: '纸纤花影 · 暖杏微光', buttonStyle: 'pill' },
-  { wallpaper: 'premium-track', name: '蓝色起跑', description: '塑胶跑道 · 纸边节奏', buttonStyle: 'square' },
   { wallpaper: 'premium-bakery', name: '黄油来信', description: '烘焙晨光 · 奶油纸边', buttonStyle: 'square' },
   { wallpaper: 'premium-vanity', name: '金色妆台', description: '暖金光影 · 丝绒柔感', buttonStyle: 'pill' },
   { wallpaper: 'premium-film', name: '焦糖胶片', description: '复古颗粒 · 打字机体', buttonStyle: 'pill' },

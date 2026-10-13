@@ -115,3 +115,13 @@
 /* Taller screens give the preview more room, rather than enlarging an empty footer. */
 .op-page.is-style-intro .es-preview .op-phone { height: clamp(236px, calc(100dvh - 400px), 320px); }
 .op-page.is-style-intro:has(.op-custom-wallpapers) .es-preview .op-phone { height: clamp(220px, calc(100dvh - 450px), 300px); }
+
+/* Let the white workspace fill the viewport while its controls keep their measure. */
+.op-page.is-style-intro .es-panel {
+  width: 100vw;
+  align-self: center;
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: max(calc(23px * var(--es-action-scale, 1)), calc((100vw - 347px * var(--es-action-scale, 1)) / 2));
+  padding-right: max(calc(23px * var(--es-action-scale, 1)), calc((100vw - 347px * var(--es-action-scale, 1)) / 2));
+}

@@ -13,7 +13,7 @@ import { PlatformIcon } from '../components/PlatformIcon'
 export const PROFILE_DESIGN_ASSETS = `${import.meta.env.BASE_URL}onepage-design/`
 
 export function ProfileAvatar({ src }: { src?: string }) {
-  return <img className="ops-avatar" src={src || `${PROFILE_DESIGN_ASSETS}avatar-photo.jpg`} alt="头像" />
+  return <img className="ops-avatar" src={src || `${PROFILE_DESIGN_ASSETS}editorial-avatar.png`} alt="头像" />
 }
 
 export function WebsitePreview({ link }: { link: OnePageLink }) {
@@ -66,13 +66,13 @@ export function EditorialItemContent({ link }: { link: OnePageLink }) {
  * One Page 独立分享页（#/p/<slug>?d=<encoded>）。
  * 默认纸感壁纸时为编辑风目录条目；用户定制壁纸/按钮后套用其选择。
  */
-export function OnePageShared({ data }: { data: OnePageShare }) {
+export function OnePageShared({ data, preview = false }: { data: OnePageShare; preview?: boolean }) {
   const wallpaper = wallpaperById(data.wallpaper)
   const btn = resolveButtonColors(wallpaper, data.buttonColor)
   const editorial = false
 
   return (
-    <div className="ops-page" style={{ background: wallpaper.bg, color: wallpaper.text, fontFamily: wallpaper.fontFamily,
+    <div className="ops-page" aria-hidden={preview || undefined} style={{ background: wallpaper.bg, color: wallpaper.text, '--template-font': wallpaper.fontFamily ?? 'var(--op-font)',
       '--profile-subtext': data.wallpaper === 'cream' ? '#383A4C' : wallpaper.text,
       '--profile-footer-text': data.wallpaper === 'cream' ? '#7d7972' : wallpaper.text,
       '--profile-metric-text': data.wallpaper === 'cream' ? '#6E727A' : btn.text,
@@ -89,7 +89,8 @@ export function OnePageShared({ data }: { data: OnePageShare }) {
               <a
                 key={link.platform}
                 className="opd-item"
-                href={link.url}
+                tabIndex={preview ? -1 : undefined}
+                href={preview ? undefined : link.url}
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -104,7 +105,8 @@ export function OnePageShared({ data }: { data: OnePageShare }) {
               <a
                 key={link.platform}
                 className="ops-link"
-                href={link.url}
+                tabIndex={preview ? -1 : undefined}
+                href={preview ? undefined : link.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ background: btn.bg, color: btn.text, ...resolveButtonShape(wallpaper, data.buttonStyle), borderColor: btn.border, backdropFilter: data.buttonColor === 'wallpaper' && wallpaper.followBorder ? 'blur(8px)' : undefined, WebkitBackdropFilter: data.buttonColor === 'wallpaper' && wallpaper.followBorder ? 'blur(8px)' : undefined }}
@@ -133,7 +135,7 @@ export function OnePageShared({ data }: { data: OnePageShare }) {
           </div>
         )}
 
-        <p className="ops-foot">数据来自平台直采 · 由 One Page 生成</p>
+        <p className="ops-foot">Made with One Page</p>
       </div>
     </div>
   )

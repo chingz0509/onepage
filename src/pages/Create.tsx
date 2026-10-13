@@ -143,7 +143,7 @@ export function Create() {
           </span>
         </nav>
         <div className="publish-result">
-          <h2>发布成功 🎉</h2>
+          <h2>你的一页已上线</h2>
           <p className="wizard-sub">把链接放到脉脉签名档，或扫码分享给朋友</p>
           <div>
             <span className="publish-link">{shareUrl}</span>

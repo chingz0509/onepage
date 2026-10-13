@@ -9,6 +9,18 @@ import { OnePageShared } from './OnePageShared'
 import { useEffect, useState } from 'react'
 import { readPage } from '../pageRepository'
 
+export function PageStatus({ kind, onRetry }: { kind: 'loading' | 'error' | 'missing'; onRetry?: () => void }) {
+  const loading = kind === 'loading'
+  return <main className="op-status-page"><section className="op-status-card" role={loading ? 'status' : undefined} aria-busy={loading}>
+    <span className="op-status-kicker">ONE PAGE</span>
+    {loading ? <><div className="op-status-spinner" aria-hidden="true" /><p>正在打开个人目录…</p></> : <>
+      <h1>{kind === 'error' ? '暂时无法打开' : '这一页暂时不在这里'}</h1>
+      <p>{kind === 'error' ? '连接有些不稳定，稍后再试一下。' : '链接可能有误，或页面已被移除。'}</p>
+      <button className="btn btn-primary" onClick={kind === 'error' ? onRetry : () => navigate('/')}>{kind === 'error' ? '重新加载' : '回到首页'}</button>
+    </>}
+  </section></main>
+}
+
 /**
  * /p/:slug 发布页。数据解析优先级：
  * 1. URL 的 ?d= 参数是 One Page 分享数据（kind: 'onepage'）→ Linktree 风格独立页
@@ -42,24 +54,14 @@ export function PublicPage({ slug, encoded }: { slug: string; encoded: string | 
   }
 
   if (!config) {
-    if (!encoded && (!cloud || cloud.slug !== slug)) return <div className="notfound" role="status">正在加载页面…</div>
-    if (!encoded && cloud?.error) return <div className="notfound"><p>暂时无法加载，请稍后重试</p><button className="btn btn-primary" onClick={() => setRetry((n) => n + 1)}>重试</button></div>
+    if (!encoded && (!cloud || cloud.slug !== slug)) return <PageStatus kind="loading" />
+    if (!encoded && cloud?.error) return <PageStatus kind="error" onRetry={() => setRetry((n) => n + 1)} />
     if (!encoded && cloud?.data) return <OnePageShared data={cloud.data} />
     const stored = getPage(slug)
     if (stored) config = parsePageConfig(stored) ?? fallbackPageConfig(slug)
   }
 
-  if (!config) {
-    return (
-      <div className="notfound">
-        <h1>404 · 页面不存在</h1>
-        <p>这个「OnePage」链接不存在或已被删除。</p>
-        <button className="btn btn-primary" onClick={() => navigate('/')}>
-          回到首页
-        </button>
-      </div>
-    )
-  }
+  if (!config) return <PageStatus kind="missing" />
 
   return <TemplateRenderer config={config} />
 }
