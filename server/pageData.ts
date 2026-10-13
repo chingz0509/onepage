@@ -21,7 +21,7 @@ export function validPageData(value: unknown): value is OnePageShare {
   return Array.isArray(d.links) && d.links.length <= 30 && d.links.every((link: unknown) => {
     if (!link || typeof link !== 'object') return false
     const l = link as Record<string, unknown>
-    return webUrl(l.url) && text(l.platform, 100) && text(l.badge, 80) &&
+    return webUrl(l.url) && (l.previewImage === undefined || webUrl(l.previewImage)) && text(l.platform, 100) && text(l.badge, 80) &&
       text(l.accent, 80) && text(l.metric, 100) && text(l.value, 80) &&
       text(l.insight, 600) && (l.unit === undefined || text(l.unit, 30)) &&
       (l.generic === undefined || typeof l.generic === 'boolean') &&

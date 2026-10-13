@@ -7,7 +7,7 @@ import {
 } from '../onepage'
 import './onepage-shared.css'
 import './onepage-fonts.css'
-import type { CSSProperties } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import { PlatformIcon } from '../components/PlatformIcon'
 
 export const PROFILE_DESIGN_ASSETS = `${import.meta.env.BASE_URL}onepage-design/`
@@ -16,13 +16,17 @@ export function ProfileAvatar({ src }: { src?: string }) {
   return <img className="ops-avatar" src={src || `${PROFILE_DESIGN_ASSETS}avatar-photo.jpg`} alt="头像" />
 }
 
-export function ProfileStatusBar() {
-  return (
-    <div className="ops-status-bar" aria-label="状态栏">
-      <span className="ops-status-time">9:41</span>
-      <img className="ops-status-levels" src={`${PROFILE_DESIGN_ASSETS}status@3x.png`} alt="信号、Wi-Fi、电量" data-node-id="4194:40770" />
-    </div>
-  )
+export function WebsitePreview({ link }: { link: OnePageLink }) {
+  const [failed, setFailed] = useState(false)
+  useEffect(() => setFailed(false), [link.previewImage])
+  if (!link.previewImage || failed) return null
+  return <img className="ops-website-preview" src={link.previewImage} alt={`${link.platform} 网站首屏预览`} loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
+}
+
+export function LinkCollectionStatus({ link }: { link: OnePageLink }) {
+  return link.previewImage ? (
+    <svg className="ops-website-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-label="访问网站"><path d="M7 17 17 7M7 7h10v10" /></svg>
+  ) : <span className="ops-link-generic">已收录</span>
 }
 
 /** 目录式（编辑风）条目内容：品牌色点 + 宋体平台名 + 斜体解读，右侧宋体大数字 */
@@ -74,7 +78,6 @@ export function OnePageShared({ data }: { data: OnePageShare }) {
       '--profile-footer-text': data.wallpaper === 'cream' ? '#7d7972' : wallpaper.text,
       '--profile-metric-text': data.wallpaper === 'cream' ? '#6E727A' : btn.text,
     } as CSSProperties}>
-      <ProfileStatusBar />
       <div className="ops-column">
         <ProfileAvatar src={data.avatarImage} />
         <h1 className="ops-name">{data.name}</h1>
@@ -113,7 +116,7 @@ export function OnePageShared({ data }: { data: OnePageShare }) {
                 <span className="ops-link-name">{link.platform}</span>
                 <span className="ops-link-nums">
                   {link.generic ? (
-                    <span className="ops-link-generic">已收录</span>
+                    <LinkCollectionStatus link={link} />
                   ) : (
                     <>
                       <strong>
@@ -124,6 +127,7 @@ export function OnePageShared({ data }: { data: OnePageShare }) {
                     </>
                   )}
                 </span>
+                <WebsitePreview link={link} />
               </a>
             ))}
             {data.links.length === 0 && <p className="ops-empty">这个页面还没有添加链接</p>}

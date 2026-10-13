@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import apiFetch from './api/fetch'
 import apiWebBridge from './api/webbridge'
 import apiPages from './api/pages'
+import apiScreenshot from './api/screenshot'
 
 /** 开发环境把 serverless handler 挂进 dev server，/api/fetch 与线上行为一致 */
 function devApi(): Plugin {
@@ -11,6 +12,9 @@ function devApi(): Plugin {
   }) => {
     middlewares.use('/api/fetch', (req, res) => {
       void apiFetch(req, res)
+    })
+    middlewares.use('/api/screenshot', (req, res) => {
+      void apiScreenshot(req, res)
     })
     middlewares.use('/api/pages', (req, res) => {
       const request = req as unknown as { method?: string; url?: string; headers?: Record<string, string | string[] | undefined>; on: (event: string, handler: (chunk?: Buffer) => void) => void }

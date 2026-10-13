@@ -4,6 +4,8 @@
 
 ## 接口
 
+`GET /api/screenshot?url=<公开网站地址>` 用隔离的浏览器截取 1200×675 的桌面首屏，返回 `previewImage` 公共图片 URL 与页面标题。截图启用图片和字体加载，仍复用公开 IP 校验和浏览器网络代理；不会登录目标网站。JPEG 不超过 128 KiB，存入现有 `onepage-avatars` 公共桶的 `previews/` 内容哈希目录，无需修改数据库结构。成功结果在函数实例中缓存 6 小时，并合并同时发生的同一 URL 请求。截图失败时保留纯链接，不阻止发布；访客直接读取已存图片，不重复截图。
+
 `GET /api/fetch?url=https%3A%2F%2Fhuaban.com%2Fspace`
 
 默认 `mode=auto`：读取 HTML → 没有指标时尝试内置无头浏览器 → 可选商业抓取服务 → 返回可用的原始页面信息。也可加 `&mode=browser` 强制浏览器。Vercel 上无需配置浏览器地址或密钥。

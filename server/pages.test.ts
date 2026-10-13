@@ -13,6 +13,10 @@ test('page validation rejects executable URLs and excessively large content', ()
   assert.equal(validPageData(page), true)
   assert.equal(validPageData({ ...page, bio: 'x'.repeat(801) }), false)
   assert.equal(validPageData({ ...page, avatarImage: 'javascript:alert(1)' }), false)
+  const website = { url: 'https://example.com', platform: 'example.com', badge: '', accent: '', metric: '', value: '', insight: '' }
+  assert.equal(validPageData({ ...page, links: [{ ...website, previewImage: 'https://example.com/preview.jpg' }] }), true)
+  assert.equal(validPageData({ ...page, links: [{ ...website, previewImage: 'javascript:alert(1)' }] }), false)
+  assert.equal(validPageData({ ...page, links: [{ ...website, previewImage: 'data:image/jpeg;base64,AAAA' }] }), false)
   assert.equal(validPageData({ ...page, links: [{ url: 'javascript:alert(1)', platform: 'test', badge: '', accent: '', metric: '', value: '', insight: '' }] }), false)
 })
 

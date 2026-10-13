@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test": "tsx --test server/backend.test.ts server/pages.test.ts"
+    "test": "tsx --test server/backend.test.ts server/pages.test.ts server/screenshot.test.ts"
   },
   "dependencies": {
     "@sparticuz/chromium": "148.0.0",

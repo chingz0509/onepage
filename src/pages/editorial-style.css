@@ -1,0 +1,37 @@
+.op-page.is-style-intro { padding: 12px 0; background: #faf7f0 !important; color: #24221b; }
+.es-page { --ep-ink: #24221b; --ep-faint: #aaa596; width: 393px; min-height: 790px; padding: 0 23px 12px; flex-shrink: 0; display: flex; flex-direction: column; zoom: var(--es-fit-scale, 1); }
+.es-preview { display: flex; justify-content: center; margin-top: 22px; margin-bottom: 22px; }
+.op-page.is-style-intro .es-preview .op-phone { width: 174px; height: 276px; margin: 0; padding: 4px; border: 1px solid #a39b8d; border-radius: 25px; background: #39362e; box-shadow: 0 10px 24px #24221b18; }
+.op-page.is-style-intro .es-preview .op-phone-screen { width: 100%; height: 100%; padding: 23px 12px 12px; border-radius: 20px; border: 0; box-shadow: none; }
+.op-page.is-style-intro .es-preview .op-phone-avatar { width: 36px; height: 36px; flex-shrink: 0; background: transparent; box-shadow: none; }
+.op-page.is-style-intro .es-preview .op-phone-avatar img { border-radius: 50%; }
+.op-page.is-style-intro .es-preview .op-phone-name { margin: 9px 0 3px; font-family: 'Songti SC', 'STSong', 'Noto Serif SC', serif; font-size: 16px; line-height: 20px; }
+.op-page.is-style-intro .es-preview .op-phone-job { font-size: 7px; line-height: 11px; }
+.op-page.is-style-intro .es-preview .op-phone-links { margin-top: 16px; gap: 7px; width: 100%; }
+.op-page.is-style-intro .es-preview .op-phone-link { display: flex; align-items: center; justify-content: center; gap: 7px; height: 27px; min-height: 27px; padding: 4px 8px; font-size: 8px; }
+.op-page.is-style-intro .es-preview .op-phone-link .op-platform-icon,
+.op-page.is-style-intro .es-preview .op-phone-link .op-platform-icon img,
+.op-page.is-style-intro .es-preview .op-phone-link .op-platform-icon svg { width: 12px; height: 12px; flex: none; }
+.op-page.is-style-intro .es-preview .op-phone-link > span:last-child { flex: 0 1 auto; opacity: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.op-page.is-style-intro .es-preview .op-phone-link.is-placeholder { opacity: .45; }
+.op-page.is-style-intro .es-preview .ops-website-preview { display: none; }
+.op-page.is-style-intro .es-preview .op-phone-signature { margin-top: auto; padding-top: 10px; font-size: 6px; opacity: .5; }
+.op-page.is-style-intro .es-panel { --wiz-text: #24221b; --wiz-btn-bg: #24221b; --wiz-btn-text: white; display: flex; flex-direction: column; flex: 1; min-height: 0; margin: 0 -23px -12px; padding: 22px 23px 24px; border: 1px solid #e5e0d2; border-bottom: 0; border-radius: 23px 23px 0 0; background: white; color: #24221b; box-shadow: none; }
+.op-page.is-style-intro .es-panel .op-tabs { margin: 0 0 20px; padding: 3px; height: 39px; gap: 0; border: 0; border-radius: 11px; background: #f3f1eb; }
+.op-page.is-style-intro .es-panel .op-tab { min-height: 33px; border: 0; border-radius: 8px; font-size: 12px; font-weight: 400; color: #8a877a; }
+.op-page.is-style-intro .es-panel .op-tab.is-active { color: #24221b; background: white; box-shadow: 0 2px 5px #24221b0a; }
+.op-page.is-style-intro .es-panel .op-swatches { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 15px 16px; padding: 4px; justify-items: center; }
+.op-page.is-style-intro .es-panel .op-swatch { width: 39px; height: 39px; min-width: 0; border: 1px solid #24221b12; border-radius: 50%; box-shadow: none; }
+.op-page.is-style-intro .es-panel .op-swatch.is-active { outline: 1px solid #857e70; outline-offset: 4px; }
+.op-page.is-style-intro .es-panel .op-swatch.is-active > span { visibility: hidden; }
+.op-page.is-style-intro .es-panel .op-custom-entry { grid-column: span 2; width: 100%; height: 39px; border: 1px solid #e5e0d2; border-radius: 11px; background: #f7f5f0; color: #8a877a; font-size: 10px; }
+.op-page.is-style-intro .es-panel .op-custom-entry > span { visibility: visible; }
+.op-page.is-style-intro .es-panel .op-btnstyles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 4px; }
+.op-page.is-style-intro .es-panel .op-btnstyle { min-height: 90px; border: 1px solid #e5e0d2; border-radius: 12px; background: #faf8f3; color: #8a877a; font-size: 10px; }
+.op-page.is-style-intro .es-panel .op-btnstyle.is-active { border-color: #857e70; box-shadow: 0 0 0 .5px #857e70; }
+.op-page.is-style-intro .es-panel .op-btnstyle-demo { font-size: 9px; }
+.op-page.is-style-intro .es-panel .op-wiz-actions { margin-top: auto; padding-top: 24px; }
+.op-page.is-style-intro .es-panel .op-btn-continue { min-height: 49px; border-radius: 999px; padding: 12px 14px; background: #24221b; color: white; font-size: 12px; font-weight: 500; }
+.op-page.is-style-intro .es-panel .op-template-rail { grid-auto-columns: 100px; }
+.op-page.is-style-intro .es-panel .op-template-caption { font-size: 8px; }
+.op-page.is-style-intro .es-panel .op-cloud-status { font-size: 10px; }

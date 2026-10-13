@@ -12,6 +12,7 @@ export type FetchedMetrics = {
   unit?: string
   insight: string
   source: 'live'
+  previewImage?: string
 }
 
 export type HuabanPageData = {
@@ -298,8 +299,17 @@ export function parseGenericWebBridgeResult(value: string | null): { title: stri
 }
 
 /** 未知平台通用抓取；桥不可用或失败返回 null，由调用方维持「已收录」占位 */
+async function fetchWebsitePreview(url: string): Promise<{ previewImage: string; title: string } | null> {
+  try {
+    const response = await fetch(`/api/screenshot?url=${encodeURIComponent(url)}`, { signal: AbortSignal.timeout(55000) })
+    if (!response.ok) return null
+    const result = await response.json()
+    return result.ok && typeof result.previewImage === 'string' ? result : null
+  } catch { return null }
+}
+
 export async function fetchGenericSite(url: string, onFailure?: OnFailure): Promise<FetchedMetrics | null> {
-  const s = await fetchViaServer(url, onFailure)
+  const [s, preview] = await Promise.all([fetchViaServer(url, onFailure), fetchWebsitePreview(url)])
   if (s) {
     const stat = s.metrics?.[0]
     if (stat) {
@@ -308,10 +318,13 @@ export async function fetchGenericSite(url: string, onFailure?: OnFailure): Prom
         value: stat.value,
         insight: s.title || '数据由 AI 现场读取',
         source: 'live',
+        previewImage: preview?.previewImage,
       }
     }
-    onFailure?.('no-metrics')
+    // A readable personal website need not expose follower/like statistics.
+    return { metric: '主页链接', value: '✓', insight: s.title || preview?.title || '', source: 'live', previewImage: preview?.previewImage }
   }
+  if (preview) return { metric: '主页链接', value: '✓', insight: preview.title, source: 'live', previewImage: preview.previewImage }
   try {
     const value = await readWithWebBridge(url, GENERIC_EXTRACT)
     const d = parseGenericWebBridgeResult(value)

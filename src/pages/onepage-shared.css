@@ -4,7 +4,7 @@
 .ops-page {
   position: relative;
   min-height: 100dvh;
-  padding: 126px 20px 56px;
+  padding: max(64px, env(safe-area-inset-top)) 20px 40px;
   display: flex;
   justify-content: center;
 }
@@ -36,36 +36,6 @@
   background: transparent;
   box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.4);
   object-fit: cover;
-  display: block;
-}
-
-/* Design status bar overlays the top safe area; profile content starts at y=126. */
-.ops-status-bar {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: 470px;
-  height: 54px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: #15161f;
-}
-.ops-status-time {
-  width: 140.5px;
-  text-align: center;
-  font-family: 'PingFang SC', sans-serif;
-  font-size: 17px;
-  font-weight: 500;
-  line-height: 22px;
-  padding-top: 4px;
-}
-.ops-status-levels {
-  width: 140.5px;
-  height: 54px;
-  object-fit: contain;
   display: block;
 }
 
@@ -126,6 +96,60 @@
   transform: translateY(-1px);
   box-shadow: 0 4px 14px rgba(26, 26, 24, 0.06);
 }
+
+/* Website cards keep the familiar link header, with a first-screen preview below. */
+.ops-link:has(.ops-website-preview) {
+  flex-wrap: wrap;
+  padding: 14px 16px 0;
+  gap: 12px 10px;
+  border-radius: 16px !important;
+  border-color: color-mix(in srgb, currentColor 10%, transparent) !important;
+}
+
+.ops-link:has(.ops-website-preview) .ops-link-badge,
+.ops-link:has(.ops-website-preview) .ops-link-badge .op-platform-icon,
+.ops-link:has(.ops-website-preview) .ops-link-badge .op-platform-icon svg,
+.ops-link:has(.ops-website-preview) .ops-link-badge .op-platform-icon img { width: 20px; height: 20px; }
+.ops-website-arrow { opacity: .55; flex: none; }
+
+.ops-website-preview {
+  display: block;
+  width: 100%;
+  flex: 0 0 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  object-fit: cover;
+  object-position: top;
+  border-radius: 12px;
+  background: var(--profile-canvas, #fff8eb);
+}
+
+.ops-link > .ops-website-preview {
+  width: calc(100% + 32px);
+  flex-basis: calc(100% + 32px);
+  max-width: none;
+  margin: 0 -16px;
+  border-radius: 0 0 15px 15px;
+}
+
+.ops-link:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
+
+.op-slot-link:has(.ops-website-preview) .op-link-menu-trigger {
+  position: absolute;
+  top: 12px;
+  right: 8px;
+  transform: none;
+}
+
+.op-slot-link:has(.ops-website-preview) .ops-link-nums { margin-right: 24px; }
+.op-edit-row:has(.ops-website-preview) .op-link-edit-menu { height: 56px; }
+.is-editing .op-edit-link:has(.ops-website-preview) { padding-right: 16px; }
+.is-editing .op-edit-link:has(.ops-website-preview) .ops-link-nums { margin-right: 36px; }
+.op-phone-link-entry { display: flex; flex-direction: column; gap: 4px; width: 100%; }
+.op-phone-link-entry .ops-website-preview { border-radius: 6px; }
 
 .ops-link-badge {
   width: 28px;

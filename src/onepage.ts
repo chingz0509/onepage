@@ -15,6 +15,8 @@ export type OnePageLink = {
   /** 数据来源：live 实时获取；snapshot 仅存在于旧版分享链接（已停止产生） */
   source?: 'live' | 'snapshot'
   generic?: boolean
+  /** Public URL of a captured first-screen website preview. */
+  previewImage?: string
 }
 
 export type ButtonStyleId = 'square' | 'round' | 'pill'

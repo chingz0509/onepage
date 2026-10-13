@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import QRCode from 'qrcode'
 import { EditorialLanding } from './EditorialLanding'
 import { EditorialProfile } from './EditorialProfile'
+import { EditorialLinks, EditorialCompletedLink } from './EditorialLinks'
+import { EditorialStyle } from './EditorialStyle'
 import { PlatformIcon } from '../components/PlatformIcon'
 import { ProfileEditIcon, ProfileShareIcon } from '../components/icons'
 import { savePage } from '../pageRepository'
@@ -19,7 +21,7 @@ import {
   type OnePageShare,
   type Wallpaper,
 } from '../onepage'
-import { EditorialItemContent, ProfileAvatar } from './OnePageShared'
+import { EditorialItemContent, ProfileAvatar, WebsitePreview, LinkCollectionStatus } from './OnePageShared'
 import './onepage-preview.css'
 import './onepage-shared.css'
 import './onepage-customize.css'
@@ -176,6 +178,7 @@ function cardWithMetrics(
     unit: metrics.unit,
     insight: metrics.insight || base.insight,
     source: metrics.source,
+    previewImage: metrics.previewImage,
     generic: metrics.value === '✓',
   }
 }
@@ -191,6 +194,7 @@ const READ_STEPS = ['正在打开主页…', '正在读取平台数据…', '正
  * 重复平台走 onDuplicate 并自我清空。每个槽位独立持有自己的计时器，多槽并行互不阻塞。
  */
 function LinkInputSlot(props: {
+  editorial?: boolean
   placeholder: string
   isDuplicate: (platform: string) => boolean
   onResolve: (card: OnePageLink) => void
@@ -201,6 +205,7 @@ function LinkInputSlot(props: {
   onReadingChange?: (reading: boolean) => void
 }) {
   const [value, setValue] = useState('')
+  const requestGeneration = useRef(0)
   const [reading, setReading] = useState(false)
   const [failure, setFailure] = useState('')
   const [stepIdx, setStepIdx] = useState(0)
@@ -212,6 +217,7 @@ function LinkInputSlot(props: {
 
   useEffect(
     () => () => {
+      requestGeneration.current += 1
       if (debounceRef.current) window.clearTimeout(debounceRef.current)
       stepTimers.current.forEach((t) => window.clearTimeout(t))
       readingChangeRef.current?.(false)
@@ -220,8 +226,13 @@ function LinkInputSlot(props: {
   )
 
   const start = (v: string) => {
+    if (reading || !v.trim()) return
     const detected = detectUrl(v)
-    if (!detected) return
+    if (!detected) {
+      if (props.editorial) setFailure('链接无法识别，请检查后重试')
+      return
+    }
+    const generation = ++requestGeneration.current
     const url = normalizeUrl(v)
     const dup = detected.kind === 'known' && props.isDuplicate(detected.card.platform)
     setReading(true)
@@ -239,7 +250,8 @@ function LinkInputSlot(props: {
       detected.kind === 'known'
         ? fetchPlatformMetrics(detected.card.platform, url, onFailure)
         : fetchGenericSite(url, onFailure)
-    void Promise.all([minTime, fetchP]).then(([, metrics]) => {
+    void Promise.all([minTime, fetchP.catch(() => null)]).then(([, metrics]) => {
+      if (generation !== requestGeneration.current) return
       if (!metrics) {
         setFailure(fetchFailureMessage(failureReason))
         setReading(false)
@@ -280,6 +292,22 @@ function LinkInputSlot(props: {
   }
 
   const invalid = !reading && value.trim() !== '' && !detectUrl(value)
+
+  if (props.editorial) return (
+    <div className={`lk-slot${reading ? ' is-reading' : ''}${failure && !reading ? ' is-error' : ''}`} aria-busy={reading}>
+      <div className="lk-input-wrap">
+        <input className="lk-input" type="text" inputMode="url" autoCapitalize="none" autoCorrect="off" spellCheck={false}
+          aria-label={props.placeholder} aria-invalid={!!failure && !reading}
+          value={value} placeholder={props.placeholder} disabled={reading}
+          onChange={(event) => { setValue(event.target.value); setFailure('') }} onPaste={onPaste}
+          onBlur={() => { if (debounceRef.current) window.clearTimeout(debounceRef.current); start(value) }}
+          onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); if (debounceRef.current) window.clearTimeout(debounceRef.current); start(value) } }} />
+        <span className="lk-input-icon" aria-hidden="true">{reading ? <span className="lk-spinner" /> : failure ? <span className="lk-alert">!</span> : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>}</span>
+      </div>
+      {reading && <p className="lk-reading" role="status">{stepIdx === 3 ? finalText : 'AI 正在读取主页信息 …'}</p>}
+      {failure && !reading && <div className="lk-error-row"><p role="alert">{failure}</p><button type="button" className="lk-retry" onClick={() => start(value)}>重新识别</button></div>}
+    </div>
+  )
 
   return (
     <div className={`op-slot${reading ? ' is-reading' : ''}`}>
@@ -333,51 +361,6 @@ function LinkInputSlot(props: {
           }}>先保存链接</button>
         </div>
       )}
-    </div>
-  )
-}
-
-function CompletedLinkSlot(props: {
-  card: OnePageLink
-  linkBtnStyle: CSSProperties
-  flashing: boolean
-  onDelete: () => void
-}) {
-  const [menuOpen, setMenuOpen] = useState(false)
-  return (
-    <div className={`op-slot-done${menuOpen ? ' is-menu-open' : ''}`}>
-      <span
-        className={`ops-link op-slot-link${props.flashing ? ' is-flashing' : ''}`}
-        style={props.linkBtnStyle}
-      >
-        <LinkButtonContent link={props.card} />
-        <button
-          type="button"
-          className="op-link-menu-trigger"
-          aria-label="打开链接操作菜单"
-          aria-expanded={menuOpen}
-          onClick={(event) => {
-            event.stopPropagation()
-            setMenuOpen((open) => !open)
-          }}
-        >
-          <span aria-hidden="true">⋮</span>
-        </button>
-        {menuOpen && (
-          <div className="op-link-menu" role="menu">
-            <button
-              type="button"
-              role="menuitem"
-              onClick={() => {
-                setMenuOpen(false)
-                props.onDelete()
-              }}
-            >
-              删除链接
-            </button>
-          </div>
-        )}
-      </span>
     </div>
   )
 }
@@ -459,7 +442,7 @@ function LinkButtonContent({ link }: { link: OnePageLink }) {
       <span className="ops-link-name">{link.platform}</span>
       <span className="ops-link-nums">
         {link.generic ? (
-          <span className="ops-link-generic">已收录</span>
+          <LinkCollectionStatus link={link} />
         ) : (
           <>
             <strong>
@@ -470,6 +453,7 @@ function LinkButtonContent({ link }: { link: OnePageLink }) {
           </>
         )}
       </span>
+      <WebsitePreview link={link} />
     </>
   )
 }
@@ -848,10 +832,12 @@ export function OnePagePreview() {
     setFlashAll(true)
     const next = await Promise.all(
       links.map(async (l) => {
-        const metrics = l.generic
-          ? await fetchGenericSite(l.url)
-          : await fetchPlatformMetrics(l.platform, l.url)
-        if (!metrics || metrics.value === '✓') return l
+        const detected = detectUrl(l.url)
+        const metrics = detected?.kind === 'known'
+          ? await fetchPlatformMetrics(detected.card.platform, l.url)
+          : await fetchGenericSite(l.url)
+        if (!metrics) return l
+        if (metrics.value === '✓' && !l.generic && !metrics.previewImage) return l
         return {
           ...l,
           metric: metrics.metric,
@@ -859,7 +845,8 @@ export function OnePagePreview() {
           unit: metrics.unit,
           insight: metrics.insight || l.insight,
           source: metrics.source,
-          generic: false,
+          generic: metrics.value === '✓',
+          previewImage: metrics.previewImage ?? l.previewImage,
         }
       }),
     )
@@ -871,7 +858,7 @@ export function OnePagePreview() {
   // —— 渲染 ——
 
   return (
-    <div className={`op-page${step === 0 && !published ? ' is-landing' : ''}${step === 1 ? ' is-profile-intro' : ''}${step === 0 && published ? ' is-published' : ''}${step === 0 && published && editing ? ' is-editing' : ''}`} style={pageStyle}>
+    <div className={`op-page${step === 0 && !published ? ' is-landing' : ''}${step === 1 ? ' is-profile-intro' : ''}${step === 2 ? ' is-links-intro' : ''}${step === 3 ? ' is-style-intro' : ''}${step === 0 && published ? ' is-published' : ''}${step === 0 && published && editing ? ' is-editing' : ''}`} style={pageStyle}>
       <input ref={avatarInput} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(event) => void changeAvatar(event.target.files?.[0])} />
       {/* 发布态的悬浮管理按钮 */}
       {step === 0 && published && (
@@ -1032,113 +1019,24 @@ export function OnePagePreview() {
       />}
 
       {/* ———— 向导第 2 步 ———— */}
-      {step === 2 && (
-        <div className="op-col op-links-step">
-          <div className="op-wiz-top">
-            <button
-              className="op-wiz-back"
-              aria-label="返回"
-              onClick={() => setStep((step - 1) as 0 | 1 | 2)}
-            >
-              ←
-            </button>
-            <div className="op-wiz-progress">
-              <div className="op-wiz-progress-fill" style={{ width: `${(step / 3) * 100}%` }} />
-            </div>
-            <span className="op-wiz-count">{step} / 3</span>
-          </div>
-
-          {step === 2 && (
-            <>
-              <h2 className="op-wiz-title">
-                添加你的<em>价值链接</em>
-              </h2>
-              <p className="op-wiz-sub">贴上主页链接，AI 帮你整理成名片</p>
-              <div className="op-slots">
-                {slots.map((slot, i) =>
-                  slot.card ? (
-                    editorial ? (
-                      <div className="op-slot-done" key={slot.id}>
-                        <span
-                          className={`opd-item op-slot-link${
-                            flashKey === slot.card.platform ? ' is-flashing' : ''
-                          }`}
-                        >
-                          <EditorialItemContent link={slot.card} />
-                        </span>
-                      </div>
-                    ) : (
-                      <CompletedLinkSlot
-                        key={slot.id}
-                        card={slot.card}
-                        linkBtnStyle={linkBtnStyle}
-                        flashing={flashKey === slot.card.platform}
-                        onDelete={() =>
-                          setSlots((prev) =>
-                            prev.map((s) => (s.id === slot.id ? { ...s, card: null } : s)),
-                          )
-                        }
-                      />
-                    )
-                  ) : (
-                    <LinkInputSlot
-                      key={slot.id}
-                      placeholder={persona.placeholders[i] ?? '粘贴你的主页链接'}
-                      isDuplicate={isDupPlatform}
-                      onResolve={(card) =>
-                        setSlots((prev) =>
-                          prev.map((s) => (s.id === slot.id ? { ...s, card } : s)),
-                        )
-                      }
-                      onDuplicate={flashPlatform}
-                      onRefresh={refreshPlatform}
-                      onReadingChange={(r) => setSlotReading(slot.id, r)}
-                    />
-                  ),
-                )}
-              </div>
-                <button
-                  className="op-add-row op-link-add"
-                  onClick={() => setSlots((prev) => [...prev, newSlot()])}
-                >
-                  <span className="op-add-plus">+</span>
-                  添加链接
-                </button>
-              <div className="op-wiz-actions op-link-actions">
-                <button
-                  className="op-btn-continue"
-                  disabled={readingSlots.size > 0}
-                  onClick={() => setStep(3)}
-                >
-                  继续{wizardLinks.length > 0 && `（已添加 ${wizardLinks.length} 条）`}
-                </button>
-                <button className="op-btn-skip" onClick={() => setStep(3)}>
-                  跳过
-                </button>
-              </div>
-            </>
-          )}
-
-        </div>
-      )}
+      {step === 2 && <EditorialLinks
+        count={wizardLinks.length} reading={readingSlots.size > 0}
+        onBack={() => setStep(1)} onAdd={() => setSlots((prev) => [...prev, newSlot()])}
+        onContinue={() => setStep(3)}
+      >
+        {slots.map((slot, i) => slot.card ? (
+          <EditorialCompletedLink key={slot.id} card={slot.card} flashing={flashKey === slot.card.platform}
+            onDelete={() => setSlots((prev) => prev.map((s) => s.id === slot.id ? { ...s, card: null } : s))} />
+        ) : (
+          <LinkInputSlot editorial key={slot.id} placeholder={persona.placeholders[i] ?? '粘贴你的主页链接'}
+            isDuplicate={isDupPlatform} onResolve={(card) => setSlots((prev) => prev.map((s) => s.id === slot.id ? { ...s, card } : s))}
+            onDuplicate={flashPlatform} onRefresh={refreshPlatform}
+            onReadingChange={(reading) => setSlotReading(slot.id, reading)} />
+        ))}
+      </EditorialLinks>}
 
       {/* ———— 向导第 3 步：上半手机预览（壁纸打底），下半白色面板 ———— */}
-      {step === 3 && (
-        <div className="op-style-step">
-          <div className="op-style-stage">
-            <div className="op-wiz-top">
-              <button
-                className="op-wiz-back"
-                aria-label="返回"
-                onClick={() => setStep(2)}
-              >
-                ←
-              </button>
-              <div className="op-wiz-progress">
-                <div className="op-wiz-progress-fill" style={{ width: '100%' }} />
-              </div>
-              <span className="op-wiz-count">3 / 3</span>
-            </div>
+      {step === 3 && <EditorialStyle onBack={() => setStep(2)} preview={
             <PhonePreview
               wallpaper={wallpaper}
               avatarChar={avatarChar}
@@ -1148,12 +1046,7 @@ export function OnePagePreview() {
               links={wizardLinks}
               linkBtnStyle={linkBtnStyle}
             />
-          </div>
-
-          <div className="op-style-sheet">
-            <div className="op-style-sheet-inner">
-              <h2 className="op-wiz-title">定制你的风格</h2>
-
+      }>
               <StylePicker
                 featured
                 wallpaper={wallpaper}
@@ -1173,10 +1066,7 @@ export function OnePagePreview() {
                   {saving ? '正在发布…' : '发布我的 One Page'}
                 </button>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
+      </EditorialStyle>}
 
       {/* 撤销删除提示 */}
       {undo && (
@@ -1292,14 +1182,17 @@ function PhonePreview(props: {
   return (
     <div className="op-phone">
       <div className="op-phone-screen" style={{ background: props.wallpaper.bg, color: props.wallpaper.text }}>
-        <div className="op-phone-avatar"><ProfileAvatar src={props.avatarImage} /></div>
+        <div className="op-phone-avatar"><ProfileAvatar src={props.avatarImage || '/onepage-design/editorial-avatar.png'} /></div>
         <p className="op-phone-name">{props.name}</p>
         <p className="op-phone-job">{props.job}</p>
         <div className="op-phone-links">
           {[0, 1, 2].map((i) => (
-              <span key={i} className="op-phone-link" style={props.linkBtnStyle}>
-                <span>{props.links[i]?.platform}</span><span aria-hidden="true">⋮</span>
-              </span>
+              <div key={i} className="op-phone-link-entry">
+                <span className={`op-phone-link${props.links[i] ? '' : ' is-placeholder'}`} style={props.linkBtnStyle}>
+                  {props.links[i] && <PlatformIcon url={props.links[i].url} />}<span>{props.links[i]?.platform || '主页链接'}</span>
+                </span>
+                {props.links[i] && <WebsitePreview link={props.links[i]} />}
+              </div>
           ))}
         </div>
         <span className="op-phone-signature">Made with One Page</span>

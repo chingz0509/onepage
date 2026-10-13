@@ -3,7 +3,7 @@ import { resolvePublic, validateTarget } from './network.js'
 import chromium from '@sparticuz/chromium'
 import { startBrowserProxy } from './browser-proxy.js'
 
-export type BrowserResult = { html: string; finalUrl: string } | { reason: string }
+export type BrowserResult = { html: string; finalUrl: string; screenshot?: Buffer; title?: string } | { reason: string }
 let activeBrowsers = 0
 
 export function pageFailure(status: number, title: string, text: string, url: string): string | null {
@@ -14,7 +14,7 @@ export function pageFailure(status: number, title: string, text: string, url: st
 }
 
 /** Remote browser must also enforce public-only network egress (including WebSockets/workers). */
-export async function renderPage(url: string): Promise<BrowserResult> {
+export async function renderPage(url: string, options: { screenshot?: boolean } = {}): Promise<BrowserResult> {
   const endpoint = process.env.BROWSER_WS_ENDPOINT
   if (activeBrowsers >= 2) return { reason: 'busy' }
   activeBrowsers++
@@ -48,12 +48,18 @@ export async function renderPage(url: string): Promise<BrowserResult> {
     }, 30000)
     context = await browser.createBrowserContext()
     const page = await context.newPage()
+    if (options.screenshot) await page.setViewport({ width: 1200, height: 675, deviceScaleFactor: 1 })
     await page.setBypassServiceWorker(true)
     await page.setRequestInterception(true)
     page.on('request', (request) => {
       void (async () => {
         const target = validateTarget(request.url())
-        if (!target || ['media', 'font', 'image'].includes(request.resourceType())) {
+        const resource = request.resourceType()
+        if (options.screenshot && ['image', 'font'].includes(resource) && /^(data:|blob:)/.test(request.url())) {
+          await request.continue()
+          return
+        }
+        if (!target || (options.screenshot ? resource === 'media' : ['media', 'font', 'image'].includes(resource))) {
           await request.abort()
           return
         }
@@ -82,9 +88,19 @@ export async function renderPage(url: string): Promise<BrowserResult> {
     }))
     const failure = pageFailure(response?.status() ?? 0, content.title, content.text, finalUrl)
     if (failure) return { reason: failure }
+    let screenshot: Buffer | undefined
+    if (options.screenshot) {
+      // Capture just the desktop viewport, with images and fonts enabled.
+      await page.evaluate(() => Promise.race([document.fonts.ready, new Promise((resolve) => setTimeout(resolve, 1000))]))
+      for (const quality of [55, 35, 20]) {
+        screenshot = Buffer.from(await page.screenshot({ type: 'jpeg', quality, fullPage: false, captureBeyondViewport: false }))
+        if (screenshot.length <= 131072) break
+      }
+      if (!screenshot || screenshot.length > 131072) return { reason: 'preview-too-large' }
+    }
     const escape = (value: string) => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
     const html = `<html><head><title>${escape(content.title)}</title>${content.meta}</head><body>${escape(content.text)}<script>${content.shotData}</script></body></html>`
-    return { html, finalUrl }
+    return { html, finalUrl, ...(screenshot ? { screenshot, title: content.title } : {}) }
   } catch (error) {
     // Log only the error class, never endpoint credentials or page content.
     console.warn('[browser-fetch]', started ? 'navigation' : 'startup', error instanceof Error ? error.name : 'Error')
