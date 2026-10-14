@@ -8,6 +8,7 @@ import type { OnePageShare } from '../onepage'
 import { OnePageShared } from './OnePageShared'
 import { useEffect, useState } from 'react'
 import { readPage } from '../pageRepository'
+import { DirectoryCreateLink } from '../components/DirectoryCreateLink'
 
 export function PageStatus({ kind, onRetry }: { kind: 'loading' | 'error' | 'missing'; onRetry?: () => void }) {
   const loading = kind === 'loading'
@@ -63,5 +64,5 @@ export function PublicPage({ slug, encoded }: { slug: string; encoded: string | 
 
   if (!config) return <PageStatus kind="missing" />
 
-  return <TemplateRenderer config={config} />
+  return <TemplateRenderer config={config} footerAction={<DirectoryCreateLink />} />
 }

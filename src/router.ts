@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-/** 极简 hash 路由：#/、#/create、#/p/:slug */
+/** 极简 hash 路由：#/、#/new（个人目录创建）、#/create（旧版创建）、#/p/:slug */
 
 export function useHashPath(): string {
   const [path, setPath] = useState(() => window.location.hash.replace(/^#/, '') || '/')

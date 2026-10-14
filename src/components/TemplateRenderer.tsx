@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import type {
   ContactItem,
   ExperienceItem,
@@ -158,7 +158,7 @@ function WorksModule({ m }: { m: ModuleConfig }) {
   )
 }
 
-export function TemplateRenderer({ config }: { config: PageConfig }) {
+export function TemplateRenderer({ config, footerAction }: { config: PageConfig; footerAction?: ReactNode }) {
   const template = getTemplate(config.templateId)
   const style = { ...template.style, ...config.styleOverrides }
   const glass = style.cardBg.startsWith('rgba')
@@ -198,6 +198,7 @@ export function TemplateRenderer({ config }: { config: PageConfig }) {
               return null
           }
         })}
+        {footerAction && <div className="ops-visitor-footer">{footerAction}</div>}
         <footer className="yy-footer">由「OnePage」生成 · 职场人的一页名片</footer>
       </div>
     </div>

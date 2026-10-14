@@ -1,0 +1,28 @@
+.op-directory-create-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 49px;
+  padding: 12px 20px;
+  border: 1px solid var(--op-line);
+  border-radius: 999px;
+  background: var(--op-white);
+  color: var(--op-ink);
+  font-family: var(--op-font);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+  text-align: center;
+  text-decoration: none;
+  text-wrap: pretty;
+  transition: background .16s ease;
+}
+.op-directory-create-link svg { flex: none; }
+.op-directory-create-link:hover { background: var(--op-paper); }
+.op-directory-create-link:active { background: var(--op-soft); }
+.op-directory-create-link:focus-visible { outline: 2px solid var(--op-focus); outline-offset: 4px; }
+.ops-visitor-footer { width: 100%; margin-top: auto; padding-top: 32px; }
+.ops-visitor-footer .ops-foot { margin: 14px 0 0; padding: 0; border: 0; }
+@media (prefers-reduced-motion: reduce) { .op-directory-create-link { transition: none; } }

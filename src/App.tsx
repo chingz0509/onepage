@@ -2,6 +2,7 @@ import { useHashPath } from './router'
 import { Landing } from './pages/Landing'
 import { Create } from './pages/Create'
 import { PublicPage } from './pages/PublicPage'
+import { OnePagePreview } from './pages/OnePagePreview'
 
 export default function App() {
   const path = useHashPath()
@@ -17,5 +18,6 @@ export default function App() {
   if (path.startsWith('/create')) {
     return <Create />
   }
+  if (path === '/new') return <OnePagePreview startFresh />
   return <Landing />
 }

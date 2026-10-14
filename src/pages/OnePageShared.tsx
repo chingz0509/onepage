@@ -9,6 +9,7 @@ import './onepage-shared.css'
 import './onepage-fonts.css'
 import { useEffect, useState, type CSSProperties } from 'react'
 import { PlatformIcon } from '../components/PlatformIcon'
+import { DirectoryCreateLink } from '../components/DirectoryCreateLink'
 
 export const PROFILE_DESIGN_ASSETS = `${import.meta.env.BASE_URL}onepage-design/`
 
@@ -135,7 +136,10 @@ export function OnePageShared({ data, preview = false }: { data: OnePageShare; p
           </div>
         )}
 
-        <p className="ops-foot">Made with One Page</p>
+        {preview ? <p className="ops-foot">Made with One Page</p> : <footer className="ops-visitor-footer">
+          <DirectoryCreateLink />
+          <p className="ops-foot">Made with One Page</p>
+        </footer>}
       </div>
     </div>
   )

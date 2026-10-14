@@ -448,12 +448,12 @@ function LinkButtonContent({ link }: { link: OnePageLink }) {
   )
 }
 
-export function OnePagePreview() {
-  const [initial] = useState(() => loadPublished() ?? loadPublished(DRAFT_KEY))
+export function OnePagePreview({ startFresh = false }: { startFresh?: boolean }) {
+  const [initial] = useState(() => startFresh ? null : loadPublished() ?? loadPublished(DRAFT_KEY))
   const persona = PERSONAS[0]
 
-  const [step, setStep] = useState<0 | 1 | 2 | 3>(0)
-  const [published, setPublished] = useState(() => loadPublished() !== null)
+  const [step, setStep] = useState<0 | 1 | 2 | 3>(startFresh ? 1 : 0)
+  const [published, setPublished] = useState(() => !startFresh && loadPublished() !== null)
 
   // 资料
   const [name, setName] = useState(initial?.name ?? persona.name)
@@ -497,7 +497,7 @@ export function OnePagePreview() {
   const [links, setLinks] = useState<OnePageLink[]>(initial?.links ?? [])
 
   // 向导第 2 步的输入槽
-  const [slots, setSlots] = useState<LinkSlot[]>(() => loadPublished() ? [] : (initial?.links ?? []).map((card, id) => ({ id: id + 1, card })))
+  const [slots, setSlots] = useState<LinkSlot[]>(() => !startFresh && loadPublished() ? [] : (initial?.links ?? []).map((card, id) => ({ id: id + 1, card })))
   const slotSeq = useRef(slots.length)
   // 正在读取数据的槽位；非空时「继续」禁用（「跳过」保持可点）
   const [readingSlots, setReadingSlots] = useState<ReadonlySet<number>>(new Set())
