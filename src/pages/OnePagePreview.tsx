@@ -192,7 +192,7 @@ type LinkSlot = { id: number; card: OnePageLink | null }
 const READ_STEPS = ['正在打开主页…', '正在读取平台数据…', '正在核实数据…', '✓ 读取完成']
 
 /**
- * 链接输入槽：粘贴后去抖 600ms 自动触发；手动输入按 Enter 才开始读取，
+ * 链接输入槽：输入或粘贴完整网址后去抖自动读取，Enter / 失焦可立即触发，
  * 期间并行拉取真实数据（dataFetch 三轨制），完成后经 onResolve 交给父级变条目；
  * 重复平台走 onDuplicate 并自我清空。每个槽位独立持有自己的计时器，多槽并行互不阻塞。
  */
@@ -209,6 +209,7 @@ function LinkInputSlot(props: {
 }) {
   const [value, setValue] = useState('')
   const requestGeneration = useRef(0)
+  const readingRef = useRef(false)
   const [reading, setReading] = useState(false)
   const [failure, setFailure] = useState('')
   const [stepIdx, setStepIdx] = useState(0)
@@ -229,7 +230,9 @@ function LinkInputSlot(props: {
   )
 
   const start = (v: string) => {
-    if (reading || !v.trim()) return
+    if (debounceRef.current) window.clearTimeout(debounceRef.current)
+    debounceRef.current = null
+    if (readingRef.current || !v.trim()) return
     const detected = detectUrl(v)
     if (!detected) {
       if (props.editorial) setFailure('请粘贴完整的主页网址，暂不支持直接输入名称')
@@ -238,6 +241,7 @@ function LinkInputSlot(props: {
     const generation = ++requestGeneration.current
     const url = normalizeUrl(v)
     const dup = detected.kind === 'known' && props.isDuplicate(detected.card.platform)
+    readingRef.current = true
     setReading(true)
     setFailure('')
     props.onReadingChange?.(true)
@@ -257,6 +261,7 @@ function LinkInputSlot(props: {
       if (generation !== requestGeneration.current) return
       if (!metrics) {
         setFailure(fetchFailureMessage(failureReason))
+        readingRef.current = false
         setReading(false)
         props.onReadingChange?.(false)
         return
@@ -269,6 +274,7 @@ function LinkInputSlot(props: {
             if (metrics) props.onRefresh?.(cardWithMetrics(detected, url, metrics))
             props.onDuplicate(detected.card.platform)
             setValue('')
+            readingRef.current = false
             setReading(false)
             props.onReadingChange?.(false)
             return
@@ -283,15 +289,21 @@ function LinkInputSlot(props: {
 
   const scheduleStart = (v: string) => {
     if (debounceRef.current) window.clearTimeout(debounceRef.current)
-    debounceRef.current = window.setTimeout(() => start(v), 600)
+    debounceRef.current = null
+    if (detectUrl(v)) debounceRef.current = window.setTimeout(() => start(v), 1000)
+  }
+
+  const changeValue = (v: string) => {
+    setValue(v)
+    setFailure('')
+    scheduleStart(v)
   }
 
   const onPaste = (event: React.ClipboardEvent<HTMLInputElement>) => {
     const pasted = event.clipboardData.getData('text').trim()
     if (!pasted) return
     event.preventDefault()
-    setValue(pasted)
-    scheduleStart(pasted)
+    changeValue(pasted)
   }
 
   const invalid = !reading && value.trim() !== '' && !detectUrl(value)
@@ -302,7 +314,7 @@ function LinkInputSlot(props: {
         <input className="lk-input" type="text" inputMode="url" autoCapitalize="none" autoCorrect="off" spellCheck={false}
           aria-label={props.placeholder} aria-invalid={!!failure && !reading}
           value={value} placeholder={props.placeholder} disabled={reading}
-          onChange={(event) => { setValue(event.target.value); setFailure('') }} onPaste={onPaste}
+          onChange={(event) => changeValue(event.target.value)} onPaste={onPaste}
           onBlur={() => { if (debounceRef.current) window.clearTimeout(debounceRef.current); start(value) }}
           onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); if (debounceRef.current) window.clearTimeout(debounceRef.current); start(value) } }} />
         <span className="lk-input-icon" aria-hidden="true">{reading ? <span className="lk-spinner" /> : failure ? <span className="lk-alert">!</span> : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>}</span>
@@ -320,8 +332,9 @@ function LinkInputSlot(props: {
           value={value}
           placeholder={props.placeholder}
           disabled={reading}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(e) => changeValue(e.target.value)}
           onPaste={onPaste}
+          onBlur={() => start(value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               e.preventDefault()
