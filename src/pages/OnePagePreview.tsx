@@ -6,7 +6,6 @@ import { EditorialLinks, EditorialCompletedLink } from './EditorialLinks'
 import { EditorialStyle } from './EditorialStyle'
 import { EditorDialog, ShareDialog } from './EditorOverlays'
 import { PlatformIcon } from '../components/PlatformIcon'
-import { DirectoryCreateLink } from '../components/DirectoryCreateLink'
 import { ProfileEditIcon, ProfileShareIcon } from '../components/icons'
 import { savePage } from '../pageRepository'
 import { pageUrl } from '../router'
@@ -992,10 +991,7 @@ export function OnePagePreview({ startFresh = false }: { startFresh?: boolean })
             )}
           </div>
 
-          <footer className="ops-visitor-footer">
-            <DirectoryCreateLink />
-            <p className="ops-foot">Made with One Page</p>
-          </footer>
+          <p className="ops-foot">Made with One Page</p>
           {(saving || saveError) && <p className="op-cloud-status" role={saveError ? 'alert' : 'status'}>
             {saving ? '正在保存…' : saveError}
             {saveError && <button onClick={() => setSyncRetry((n) => n + 1)}>重试保存</button>}
