@@ -75,10 +75,13 @@ export const CLASSIC_WALLPAPERS: Wallpaper[] = [
 
 /**
  * 选择器里展示的色板：低饱和莫兰迪色系 + 沉稳深色 + 含蓄渐变。
- * cream 保持为默认值（编辑版式模板绑定 cream）。
+ * 新建名片默认选择纯白；cream 保留给米白主题及旧版目录。
  */
 export const WALLPAPERS: Wallpaper[] = [
   ...CLASSIC_WALLPAPERS,
+  { id: 'edition-sage', name: '青瓷留白', type: 'photo', bg: 'url("/onepage-design/templates/edition-sage-20261017.webp") center / cover #e7ece2', canvas: '#e7ece2', text: '#293d30', followBtn: 'rgba(255,255,252,.9)', followText: '#293d30', followBorder: 'rgba(66,89,68,.12)', dark: false, fontFamily: '"Songti SC", "STSong", serif' },
+  { id: 'edition-sand', name: '暖砂光影', type: 'photo', bg: 'url("/onepage-design/templates/edition-sand-20261017.webp") center / cover #f3eee5', canvas: '#f3eee5', text: '#443b30', followBtn: 'rgba(255,253,248,.92)', followText: '#443b30', followBorder: 'rgba(92,76,53,.14)', dark: false, fontFamily: '"Songti SC", "STSong", serif' },
+  { id: 'edition-nocturne', name: '暮蓝月色', type: 'photo', bg: 'url("/onepage-design/templates/edition-nocturne-20261017.webp") center / cover #253848', canvas: '#253848', text: '#f3f1e9', followBtn: 'rgba(242,244,247,.12)', followText: '#f3f1e9', followBorder: 'rgba(242,244,247,.22)', dark: true, fontFamily: '"Songti SC", "STSong", serif' },
   { id: 'premium-track', name: '蓝色起跑', type: 'photo', bg: 'linear-gradient(180deg, rgba(0,38,78,.15), transparent), url("/onepage-design/templates/premium-track.webp?v=20261013-personality-ready") center / cover #086dae', canvas: '#086dae', text: '#ffffff', followBtn: '#ffffff', followText: '#153345', dark: true, paperEdge: true },
   { id: 'premium-bakery', name: '黄油来信', type: 'photo', bg: 'linear-gradient(180deg, rgba(255,248,234,.42), rgba(255,248,234,.12)), url("/onepage-design/templates/premium-bakery.webp?v=20261013-personality-ready") center / cover #ab8358', canvas: '#ab8358', text: '#603c28', followBtn: '#fffaf0', followText: '#9b301a', dark: false, fontFamily: 'Georgia, "Songti SC", serif', paperEdge: true },
   { id: 'premium-vanity', name: '金色妆台', type: 'photo', bg: 'linear-gradient(180deg, rgba(255,248,234,.22), transparent), url("/onepage-design/templates/premium-vanity.webp?v=20261013-personality-ready") center / cover #9e794b', canvas: '#9e794b', text: '#4b3320', followBtn: '#f1ddbc', followText: '#60482c', dark: false, fontFamily: 'Georgia, "Songti SC", serif' },
@@ -179,14 +182,13 @@ export const BUTTON_STYLES: { id: ButtonStyleId; name: string; radius: string }[
 ]
 
 /** Keep template samples, editor previews and shared pages on the same button shape. */
-export function resolveButtonShape(wallpaper: Wallpaper, style: ButtonStyleId) {
+export function resolveButtonShape(_wallpaper: Wallpaper, style: ButtonStyleId) {
   return {
     borderRadius: BUTTON_STYLES.find((button) => button.id === style)?.radius ?? '999px',
-    clipPath: wallpaper.paperEdge && style === 'square' ? PAPER_EDGE : undefined,
+    clipPath: 'none',
   }
 }
 
-const PAPER_EDGE = 'polygon(0% 4.00%, 1% 3.62%, 2% 2.62%, 3% 1.38%, 4% 0.38%, 5% 0.00%, 6% 0.38%, 7% 1.38%, 8% 2.62%, 9% 3.62%, 10% 4.00%, 11% 3.62%, 12% 2.62%, 13% 1.38%, 14% 0.38%, 15% 0.00%, 16% 0.38%, 17% 1.38%, 18% 2.62%, 19% 3.62%, 20% 4.00%, 21% 3.62%, 22% 2.62%, 23% 1.38%, 24% 0.38%, 25% 0.00%, 26% 0.38%, 27% 1.38%, 28% 2.62%, 29% 3.62%, 30% 4.00%, 31% 3.62%, 32% 2.62%, 33% 1.38%, 34% 0.38%, 35% 0.00%, 36% 0.38%, 37% 1.38%, 38% 2.62%, 39% 3.62%, 40% 4.00%, 41% 3.62%, 42% 2.62%, 43% 1.38%, 44% 0.38%, 45% 0.00%, 46% 0.38%, 47% 1.38%, 48% 2.62%, 49% 3.62%, 50% 4.00%, 51% 3.62%, 52% 2.62%, 53% 1.38%, 54% 0.38%, 55% 0.00%, 56% 0.38%, 57% 1.38%, 58% 2.62%, 59% 3.62%, 60% 4.00%, 61% 3.62%, 62% 2.62%, 63% 1.38%, 64% 0.38%, 65% 0.00%, 66% 0.38%, 67% 1.38%, 68% 2.62%, 69% 3.62%, 70% 4.00%, 71% 3.62%, 72% 2.62%, 73% 1.38%, 74% 0.38%, 75% 0.00%, 76% 0.38%, 77% 1.38%, 78% 2.62%, 79% 3.62%, 80% 4.00%, 81% 3.62%, 82% 2.62%, 83% 1.38%, 84% 0.38%, 85% 0.00%, 86% 0.38%, 87% 1.38%, 88% 2.62%, 89% 3.62%, 90% 4.00%, 91% 3.62%, 92% 2.62%, 93% 1.38%, 94% 0.38%, 95% 0.00%, 96% 0.38%, 97% 1.38%, 98% 2.62%, 99% 3.62%, 100% 4.00%, 100% 96.00%, 99% 96.38%, 98% 97.38%, 97% 98.62%, 96% 99.62%, 95% 100.00%, 94% 99.62%, 93% 98.62%, 92% 97.38%, 91% 96.38%, 90% 96.00%, 89% 96.38%, 88% 97.38%, 87% 98.62%, 86% 99.62%, 85% 100.00%, 84% 99.62%, 83% 98.62%, 82% 97.38%, 81% 96.38%, 80% 96.00%, 79% 96.38%, 78% 97.38%, 77% 98.62%, 76% 99.62%, 75% 100.00%, 74% 99.62%, 73% 98.62%, 72% 97.38%, 71% 96.38%, 70% 96.00%, 69% 96.38%, 68% 97.38%, 67% 98.62%, 66% 99.62%, 65% 100.00%, 64% 99.62%, 63% 98.62%, 62% 97.38%, 61% 96.38%, 60% 96.00%, 59% 96.38%, 58% 97.38%, 57% 98.62%, 56% 99.62%, 55% 100.00%, 54% 99.62%, 53% 98.62%, 52% 97.38%, 51% 96.38%, 50% 96.00%, 49% 96.38%, 48% 97.38%, 47% 98.62%, 46% 99.62%, 45% 100.00%, 44% 99.62%, 43% 98.62%, 42% 97.38%, 41% 96.38%, 40% 96.00%, 39% 96.38%, 38% 97.38%, 37% 98.62%, 36% 99.62%, 35% 100.00%, 34% 99.62%, 33% 98.62%, 32% 97.38%, 31% 96.38%, 30% 96.00%, 29% 96.38%, 28% 97.38%, 27% 98.62%, 26% 99.62%, 25% 100.00%, 24% 99.62%, 23% 98.62%, 22% 97.38%, 21% 96.38%, 20% 96.00%, 19% 96.38%, 18% 97.38%, 17% 98.62%, 16% 99.62%, 15% 100.00%, 14% 99.62%, 13% 98.62%, 12% 97.38%, 11% 96.38%, 10% 96.00%, 9% 96.38%, 8% 97.38%, 7% 98.62%, 6% 99.62%, 5% 100.00%, 4% 99.62%, 3% 98.62%, 2% 97.38%, 1% 96.38%, 0% 96.00%)'
 
 export const BUTTON_COLORS: { id: ButtonColorId; name: string }[] = [
   { id: 'black', name: '黑色' },

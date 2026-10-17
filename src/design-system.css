@@ -1,7 +1,9 @@
-/* Product chrome uses one quiet paper palette. Personal page themes remain independent. */
+/* Product chrome uses a white canvas with warm neutral controls. Personal page themes remain independent. */
 :root {
-  --op-paper: #faf7f0;
+  --op-paper: #ffffff;
   --op-white: #fff;
+  --op-disabled-bg: #eeeeef;
+  --op-disabled-text: #929297;
   --op-ink: #24221b;
   --op-muted: #8a877a;
   --op-faint: #aaa596;

@@ -1,4 +1,4 @@
-.op-page.is-links-intro { padding: 12px 0; background: #faf7f0 !important; color: #24221b; }
+.op-page.is-links-intro { padding: 12px 0; background: var(--op-paper) !important; color: #24221b; }
 .lk-page { --ep-ink: #24221b; --ep-faint: #aaa596; }
 .lk-page { height: 790px; }
 .lk-page > .ep-navigation, .lk-heading, .lk-add, .lk-support, .lk-actions { flex-shrink: 0; }
@@ -56,7 +56,7 @@
 .lk-support { margin: 0; padding-bottom: 4px; text-align: center; font-size: 10px; color: var(--lk-faint); line-height: 18px; }
 .lk-actions { margin-top: auto; padding-top: 24px; display: flex; flex-direction: column; align-items: center; gap: 13px; }
 .lk-continue { width: 100%; min-height: 49px; border: 0; border-radius: 999px; background: var(--lk-ink); color: white; font-size: 12px; font-weight: 500; cursor: pointer; }
-.lk-continue:disabled { background: #e7e1ce; color: #8b8675; cursor: not-allowed; }
+.lk-continue:disabled { background: var(--op-disabled-bg, #eeeeef); color: var(--op-disabled-text, #929297); cursor: not-allowed; }
 .lk-continue:hover:not(:disabled) { background: #403d32; }
 .lk-skip { padding: 0 12px; border: 0; background: transparent; color: var(--lk-muted); font-size: 11px; line-height: 20px; cursor: pointer; }
 .lk-add:focus-visible, .lk-retry:focus-visible, .lk-remove:focus-visible, .lk-continue:focus-visible, .lk-skip:focus-visible { outline: 2px solid var(--lk-green); outline-offset: 4px; }

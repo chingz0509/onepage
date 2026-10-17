@@ -1,5 +1,5 @@
 .op-page.is-landing {
-  --el-paper: #faf7f0;
+  --el-paper: var(--op-paper);
   --el-ink: #24221b;
   --el-muted: #868376;
   --el-faint: #aaa596;
@@ -13,7 +13,7 @@
   width: min(100vw, 393px);
   flex-shrink: 0;
   zoom: var(--el-fit-scale, 1);
-  padding: 0 23px 26px;
+  padding: 16px 23px 10px;
   margin: 0 auto;
   text-wrap: pretty;
 }
@@ -31,7 +31,7 @@
 }
 
 .el-wordmark { color: var(--el-ink); letter-spacing: 2px; }
-.el-introduction { margin-top: 32px; }
+.el-introduction { margin-top: 48px; }
 .el-introduction h1 {
   margin: 0;
   font-family: 'Songti SC', 'STSong', 'Noto Serif SC', serif;
@@ -91,7 +91,7 @@
   color: var(--el-faint);
 }
 .el-footer {
-  margin-top: 61px;
+  margin-top: 45px;
   padding-top: 10px;
   border-top: 1px solid var(--el-line);
   text-align: center;

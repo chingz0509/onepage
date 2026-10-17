@@ -23,7 +23,7 @@ import {
   type OnePageShare,
   type Wallpaper,
 } from '../onepage'
-import { EditorialItemContent, ProfileAvatar, WebsitePreview, LinkCollectionStatus } from './OnePageShared'
+import { EditorialItemContent, ProfileAvatar, WebsitePreview, LinkCollectionStatus, LinkMetricInsight, LinkPlatformName } from './OnePageShared'
 import './onepage-preview.css'
 import './onepage-shared.css'
 import './onepage-customize.css'
@@ -185,7 +185,13 @@ function cardWithMetrics(
   }
 }
 
-type LinkSlot = { id: number; card: OnePageLink | null }
+const DEFAULT_LINK_URLS = [
+  'https://github.com/earendil-works',
+  'https://dribbble.com/424096784emm',
+  'https://chengzhuo.work',
+]
+
+type LinkSlot = { id: number; card: OnePageLink | null; initialUrl?: string }
 
 /** 内联读取步骤（宋体斜体小字，逐行浮现） */
 const READ_STEPS = ['正在打开主页…', '正在读取平台数据…', '正在核实数据…', '✓ 读取完成']
@@ -197,6 +203,7 @@ const READ_STEPS = ['正在打开主页…', '正在读取平台数据…', '正
  */
 function LinkInputSlot(props: {
   editorial?: boolean
+  initialUrl?: string
   placeholder: string
   isDuplicate: (platform: string) => boolean
   onResolve: (card: OnePageLink) => void
@@ -206,7 +213,7 @@ function LinkInputSlot(props: {
   /** 读取开始/结束时上报，父级据此禁用「继续」（跳过保持可点） */
   onReadingChange?: (reading: boolean) => void
 }) {
-  const [value, setValue] = useState('')
+  const [value, setValue] = useState(props.initialUrl ?? '')
   const requestGeneration = useRef(0)
   const readingRef = useRef(false)
   const [reading, setReading] = useState(false)
@@ -304,6 +311,13 @@ function LinkInputSlot(props: {
     event.preventDefault()
     changeValue(pasted)
   }
+
+  useEffect(() => {
+    if (props.initialUrl) scheduleStart(props.initialUrl)
+    return () => { if (debounceRef.current) window.clearTimeout(debounceRef.current) }
+    // Start prefilled links once on mount; later edits use changeValue.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const invalid = !reading && value.trim() !== '' && !detectUrl(value)
 
@@ -442,7 +456,7 @@ function LinkButtonContent({ link }: { link: OnePageLink }) {
       <span className="ops-link-badge">
         <PlatformIcon url={link.url} />
       </span>
-      <span className="ops-link-name">{link.platform}</span>
+      <LinkPlatformName link={link} />
       <span className="ops-link-nums">
         {link.generic ? (
           <LinkCollectionStatus link={link} />
@@ -456,6 +470,7 @@ function LinkButtonContent({ link }: { link: OnePageLink }) {
           </>
         )}
       </span>
+      <LinkMetricInsight link={link} />
       <WebsitePreview link={link} />
     </>
   )
@@ -524,7 +539,9 @@ export function OnePagePreview({ startFresh = false }: { startFresh?: boolean })
     })
 
   // 风格
-  const [wallpaperId, setWallpaperId] = useState(initial?.wallpaperId ?? 'cream')
+  const [wallpaperId, setWallpaperId] = useState(
+    !published && initial?.wallpaperId === 'cream' ? 'custom:ffffff' : initial?.wallpaperId ?? 'custom:ffffff',
+  )
   const [buttonStyle, setButtonStyle] = useState<ButtonStyleId>(initial?.buttonStyle ?? 'pill')
   const [buttonColor, setButtonColor] = useState<ButtonColorId>(initial?.buttonColor ?? 'wallpaper')
   const [styleTab, setStyleTab] = useState<'wallpaper' | 'button'>('wallpaper')
@@ -637,7 +654,7 @@ export function OnePagePreview({ startFresh = false }: { startFresh?: boolean })
     setAvatarError('')
     setLinks([])
     setSlots([])
-    setWallpaperId('cream')
+    setWallpaperId('custom:ffffff')
     setButtonStyle('pill')
     setButtonColor('wallpaper')
     setShareUrl('')
@@ -652,7 +669,7 @@ export function OnePagePreview({ startFresh = false }: { startFresh?: boolean })
   const newSlot = (): LinkSlot => ({ id: ++slotSeq.current, card: null })
 
   const enterStep2 = () => {
-    if (slots.length === 0) setSlots([newSlot(), newSlot(), newSlot()])
+    if (slots.length === 0) setSlots(DEFAULT_LINK_URLS.map((initialUrl) => ({ ...newSlot(), initialUrl })))
     setStep(2)
   }
 
@@ -1039,7 +1056,7 @@ export function OnePagePreview({ startFresh = false }: { startFresh?: boolean })
             })}
             onDelete={() => setSlots((prev) => prev.filter((s) => s.id !== slot.id))} />
         ) : (
-          <LinkInputSlot editorial key={slot.id} placeholder={persona.placeholders[i] ?? '粘贴你的主页链接'}
+          <LinkInputSlot editorial key={slot.id} initialUrl={slot.initialUrl} placeholder={persona.placeholders[i] ?? '粘贴你的主页链接'}
             isDuplicate={isDupPlatform} onResolve={(card) => setSlots((prev) => prev.map((s) => s.id === slot.id ? { ...s, card } : s))}
             onDuplicate={flashPlatform} onRefresh={refreshPlatform}
             onReadingChange={(reading) => setSlotReading(slot.id, reading)} />
@@ -1137,7 +1154,6 @@ function PhonePreview(props: {
                 <span className={`op-phone-link${props.links[i] ? '' : ' is-placeholder'}`} style={props.linkBtnStyle}>
                   {props.links[i] && <PlatformIcon url={props.links[i].url} />}<span>{props.links[i]?.platform || '主页链接'}</span>
                 </span>
-                {props.links[i] && <WebsitePreview link={props.links[i]} />}
               </div>
           ))}
         </div>
@@ -1166,10 +1182,6 @@ function StylePreviewCompact(props: {
         {props.links.slice(0, 2).map((link) => (
           <span key={link.platform} className="op-style-link" style={props.linkBtnStyle}>
             <strong>{link.platform}</strong>
-            <span>
-              {link.value}
-              {link.unit ?? ''} · {link.metric}
-            </span>
           </span>
         ))}
         {props.links.length === 0 && (

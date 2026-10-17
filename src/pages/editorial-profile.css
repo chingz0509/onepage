@@ -1,6 +1,6 @@
 .op-page.is-profile-intro {
   padding: 12px 0;
-  background: #faf7f0 !important;
+  background: var(--op-paper) !important;
   color: #24221b;
 }
 .ep-profile {
@@ -24,7 +24,7 @@
 .ep-heading p { margin: 0; color: var(--ep-faint); font-size: 8px; line-height: 12px; letter-spacing: 3px; }
 .ep-heading h1 { margin: 13px 0 0; font-family: 'Songti SC', 'STSong', 'Noto Serif SC', serif; font-size: 25px; line-height: 36px; font-weight: 600; }
 .ep-identity { display: flex; flex-direction: column; align-items: center; margin-top: 21px; }
-.ep-avatar { position: relative; display: block; width: 100px; height: 100px; padding: 5px; border: 1px solid #dfdacd; border-radius: 50%; background: #faf7f0; cursor: pointer; box-shadow: 0 4px 6px #24221b0c; }
+.ep-avatar { position: relative; display: block; width: 100px; height: 100px; padding: 5px; border: 1px solid #dfdacd; border-radius: 50%; background: var(--op-paper); cursor: pointer; box-shadow: 0 4px 6px #24221b0c; }
 .ep-avatar img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 2px solid white; }
 .ep-edit { position: absolute; right: -6px; bottom: 2px; display: grid; place-items: center; width: 27px; height: 27px; border-radius: 50%; background: var(--ep-ink); color: white; box-shadow: 0 3px 6px #24221b1c; }
 .ep-edit svg { width: 17px; height: 17px; }

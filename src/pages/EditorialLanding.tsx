@@ -20,7 +20,7 @@ export function EditorialLanding({ onCreate }: { onCreate: () => void }) {
 
       <figure className="el-showcase">
         <p className="el-issue">— NO.001 · 本期封面 · 青瓷微雨 —</p>
-        <img className="el-card-stack" src="/onepage-design/landing-card-stack-rose-mist.png" width="716" height="694" alt="青瓷微雨主题名片示例：林小满，资深 UI 设计师，包含 Dribbble 和个人网站链接；后方叠放浅藕粉及雾蓝灰主题名片。" />
+        <img className="el-card-stack" src="/onepage-design/landing-card-stack-rose-mist-transparent.png" width="716" height="694" alt="青瓷微雨主题名片示例：林小满，资深 UI 设计师，包含 Dribbble 和个人网站链接；后方叠放浅藕粉及雾蓝灰主题名片。" />
         <figcaption>12 套主题 · 换一种底色，换一种气质</figcaption>
       </figure>
 

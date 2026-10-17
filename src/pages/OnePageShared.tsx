@@ -24,6 +24,25 @@ export function WebsitePreview({ link }: { link: OnePageLink }) {
   return <img className="ops-website-preview" src={link.previewImage} alt={`${link.platform} 网站首屏预览`} loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
 }
 
+/** The same collected context accompanies metrics on owner and visitor pages. */
+export function LinkMetricInsight({ link }: { link: OnePageLink }) {
+  if (link.generic || !link.insight?.trim() || !link.value || link.value === '✓') return null
+  return <span className="ops-metric-insight">{link.insight}</span>
+}
+
+export function LinkPlatformName({ link }: { link: OnePageLink }) {
+  let username = ''
+  try {
+    const url = new URL(link.url)
+    if (['github.com', 'www.github.com', 'dribbble.com', 'www.dribbble.com'].includes(url.hostname.toLowerCase())) {
+      username = url.pathname.split('/').filter(Boolean)[0] ?? ''
+    }
+  } catch {
+    // Older saved links may not contain a valid absolute URL.
+  }
+  return <span className="ops-link-name">{link.platform}{username && <span className="ops-link-username">@{username}</span>}</span>
+}
+
 export function LinkCollectionStatus({ link }: { link: OnePageLink }) {
   return link.previewImage ? (
     <svg className="ops-website-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-label="访问网站"><path d="M7 17 17 7M7 7h10v10" /></svg>
@@ -115,7 +134,7 @@ export function OnePageShared({ data, preview = false }: { data: OnePageShare; p
                 <span className="ops-link-badge">
                   <PlatformIcon url={link.url} />
                 </span>
-                <span className="ops-link-name">{link.platform}</span>
+                <LinkPlatformName link={link} />
                 <span className="ops-link-nums">
                   {link.generic ? (
                     <LinkCollectionStatus link={link} />
@@ -129,6 +148,7 @@ export function OnePageShared({ data, preview = false }: { data: OnePageShare; p
                     </>
                   )}
                 </span>
+                <LinkMetricInsight link={link} />
                 <WebsitePreview link={link} />
               </a>
             ))}

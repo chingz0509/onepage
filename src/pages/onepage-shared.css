@@ -22,19 +22,19 @@
 /* Design avatar with a translucent white outline. */
 
 .ops-avatar {
-  width: 96px;
-  height: 96px;
+  width: 72px;
+  height: 72px;
   flex: none;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--ed-serif);
-  font-size: 46px;
+  font-size: 34px;
   font-weight: 700;
   color: #f1ecde;
   background: transparent;
-  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4);
   object-fit: cover;
   display: block;
 }
@@ -183,6 +183,24 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 1px;
+}
+
+.ops-link-name:has(.ops-link-username) {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0 8px;
+  white-space: normal;
+}
+
+.ops-link-username {
+  min-width: 0;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 16px;
+  opacity: .6;
+  overflow-wrap: anywhere;
 }
 
 .ops-link-nums strong {
@@ -369,3 +387,108 @@
 
 /* Template typography stays inside the profile content. */
 .op-home-col .ops-name, .op-home-col .ops-title, .op-home-col .ops-bio { font-family: var(--template-font, inherit); }
+
+/* Compact summaries: platform, inline value and label, then full context. */
+.ops-link:has(.ops-metric-insight) {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: center;
+  gap: 0 8px;
+  padding: 16px 18px;
+  border-radius: 16px !important;
+  clip-path: none !important;
+}
+.ops-link:has(.ops-metric-insight) .ops-link-badge,
+.ops-link:has(.ops-metric-insight) .ops-link-badge .op-platform-icon,
+.ops-link:has(.ops-metric-insight) .ops-link-badge .op-platform-icon :is(img, svg) {
+  width: 20px;
+  height: 20px;
+}
+.ops-link:has(.ops-metric-insight) .ops-link-name {
+  font-size: 14px;
+  line-height: 20px;
+}
+.ops-link:has(.ops-metric-insight) .ops-link-nums {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  flex-direction: row;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  margin: 10px 0 0;
+}
+.ops-link:has(.ops-metric-insight) .ops-link-nums strong {
+  font-size: 25px;
+  line-height: 30px;
+  letter-spacing: -.4px;
+  font-weight: 600;
+}
+.ops-link:has(.ops-metric-insight) .ops-link-nums small {
+  font-size: 11px;
+  line-height: 16px;
+  opacity: .6;
+  color: inherit;
+}
+.ops-metric-insight {
+  grid-column: 1 / -1;
+  margin-top: 6px;
+  font-size: 11px;
+  line-height: 1.65;
+  opacity: .7;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+}
+.ops-link:has(.ops-metric-insight) > .ops-website-preview {
+  grid-column: 1 / -1;
+  width: 100%;
+  margin: 12px 0 0;
+  border-radius: 8px;
+}
+.ops-link:has(.ops-website-preview) {
+  border-radius: 16px !important;
+  clip-path: none !important;
+}
+
+/* A consistent frame for the shared profile and its management view. */
+:is(.ops-page, .is-published) .ops-avatar {
+  box-shadow: 0 0 0 3px rgb(255 255 255 / .65), 0 6px 20px rgb(0 0 0 / .1);
+}
+:is(.ops-page, .is-published) .ops-title {
+  margin-top: 5px;
+  font-size: 12px;
+  line-height: 20px;
+}
+:is(.ops-page, .is-published) .ops-bio {
+  margin-top: 3px;
+  font-size: 12px;
+  line-height: 21px;
+  text-wrap: pretty;
+}
+:is(.ops-page, .is-published) .ops-links { gap: 12px; }
+:is(.ops-page, .is-published) .ops-link {
+  border-color: color-mix(in srgb, currentColor 7%, transparent);
+  box-shadow: 0 3px 14px rgb(0 0 0 / .035);
+}
+:is(.ops-page, .is-published) .ops-link:has(.ops-website-preview) {
+  padding: 16px 18px 12px;
+  gap: 12px 10px;
+}
+:is(.ops-page, .is-published) .ops-link > .ops-website-preview {
+  width: 100%;
+  flex-basis: 100%;
+  margin: 0;
+  border-radius: 8px;
+}
+:is(.ops-page, .is-published) .ops-link:hover {
+  box-shadow: 0 8px 22px rgb(0 0 0 / .08);
+}
+:is(.ops-page, .is-published) .ops-link:active { transform: translateY(0); }
+:is(.ops-page, .is-published) .ops-foot {
+  border-top-color: color-mix(in srgb, currentColor 20%, transparent);
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ops-link { transition: none; }
+  .ops-link:hover { transform: none; }
+}
