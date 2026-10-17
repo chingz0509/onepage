@@ -669,7 +669,11 @@ export function OnePagePreview({ startFresh = false }: { startFresh?: boolean })
   const newSlot = (): LinkSlot => ({ id: ++slotSeq.current, card: null })
 
   const enterStep2 = () => {
-    if (slots.length === 0) setSlots(DEFAULT_LINK_URLS.map((initialUrl) => ({ ...newSlot(), initialUrl })))
+    if (slots.length === 0) {
+      setSlots(import.meta.env.DEV
+        ? DEFAULT_LINK_URLS.map((initialUrl) => ({ ...newSlot(), initialUrl }))
+        : [newSlot(), newSlot(), newSlot()])
+    }
     setStep(2)
   }
 
