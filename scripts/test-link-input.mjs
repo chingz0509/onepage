@@ -35,8 +35,12 @@ try {
   }
   await open()
   await page.locator('.lk-input').fill(url)
+  await new Promise(resolve => setTimeout(resolve, 1500))
+  assert.equal(requests.length, 0)
+  assert.equal(await page.$eval('.lk-input', input => input.disabled), false)
+  await page.keyboard.press('Enter')
   await resolved()
-  console.log('PASS: typing a complete URL automatically resolves a card')
+  console.log('PASS: typing waits for Enter before resolving a card')
 
   await open()
   await page.$eval('.lk-input', (input, value) => {

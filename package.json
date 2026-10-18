@@ -10,6 +10,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
+    "test:link-input": "node scripts/test-link-autoread.mjs",
     "test": "tsx --test server/backend.test.ts server/dataFetch.test.ts server/huaban.test.ts server/pages.test.ts server/screenshot.test.ts"
   },
   "dependencies": {

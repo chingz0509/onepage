@@ -197,7 +197,7 @@ type LinkSlot = { id: number; card: OnePageLink | null; initialUrl?: string }
 const READ_STEPS = ['正在打开主页…', '正在读取平台数据…', '正在核实数据…', '✓ 读取完成']
 
 /**
- * 链接输入槽：输入或粘贴完整网址后去抖自动读取，Enter / 失焦可立即触发，
+ * 链接输入槽：粘贴完整网址后去抖自动读取；键盘输入等待 Enter / 失焦确认，
  * 期间并行拉取真实数据（dataFetch 三轨制），完成后经 onResolve 交给父级变条目；
  * 重复平台走 onDuplicate 并自我清空。每个槽位独立持有自己的计时器，多槽并行互不阻塞。
  */
@@ -300,9 +300,10 @@ function LinkInputSlot(props: {
   }
 
   const changeValue = (v: string) => {
+    if (debounceRef.current) window.clearTimeout(debounceRef.current)
+    debounceRef.current = null
     setValue(v)
     setFailure('')
-    scheduleStart(v)
   }
 
   const onPaste = (event: React.ClipboardEvent<HTMLInputElement>) => {
@@ -310,6 +311,7 @@ function LinkInputSlot(props: {
     if (!pasted) return
     event.preventDefault()
     changeValue(pasted)
+    scheduleStart(pasted)
   }
 
   useEffect(() => {
@@ -329,7 +331,7 @@ function LinkInputSlot(props: {
           value={value} placeholder={props.placeholder} disabled={reading}
           onChange={(event) => changeValue(event.target.value)} onPaste={onPaste}
           onBlur={() => { if (debounceRef.current) window.clearTimeout(debounceRef.current); start(value) }}
-          onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); if (debounceRef.current) window.clearTimeout(debounceRef.current); start(value) } }} />
+          onKeyDown={(event) => { if (event.key === 'Enter' && !event.nativeEvent.isComposing) { event.preventDefault(); if (debounceRef.current) window.clearTimeout(debounceRef.current); start(value) } }} />
         <span className="lk-input-icon" aria-hidden="true">{reading ? <span className="lk-spinner" /> : failure ? <span className="lk-alert">!</span> : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>}</span>
       </div>
       {reading && <p className="lk-reading" role="status">{stepIdx === 3 ? finalText : 'AI 正在读取主页信息 …'}</p>}
@@ -349,7 +351,7 @@ function LinkInputSlot(props: {
           onPaste={onPaste}
           onBlur={() => start(value)}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') {
+            if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
               e.preventDefault()
               if (debounceRef.current) window.clearTimeout(debounceRef.current)
               start(value)
