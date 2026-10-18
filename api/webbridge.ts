@@ -11,12 +11,11 @@ type Res = {
   end: (body: string) => void
 }
 
-const PUBLIC_WEB_BRIDGE_URL = 'http://39.107.124.201:18021/command'
-const LOCAL_WEB_BRIDGE_URL = 'http://127.0.0.1:10086/command'
+const DEFAULT_WEB_BRIDGE_URL = 'http://172.104.164.40:10086/command'
 
 export function resolveWebBridgeUrl(env: NodeJS.ProcessEnv = process.env): string {
   if (env.WEBBRIDGE_URL) return env.WEBBRIDGE_URL
-  return env.VERCEL ? PUBLIC_WEB_BRIDGE_URL : LOCAL_WEB_BRIDGE_URL
+  return DEFAULT_WEB_BRIDGE_URL
 }
 
 function forwardCommand(url: string, body: unknown): Promise<{ status: number; text: string }> {

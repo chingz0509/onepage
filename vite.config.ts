@@ -1,7 +1,7 @@
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import apiFetch from './api/fetch'
-import apiWebBridge from './api/webbridge'
+import apiWebBridge, { resolveWebBridgeUrl } from './api/webbridge'
 import apiPages from './api/pages'
 import apiScreenshot from './api/screenshot'
 
@@ -47,7 +47,7 @@ function devApi(): Plugin {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  for (const key of ['CHROME_EXECUTABLE_PATH', 'BROWSER_WS_ENDPOINT', 'SCRAPER_PROVIDER', 'SCRAPER_API_KEY', 'SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY']) {
+  for (const key of ['WEBBRIDGE_URL', 'CHROME_EXECUTABLE_PATH', 'BROWSER_WS_ENDPOINT', 'SCRAPER_PROVIDER', 'SCRAPER_API_KEY', 'SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY']) {
     if (process.env[key] === undefined && env[key]) process.env[key] = env[key]
   }
   return {
@@ -55,10 +55,10 @@ export default defineConfig(({ mode }) => {
     base: './',
     server: {
       proxy: {
-        // 演示机上把 WebBridge 代理进同源，页面免 CORS 直接调用本机浏览器抓取。
+        // WebBridge 通过同源代理连接服务器浏览器。
         // 桥服务对带 Origin 头的请求会返回空响应，代理时剥掉 Origin。
         '/bridge': {
-          target: 'http://127.0.0.1:10086',
+          target: new URL(resolveWebBridgeUrl()).origin,
           changeOrigin: true,
           rewrite: (p) => p.replace(/^\/bridge/, ''),
           configure: (proxy) => {

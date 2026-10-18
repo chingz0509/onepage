@@ -180,9 +180,9 @@ test('WebBridge proxy only accepts POST', async () => {
   assert.equal(JSON.parse(body).error.code, 'method-not-allowed')
 })
 
-test('WebBridge proxy uses the local daemon in development and public bridge on Vercel', () => {
-  assert.equal(resolveWebBridgeUrl({}), 'http://127.0.0.1:10086/command')
-  assert.equal(resolveWebBridgeUrl({ VERCEL: '1' }), 'http://39.107.124.201:18021/command')
+test('WebBridge proxy uses the server in development and on Vercel', () => {
+  assert.equal(resolveWebBridgeUrl({}), 'http://172.104.164.40:10086/command')
+  assert.equal(resolveWebBridgeUrl({ VERCEL: '1' }), 'http://172.104.164.40:10086/command')
   assert.equal(resolveWebBridgeUrl({ WEBBRIDGE_URL: 'https://bridge.example/command' }), 'https://bridge.example/command')
 })
 

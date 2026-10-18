@@ -22,6 +22,8 @@
 
 ## 本地运行
 
+WebBridge 默认通过 `http://172.104.164.40:10086/command` 连接服务器上的浏览器，本地开发和 Vercel 使用同一默认地址，不依赖个人电脑上的 WebBridge。可用服务端环境变量 `WEBBRIDGE_URL` 覆盖；如果 Vercel 已配置旧地址，需要更新该变量并重新部署。服务器浏览器需要保持运行，登录态也需在服务器上维护。
+
 使用 Node.js 22，安装依赖后运行 `npm run dev`。内置 Chromium 面向 Linux；macOS / Windows 本地开发请在 `.env.local` 设置 `CHROME_EXECUTABLE_PATH` 指向已安装的 Chrome。Vite 会仅在服务端读取这些变量；不要加 `VITE_` 前缀。
 
 运行 `npm test` 验证后端规则，`npm run build` 检查构建。
